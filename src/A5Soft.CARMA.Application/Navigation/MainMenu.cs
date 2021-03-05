@@ -46,6 +46,11 @@ namespace A5Soft.CARMA.Application.Navigation
                 resourceType, useCaseType, icon));
         }
 
+        /// <summary>
+        /// Gets a menu group item (submenu) that has the name requested.
+        /// </summary>
+        /// <param name="name">a name of the menu group item (submenu) to find</param>
+        /// <returns>a menu group item (submenu) that has the name requested; null if no such menu group</returns>
         public MenuItem GetMenuGroup(string name)
         {
             if (name.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(name));
@@ -61,6 +66,18 @@ namespace A5Soft.CARMA.Application.Navigation
 
             return null;
         }
+
+        /// <summary>
+        /// Resets group menus (submenus) enabled state after (if) a GUI app adds its own menu items.
+        /// </summary>
+        public void ResetEnabledForMenuGroups()
+        {
+            foreach (var item in TopItems)
+            {
+                item.ResetEnabledForMenuGroups();
+            }
+        }
+
 
         internal void SetAuthorization(IAuthorizationProvider authorizationProvider, ClaimsIdentity user)
         {

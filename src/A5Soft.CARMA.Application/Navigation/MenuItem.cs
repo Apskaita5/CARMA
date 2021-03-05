@@ -35,8 +35,7 @@ namespace A5Soft.CARMA.Application.Navigation
             IsEnabled = false;
             UseCaseType = null;
             Items = null;
-            IsSeparator = true;
-            IsMenuGroup = false;
+            ItemType = MenuItemType.Separator;
         }
 
         /// <summary>
@@ -66,8 +65,7 @@ namespace A5Soft.CARMA.Application.Navigation
             IsEnabled = true;
             UseCaseType = useCaseType ?? throw new ArgumentNullException(nameof(useCaseType));
             Items = null;
-            IsSeparator = false;
-            IsMenuGroup = false;
+            ItemType = MenuItemType.UseCase; 
         }
 
         /// <summary>
@@ -96,8 +94,7 @@ namespace A5Soft.CARMA.Application.Navigation
             IsEnabled = true;
             UseCaseType = null;
             Items = new List<MenuItem>();
-            IsSeparator = false;
-            IsMenuGroup = true;
+            ItemType = MenuItemType.Submenu; 
         }
 
         /// <summary>
@@ -128,9 +125,9 @@ namespace A5Soft.CARMA.Application.Navigation
             IsEnabled = true;
             UseCaseType = null;
             Items = null;
-            IsSeparator = false;
-            IsMenuGroup = false;
+            ItemType = MenuItemType.GuiAppItem; 
             OnClick = onClick;
+            _tag = tag;
         }
 
         #endregion
@@ -141,59 +138,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// Gets a name of the menu item (should be unique within main menu).
         /// </summary>
         public string Name { get; }
-
-        /// <summary>
-        /// Gets the DisplayName property, which may be a resource key string.
-        /// <para>
-        /// Consumers must use the <see cref="GetDisplayName"/> method to retrieve the UI display string.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// The property contains either the literal, non-localized string or the resource key
-        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
-        /// name for display.
-        /// <para>
-        /// The <see cref="GetDisplayName"/> method will return either the literal, non-localized
-        /// string or the localized string when <see cref="ResourceType"/> has been specified.
-        /// </para>
-        /// </remarks>
-        /// <value>
-        /// The name is generally used as the menu label for a UI element bound to the member. 
-        /// </value>
-        public string DisplayName
-        {
-            get
-            {
-                return this._displayName.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gets the Description attribute property, which may be a resource key string.
-        /// <para>
-        /// Consumers must use the <see cref="GetDescription"/> method to retrieve the UI display string.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// The property contains either the literal, non-localized string or the resource key
-        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
-        /// description for display.
-        /// <para>
-        /// The <see cref="GetDescription"/> method will return either the literal, non-localized
-        /// string or the localized string when <see cref="ResourceType"/> has been specified.
-        /// </para>
-        /// </remarks>
-        /// <value>
-        /// Description is generally used as a tool tip or description a UI element bound to the member
-        /// </value>
-        public string Description
-        {
-            get
-            {
-                return this._description.Value;
-            }
-        }
-
+               
         /// <summary>
         /// Gets the <see cref="System.Type"/> that contains the resources for <see cref="DisplayName"/>
         /// and <see cref="Description"/>.
@@ -212,6 +157,11 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         public bool IsEnabled { get; private set; }
 
+         /// <summary>
+        /// Gets a type of the menu item.
+        /// </summary>
+        public MenuItemType ItemType { get; }
+
         /// <summary>
         /// Gets a type of the (main) use case that handles action associated with the menu item.
         /// E.g. create invoice use case handles menu item "New Invoice".
@@ -222,13 +172,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// Sub items of this menu item. Optional.
         /// </summary>
         public virtual List<MenuItem> Items { get; private set; }
-
-        /// <summary>
-        /// Returns true if this menu item has no child <see cref="Items"/>.
-        /// </summary>
-        public bool IsLeaf 
-            => null == Items || Items.Count < 1;
-
+                       
         /// <summary>
         /// Gets or sets an action that shall be executed when a user clicks the menu item.
         /// </summary>
@@ -241,16 +185,6 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         public object Tag
         { get => _tag; set => _tag = value; }
-
-        /// <summary>
-        /// Gets a value indicating whether it's a menu group separator (not an actual menu item).
-        /// </summary>
-        public bool IsSeparator { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the menu item is intended to be a menu group (not an actual menu item).
-        /// </summary>
-        public bool IsMenuGroup { get; }
 
         #endregion
 
@@ -327,15 +261,15 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Invokes on click action for the menu item.
         /// Throws InvalidOperationException if <see cref="OnClick"/> handler is not set
-        /// or it is a menu group item (not <see cref="IsLeaf"/>) or it <see cref="IsSeparator"/>.
+        /// or it is a <see cref="MenuItemType.Submenu"/> or it is a <see cref="MenuItemType.Separator"/>.
         /// </summary>
         public void InvokeOnClick()
         {
             if (null == _onClick) throw new InvalidOperationException(
                 $"OnClick method is not set for menu item {Name}.");
-            if (!IsLeaf) throw new InvalidOperationException(
+            if (ItemType == MenuItemType.Submenu) throw new InvalidOperationException(
                 $"OnClick method cannot be invoked for a menu group ({Name}).");
-            if (IsSeparator) throw new InvalidOperationException(
+            if (ItemType == MenuItemType.Separator) throw new InvalidOperationException(
                 $"OnClick method cannot be invoked for a menu group separator.");
 
             _onClick(this);
@@ -343,15 +277,15 @@ namespace A5Soft.CARMA.Application.Navigation
 
         /// <summary>
         /// Gets a value indicating whether it's possible to invoke <see cref="OnClick"/> handler,
-        /// i.e. the menu item is not a separator, the menu item <see cref="IsLeaf"/>
+        /// i.e. it is not a <see cref="MenuItemType.Submenu"/> or a <see cref="MenuItemType.Separator"/>
         /// and the <see cref="OnClick"/> handler is set. 
         /// </summary>
         /// <returns>a value indicating whether it's possible to invoke <see cref="OnClick"/> handler,
-        /// i.e. the menu item is not a separator, the menu item <see cref="IsLeaf"/>
+        /// i.e. it is not a <see cref="MenuItemType.Submenu"/> or a <see cref="MenuItemType.Separator"/>
         /// and the <see cref="OnClick"/> handler is set</returns>
         public bool CanInvokeOnClick()
         {
-            return (IsLeaf && !IsSeparator && null != _onClick);
+            return (ItemType != MenuItemType.Submenu && ItemType != MenuItemType.Separator && null != _onClick);
         }
 
         /// <summary>
@@ -359,7 +293,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         public void AddSeparator()
         {
-            if (!IsMenuGroup) throw new InvalidOperationException(
+            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
             
             if (null == Items) Items = new List<MenuItem>();
@@ -379,7 +313,7 @@ namespace A5Soft.CARMA.Application.Navigation
         public void AddMenuGroup(string name, string displayName, string description, Type resourceType,
             string icon = "")
         {
-            if (!IsMenuGroup) throw new InvalidOperationException(
+            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
 
             if (null == Items) Items = new List<MenuItem>();
@@ -401,7 +335,7 @@ namespace A5Soft.CARMA.Application.Navigation
         public void AddLeaf(string name, string displayName, string description, Type resourceType,
             Type useCaseType, string icon = "")
         {
-            if (!IsMenuGroup) throw new InvalidOperationException(
+            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
 
             if (null == Items) Items = new List<MenuItem>();
@@ -424,26 +358,31 @@ namespace A5Soft.CARMA.Application.Navigation
         public void AddGuiAppDefinedLeaf(string name, string displayName, string description, 
             Type resourceType, Action<MenuItem> onClick, object tag = null, string icon = "")
         {
-            if (!IsMenuGroup) throw new InvalidOperationException(
+            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
 
             if (null == Items) Items = new List<MenuItem>();
 
             Items.Add(new MenuItem(name, displayName, description, resourceType, onClick, tag, icon));
+
+            IsEnabled = true;
         }
 
         internal MenuItem GetMenuGroup(string name)
         {
-            if (!IsMenuGroup) return null;
+            if (ItemType != MenuItemType.Submenu) return null;
 
             if (Name.Trim().Equals(name, StringComparison.OrdinalIgnoreCase))
                 return this;
 
-            MenuItem result = null;
-            foreach (var item in Items)
+            if (null != Items)
             {
-                result = item.GetMenuGroup(name);
-                if (!result.IsNull()) return result;
+                MenuItem result = null;
+                foreach (var item in Items)
+                {
+                    result = item.GetMenuGroup(name);
+                    if (!result.IsNull()) return result;
+                }
             }
 
             return null;
@@ -451,17 +390,10 @@ namespace A5Soft.CARMA.Application.Navigation
 
         internal void SetAuthorization(IAuthorizationProvider authorizationProvider, ClaimsIdentity user)
         {
-            if (IsLeaf)
+            if (ItemType == MenuItemType.Submenu)
             {
-                if (null == UseCaseType) IsEnabled = true;
-                else
-                {
-                    var authorizer = authorizationProvider.GetAuthorizer(UseCaseType);
-                    IsEnabled = authorizer.IsAuthorized(user);
-                }
-            }
-            else
-            {
+                if (null == Items) Items = new List<MenuItem>();
+
                 foreach (var item in Items)
                 {
                     item.SetAuthorization(authorizationProvider, user);
@@ -469,16 +401,77 @@ namespace A5Soft.CARMA.Application.Navigation
 
                 IsEnabled = Items.Any(i => i.IsEnabled);
             }
+            else if (ItemType == MenuItemType.UseCase)
+            {
+                if (null == UseCaseType) IsEnabled = false;
+                else
+                {
+                    var authorizer = authorizationProvider.GetAuthorizer(UseCaseType);
+                    IsEnabled = authorizer.IsAuthorized(user);
+                }
+            }
         }
 
         internal void AddPluginMenuItem(MenuItem pluginMenuItem)
         {
-            if (!IsMenuGroup) throw new InvalidOperationException(
+            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
+            if (pluginMenuItem.ItemType == MenuItemType.Separator) throw new InvalidOperationException(
+                "Plugins cannot add separators at root level.");
+            pluginMenuItem.ValidatePluginMenuItem();
 
             if (null == Items) Items = new List<MenuItem>();
 
             Items.Add(pluginMenuItem);
+        }
+
+        private void ValidatePluginMenuItem()
+        {
+            if (ItemType == MenuItemType.GuiAppItem)
+            {
+                throw new InvalidOperationException("Plugins cannot add GUI app defined menu items.");
+            }
+            else if (ItemType == MenuItemType.UseCase)
+            {
+                if (null == UseCaseType) throw new InvalidOperationException(
+                    $"Plugin menu item {Name} has null use case type.");
+                if (null == ResourceType) throw new InvalidOperationException(
+                    $"Plugin menu item {Name} has null resource type (plugins shall provide localized values).");
+                if (null == _displayName.Value) throw new InvalidOperationException(
+                    $"Plugin menu item {Name} has null display name (plugins shall provide localized values).");
+
+            }
+            else if (ItemType == MenuItemType.Submenu)
+            {
+                if (Name.IsNullOrWhiteSpace()) throw new InvalidOperationException(
+                    $"Cannot add a menu group with a null name for a plugin.");
+                if (null == ResourceType) throw new InvalidOperationException(
+                    $"Plugin menu item {Name} has null resource type (plugins shall provide localized values).");
+                if (_displayName.Value.IsNullOrWhiteSpace()) throw new InvalidOperationException(
+                    $"Plugin menu item {Name} has null display name (plugins shall provide localized values).");
+                if (null == Items || Items.Count < 1) throw new InvalidOperationException(
+                    $"Cannot add a menu group without any items for a plugin.");
+                foreach (var item in Items)
+                {
+                    item.ValidatePluginMenuItem();
+                }
+            }
+
+        }
+
+        internal void ResetEnabledForMenuGroups()
+        {
+            if (ItemType == MenuItemType.Submenu)
+            {
+                if (null == Items) Items = new List<MenuItem>();
+
+                foreach (var item in Items)
+                {
+                    item.ResetEnabledForMenuGroups();
+                }
+
+                IsEnabled = Items.Any(i => i.IsEnabled);
+            }
         }
 
         #endregion
