@@ -166,7 +166,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// Gets a type of the (main) use case that handles action associated with the menu item.
         /// E.g. create invoice use case handles menu item "New Invoice".
         /// </summary>
-        public Type UseCaseType { get; }
+        public Type UseCaseType { get; private set; }
 
         /// <summary>
         /// Sub items of this menu item. Optional.
@@ -457,6 +457,23 @@ namespace A5Soft.CARMA.Application.Navigation
                 }
             }
 
+        }
+
+        internal void ReplaceUseCase(Type baseUseCaseInterfaceType, Type pluginUseCaseInterfaceType)
+        {
+            if (ItemType == MenuItemType.UseCase)
+            {
+                if (UseCaseType == baseUseCaseInterfaceType) UseCaseType = pluginUseCaseInterfaceType;
+            }
+            else if (ItemType == MenuItemType.Submenu)
+            {
+                if (null == Items) Items = new List<MenuItem>();
+
+                foreach (var item in Items)
+                {
+                    item.ReplaceUseCase(baseUseCaseInterfaceType, pluginUseCaseInterfaceType);
+                }
+            }
         }
 
         internal void ResetEnabledForMenuGroups()

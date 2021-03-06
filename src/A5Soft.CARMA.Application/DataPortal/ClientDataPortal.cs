@@ -28,7 +28,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             _remoteClientPortal?.IsRemote ?? false;
 
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TResult}" />
         public async Task<TResult> InvokeAsync<TResult>(Type interfaceType, ClaimsIdentity identity) 
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
@@ -39,7 +39,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg, TResult}" />
         public async Task<TResult> InvokeAsync<TArg, TResult>(Type interfaceType, TArg parameter, 
             ClaimsIdentity identity) 
         {
@@ -51,7 +51,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TResult}" />
         public async Task<TResult> InvokeAsync<TArg1, TArg2, TResult>(Type interfaceType,
             TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity)
         {
@@ -64,7 +64,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3, TResult}" />
         public async Task<TResult> InvokeAsync<TArg1, TArg2, TArg3, TResult>(
             Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, 
             TArg3 thirdParameter, ClaimsIdentity identity)
@@ -78,7 +78,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TResult}" />
         public async Task<TResult> InvokeAsync<TResult>(Type interfaceType)
         {
             var result = await InvokeAsync(
@@ -87,7 +87,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg, TResult}" />
         public async Task<TResult> InvokeAsync<TArg, TResult>(Type interfaceType, TArg parameter)
         {
             var result = await InvokeAsync(
@@ -96,7 +96,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TResult}" />
         public async Task<TResult> InvokeAsync<TArg1, TArg2, TResult>(Type interfaceType, 
             TArg1 firstParameter, TArg2 secondParameter)
         {
@@ -106,7 +106,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3, TResult}" />
         public async Task<TResult> InvokeAsync<TArg1, TArg2, TArg3, TResult>(Type interfaceType,
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
@@ -117,13 +117,13 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync" />
         public Task InvokeAsync(Type interfaceType, ClaimsIdentity identity)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType, identity));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg}" />
         public async Task InvokeAsync<TArg>(Type interfaceType, TArg parameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
@@ -131,7 +131,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             _ = await InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType, parameter, identity));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2}" />
         public async Task InvokeAsync<TArg1, TArg2>(Type interfaceType, TArg1 firstParameter, 
             TArg2 secondParameter, ClaimsIdentity identity)
         {
@@ -141,7 +141,7 @@ namespace A5Soft.CARMA.Application.DataPortal
                     interfaceType, firstParameter, secondParameter, identity));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3}" />
         public async Task InvokeAsync<TArg1, TArg2, TArg3>(Type interfaceType, TArg1 firstParameter, 
             TArg2 secondParameter, TArg3 thirdParameter, ClaimsIdentity identity)
         {
@@ -151,26 +151,26 @@ namespace A5Soft.CARMA.Application.DataPortal
                     interfaceType, firstParameter, secondParameter, thirdParameter, identity));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync" />
         public Task InvokeAsync(Type interfaceType)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg}" />
         public Task InvokeAsync<TArg>(Type interfaceType, TArg parameter)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest<TArg>(interfaceType, parameter));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2}" />
         public Task InvokeAsync<TArg1, TArg2>(Type interfaceType, TArg1 firstParameter, TArg2 secondParameter)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType, 
                 firstParameter, secondParameter));
         }
 
-        /// <inheritdoc cref="o:IClientDataPortal.InvokeAsync" />
+        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3}" />
         public Task InvokeAsync<TArg1, TArg2, TArg3>(
             Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
@@ -203,12 +203,6 @@ namespace A5Soft.CARMA.Application.DataPortal
                 return (T)formatter.Deserialize(ms);
             }
         }
-
-        private void EnsureRemote()
-        {
-            if (!IsRemote) throw new InvalidOperationException(
-                "Cannot invoke remote method on a data portal that is not remote.");
-        }
-
+        
     }
 }

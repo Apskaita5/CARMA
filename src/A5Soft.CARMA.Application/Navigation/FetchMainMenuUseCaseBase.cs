@@ -75,6 +75,10 @@ namespace A5Soft.CARMA.Application.Navigation
             {
                 result = GetBaseMainMenu();
 
+                var replacedUseCaseInterfaces = await GetReplacedUseCaseInterfaceTypesAsync(allowedPlugins);
+
+                result.ReplaceUseCases(replacedUseCaseInterfaces);
+
                 var plugins = await GetPluginMenuItemsAsync(allowedPlugins);
 
                 foreach (var itemsCollection in plugins)
@@ -84,7 +88,7 @@ namespace A5Soft.CARMA.Application.Navigation
                     {
                         var menuItem = result.GetMenuGroup(menuKey);
                         if (menuItem.IsNull()) throw new InvalidOperationException(
-                            $"Plugin error - cannot find a main menu group by name {menuKey}.");
+                            $"Plugin error - cannot find a base menu group (submenu) by name {menuKey}.");
 
                         menuItem.AddSeparator();
                         foreach (var item in itemsCollection
@@ -121,9 +125,19 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         /// <param name="allowedPlugins">a list of the plugin ids that are supported by the app,
         /// e.g. a client winforms app</param>
-        /// <returns>a <see cref="MainMenu"/> for base app functionality</returns>
         /// <remarks>This method is always executed on server side (if data portal is configured).</remarks>
         protected abstract Task<List<List<KeyValuePair<string, MenuItem>>>> GetPluginMenuItemsAsync(
+            IList<string> allowedPlugins);
+
+        /// <summary>
+        /// Implement this method to fetch a dictionary of replaced use case interfaces for each relevant plugin.
+        /// </summary>
+        /// <param name="allowedPlugins">a list of the plugin ids that are supported by the app,
+        /// e.g. a client winforms app</param>
+        /// <remarks>This method is always executed on server side (if data portal is configured).
+        /// Plugins may wish to change how the base menu behaves,
+        /// e.g. to create a new invoice using plugin use case instead of the base one.</remarks>
+        protected abstract Task<Dictionary<Type, Type>> GetReplacedUseCaseInterfaceTypesAsync(
             IList<string> allowedPlugins);
 
     }

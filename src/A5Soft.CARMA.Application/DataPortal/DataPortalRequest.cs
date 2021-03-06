@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using A5Soft.CARMA.Domain;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
@@ -36,9 +37,9 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             if (null != identity && identity.IsAuthenticated)
                 IdentityClaims = identity.Claims
-                    .Select(c => new KeyValuePair<string, string>(c.Type, c.Value))
+                    .Select(c => new DataPortalClaim(c))
                     .ToList();
-            else IdentityClaims = new List<KeyValuePair<string, string>>();
+            else IdentityClaims = new List<DataPortalClaim>();
 
             if (null == parameters) UseCaseParams = new List<DataPortalParameter>();
             else UseCaseParams = new List<DataPortalParameter>(parameters);
@@ -67,7 +68,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <summary>
         /// Gets or sets a list of claims for the user who invokes the remote method.
         /// </summary>
-        public List<KeyValuePair<string, string>> IdentityClaims { get; set; }
+        public List<DataPortalClaim> IdentityClaims { get; set; }
 
         /// <summary>
         /// Gets or sets a list of (serialized) parameters for remote method invocation.
@@ -124,13 +125,12 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>a ClaimsIdentity instance with the claims within the request</returns>
         public ClaimsIdentity GetIdentity(string authenticationType)
         {
-            if (null == authenticationType || authenticationType.Trim().Length < 1)
-                throw new ArgumentNullException(nameof(authenticationType));
+            if (authenticationType.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(authenticationType));
 
             if (null != IdentityClaims && IdentityClaims.Count > 0)
             {
                 return new ClaimsIdentity(IdentityClaims
-                    .Select(p => new Claim(p.Key, p.Value)), authenticationType);
+                    .Select(p => p.ToClaim()), authenticationType);
             }
 
             return new ClaimsIdentity();

@@ -87,5 +87,17 @@ namespace A5Soft.CARMA.Application.Navigation
             }
         }
 
+        internal void ReplaceUseCases(Dictionary<Type, Type> useCaseInterfaceTypesToReplace)
+        {
+            foreach (var useCaseInterfaceTypeToReplace in useCaseInterfaceTypesToReplace)
+            {
+                foreach (var item in TopItems)
+                {
+                    item.ReplaceUseCase(useCaseInterfaceTypeToReplace.Key, 
+                        useCaseInterfaceTypeToReplace.Value);
+                }
+            }
+        }
+
     }
 }
