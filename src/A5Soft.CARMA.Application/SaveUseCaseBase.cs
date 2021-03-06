@@ -49,11 +49,11 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         /// <param name="domainDto">business data for the domain entity to save</param>
         /// <returns>a domain entity that has been saved (persisted)</returns>
-        public async Task<TDomObject> InvokeAsync(TDomInterface domainDto)
+        public async Task<TDomObject> SaveAsync(TDomInterface domainDto)
         {
             if (domainDto.IsNull()) throw new ArgumentNullException(nameof(domainDto));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync), domainDto);
+            _logger?.LogMethodEntry(this.GetType(), nameof(SaveAsync), domainDto);
 
             TDomObject result;
 
@@ -62,7 +62,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(domainDto);
-                    result = await _dataPortal.InvokeAsync<TDomInterface, TDomObject>(
+                    result = await _dataPortal.FetchAsync<TDomInterface, TDomObject>(
                         this.GetType().GetRemoteServiceInterfaceType(), domainDto, User);
                     if (result is ITrackState stateful) stateful.SetValidationEngine(_validationEngineProvider);
                     await AfterDataPortalAsync(domainDto, result);
@@ -73,7 +73,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+                _logger?.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
 
                 return result;
             }
@@ -83,7 +83,7 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await SaveAsync(domainDto);
+                result = await DoSaveAsync(domainDto);
             }
             catch (Exception e)
             {
@@ -91,7 +91,7 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+            _logger?.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
 
             return result;
         }
@@ -109,7 +109,7 @@ namespace A5Soft.CARMA.Application
         /// However if the authorization depends on the entity data,
         /// appropriate authorization shall be applied in this method.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<TDomObject> SaveAsync(TDomInterface domainDto);
+        protected abstract Task<TDomObject> DoSaveAsync(TDomInterface domainDto);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.

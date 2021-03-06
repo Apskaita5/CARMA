@@ -492,8 +492,8 @@ namespace A5Soft.CARMA.Domain
 
         #region Child bindings
 
-        private List<string> _statefulChildren = new List<string>();
-        private List<string> _bindableChildren = new List<string>();
+        private readonly List<string> _statefulChildren = new List<string>();
+        private readonly List<string> _bindableChildren = new List<string>();
         
 
         /// <summary>
@@ -625,18 +625,18 @@ namespace A5Soft.CARMA.Domain
         #region Bubbling event Hooks
 
         [NonSerialized]
-        private Dictionary<string, PropertyChangedEventHandler> _propertyChangedDelegates
+        private readonly Dictionary<string, PropertyChangedEventHandler> _propertyChangedDelegates
             = new Dictionary<string, PropertyChangedEventHandler>();
         [NonSerialized]
-        private Dictionary<string, ListChangedEventHandler> _listChangedDelegates
+        private readonly Dictionary<string, ListChangedEventHandler> _listChangedDelegates
             = new Dictionary<string, ListChangedEventHandler>();
         [NonSerialized]
-        private Dictionary<string, NotifyCollectionChangedEventHandler> _collectionChangedDelegates
+        private readonly Dictionary<string, NotifyCollectionChangedEventHandler> _collectionChangedDelegates
             = new Dictionary<string, NotifyCollectionChangedEventHandler>();
         [NonSerialized]
-        private Dictionary<string, EventHandler<ChildChangedEventArgs>> _childChangedDelegates
+        private readonly Dictionary<string, EventHandler<ChildChangedEventArgs>> _childChangedDelegates
             = new Dictionary<string, EventHandler<ChildChangedEventArgs>>();
-        private List<string> _childrenWithEvents = new List<string>();
+        private readonly List<string> _childrenWithEvents = new List<string>();
 
 
         /// <summary>

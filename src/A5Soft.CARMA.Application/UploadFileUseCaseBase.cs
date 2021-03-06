@@ -30,11 +30,11 @@ namespace A5Soft.CARMA.Application
         /// Uploads a file.
         /// </summary>
         /// <param name="file">a file to upload</param>
-        public async Task InvokeAsync(FileContent file)
+        public async Task UploadFileAsync(FileContent file)
         {
             if (file.IsNull()) throw new ArgumentNullException(nameof(file));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync));
+            _logger?.LogMethodEntry(this.GetType(), nameof(UploadFileAsync));
 
             if (_dataPortal.IsRemote)
             {
@@ -50,7 +50,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                _logger?.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
 
                 return;
             }
@@ -67,7 +67,7 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+            _logger?.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
         }
 
         /// <summary>

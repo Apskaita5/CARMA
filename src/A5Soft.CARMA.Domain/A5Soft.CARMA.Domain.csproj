@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageProjectUrl>https://github.com/Apskaita5/CARMA</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>© Marius Dagys 2021</Copyright>
+    <Authors>Marius Dagys</Authors>
+    <Description>Clean Architecture Rich Model Application framework (domain framework)</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\D\My Documents\My Projects\A5Soft\CARMA\src\A5Soft.CARMA.Domain\A5Soft.CARMA.Domain.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

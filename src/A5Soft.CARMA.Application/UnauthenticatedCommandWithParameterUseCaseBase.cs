@@ -37,7 +37,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(parameter);
-                    await _dataPortal.InvokeAsync(this.GetType().GetRemoteServiceInterfaceType(), parameter);
+                    await _dataPortal.InvokeUnauthenticatedAsync(this.GetType().GetRemoteServiceInterfaceType(), parameter);
                     await AfterDataPortalAsync(parameter);
                 }
                 catch (Exception e)

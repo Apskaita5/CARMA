@@ -16,9 +16,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
 
         internal PropertyMetadata(PropertyInfo propInfo)
         {
-            if (null == propInfo) throw new ArgumentNullException(nameof(propInfo));
-
-            _propertyInfo = propInfo;
+            _propertyInfo = propInfo ?? throw new ArgumentNullException(nameof(propInfo));
             IsReadOnly = (null == propInfo.GetSetMethod(false));
             _displayAttribute = propInfo.GetCustomAttributeWithInheritance<DisplayAttribute>();
         }

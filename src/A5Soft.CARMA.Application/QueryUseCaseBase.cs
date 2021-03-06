@@ -35,9 +35,9 @@ namespace A5Soft.CARMA.Application
         /// Gets a query result (that does not depend on any criteria).
         /// </summary>
         /// <returns>a query result</returns>
-        public async Task<TResult> InvokeAsync()
+        public async Task<TResult> QueryAsync()
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync));
+            _logger?.LogMethodEntry(this.GetType(), nameof(QueryAsync));
 
             TResult result;
 
@@ -46,7 +46,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync();
-                    result = await _dataPortal.InvokeAsync<TResult>(
+                    result = await _dataPortal.FetchAsync<TResult>(
                         this.GetType().GetRemoteServiceInterfaceType(), User);
                     await AfterDataPortalAsync(result);
                 }
@@ -56,7 +56,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+                _logger?.LogMethodExit(this.GetType(), nameof(QueryAsync), result);
 
                 return result;
             }
@@ -65,7 +65,7 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await QueryAsync();
+                result = await DoQueryAsync();
             }
             catch (Exception e)
             {
@@ -73,7 +73,7 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+            _logger?.LogMethodExit(this.GetType(), nameof(QueryAsync), result);
 
             return result;
         }
@@ -84,7 +84,7 @@ namespace A5Soft.CARMA.Application
         /// <returns>a query result</returns>
         /// <remarks>At this stage user has already been authorized.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<TResult> QueryAsync();
+        protected abstract Task<TResult> DoQueryAsync();
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.

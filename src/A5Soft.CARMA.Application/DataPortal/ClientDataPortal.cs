@@ -17,6 +17,10 @@ namespace A5Soft.CARMA.Application.DataPortal
         private readonly IRemoteClientPortal _remoteClientPortal;
 
 
+        /// <summary>
+        /// constructor for DI
+        /// </summary>
+        /// <param name="remoteClientPortal">remote client portal to use</param>
         public ClientDataPortal(IRemoteClientPortal remoteClientPortal)
         {
             _remoteClientPortal = remoteClientPortal;
@@ -28,8 +32,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             _remoteClientPortal?.IsRemote ?? false;
 
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TResult}" />
-        public async Task<TResult> InvokeAsync<TResult>(Type interfaceType, ClaimsIdentity identity) 
+        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TResult}" />
+        public async Task<TResult> FetchAsync<TResult>(Type interfaceType, ClaimsIdentity identity) 
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
             
@@ -39,8 +43,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg, TResult}" />
-        public async Task<TResult> InvokeAsync<TArg, TResult>(Type interfaceType, TArg parameter, 
+        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg, TResult}" />
+        public async Task<TResult> FetchAsync<TArg, TResult>(Type interfaceType, TArg parameter, 
             ClaimsIdentity identity) 
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
@@ -51,8 +55,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TResult}" />
-        public async Task<TResult> InvokeAsync<TArg1, TArg2, TResult>(Type interfaceType,
+        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1, TArg2, TResult}" />
+        public async Task<TResult> FetchAsync<TArg1, TArg2, TResult>(Type interfaceType,
             TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
@@ -64,8 +68,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3, TResult}" />
-        public async Task<TResult> InvokeAsync<TArg1, TArg2, TArg3, TResult>(
+        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1,TArg2,TArg3,TResult}" />
+        public async Task<TResult> FetchAsync<TArg1, TArg2, TArg3, TResult>(
             Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, 
             TArg3 thirdParameter, ClaimsIdentity identity)
         {
@@ -78,8 +82,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TResult}" />
-        public async Task<TResult> InvokeAsync<TResult>(Type interfaceType)
+        /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TResult}" />
+        public async Task<TResult> FetchUnauthenticatedAsync<TResult>(Type interfaceType)
         {
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(interfaceType));
@@ -87,8 +91,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg, TResult}" />
-        public async Task<TResult> InvokeAsync<TArg, TResult>(Type interfaceType, TArg parameter)
+        /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg, TResult}" />
+        public async Task<TResult> FetchUnauthenticatedAsync<TArg, TResult>(Type interfaceType, TArg parameter)
         {
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(interfaceType, parameter));
@@ -96,8 +100,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TResult}" />
-        public async Task<TResult> InvokeAsync<TArg1, TArg2, TResult>(Type interfaceType, 
+        /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg1, TArg2, TResult}" />
+        public async Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type interfaceType, 
             TArg1 firstParameter, TArg2 secondParameter)
         {
             var result = await InvokeAsync(
@@ -106,8 +110,8 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3, TResult}" />
-        public async Task<TResult> InvokeAsync<TArg1, TArg2, TArg3, TResult>(Type interfaceType,
+        /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg1,TArg2,TArg3,TResult}" />
+        public async Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TArg3, TResult>(Type interfaceType,
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
             var result = await InvokeAsync(
@@ -147,31 +151,31 @@ namespace A5Soft.CARMA.Application.DataPortal
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
             
-            _ = await InvokeAsync(DataPortalRequest.NewDataPortalRequest<TArg1, TArg2, TArg3>(
-                    interfaceType, firstParameter, secondParameter, thirdParameter, identity));
+            _ = await InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType, firstParameter, 
+                secondParameter, thirdParameter, identity));
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync" />
-        public Task InvokeAsync(Type interfaceType)
+        /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync" />
+        public Task InvokeUnauthenticatedAsync(Type interfaceType)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType));
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg}" />
-        public Task InvokeAsync<TArg>(Type interfaceType, TArg parameter)
+        /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg}" />
+        public Task InvokeUnauthenticatedAsync<TArg>(Type interfaceType, TArg parameter)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest<TArg>(interfaceType, parameter));
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2}" />
-        public Task InvokeAsync<TArg1, TArg2>(Type interfaceType, TArg1 firstParameter, TArg2 secondParameter)
+        /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg1, TArg2}" />
+        public Task InvokeUnauthenticatedAsync<TArg1, TArg2>(Type interfaceType, TArg1 firstParameter, TArg2 secondParameter)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType, 
                 firstParameter, secondParameter));
         }
 
-        /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3}" />
-        public Task InvokeAsync<TArg1, TArg2, TArg3>(
+        /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg1, TArg2, TArg3}" />
+        public Task InvokeUnauthenticatedAsync<TArg1, TArg2, TArg3>(
             Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
             return InvokeAsync(DataPortalRequest.NewDataPortalRequest(interfaceType, 

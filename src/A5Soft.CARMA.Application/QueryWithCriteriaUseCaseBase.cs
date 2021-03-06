@@ -38,9 +38,9 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         /// <param name="criteria">a criteria for the query</param>
         /// <returns>a query result</returns>
-        public async Task<TResult> InvokeAsync(TCriteria criteria)
+        public async Task<TResult> QueryAsync(TCriteria criteria)
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync), criteria);
+            _logger?.LogMethodEntry(this.GetType(), nameof(QueryAsync), criteria);
 
             TResult result;
 
@@ -49,7 +49,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(criteria);
-                    result = await _dataPortal.InvokeAsync<TCriteria, TResult>(
+                    result = await _dataPortal.FetchAsync<TCriteria, TResult>(
                         this.GetType().GetRemoteServiceInterfaceType(), criteria, User);
                     await AfterDataPortalAsync(criteria, result);
                 }
@@ -59,7 +59,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                _logger?.LogMethodExit(this.GetType(), nameof(QueryAsync));
 
                 return result;
             }
@@ -70,7 +70,7 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await QueryAsync(criteria);
+                result = await DoQueryAsync(criteria);
             }
             catch (Exception e)
             {
@@ -78,7 +78,7 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+            _logger?.LogMethodExit(this.GetType(), nameof(QueryAsync));
 
             return result;
         }
@@ -91,7 +91,7 @@ namespace A5Soft.CARMA.Application
         /// <remarks>At this stage user has already been authorized.
         /// The criteria param is NOT guaranteed to be not null (as it could be a valid option).
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<TResult> QueryAsync(TCriteria criteria);
+        protected abstract Task<TResult> DoQueryAsync(TCriteria criteria);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.

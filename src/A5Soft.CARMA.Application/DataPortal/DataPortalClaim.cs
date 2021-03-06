@@ -9,11 +9,19 @@ namespace A5Soft.CARMA.Application.DataPortal
     [Serializable]
     public class DataPortalClaim
     {
-
+        /// <summary>
+        /// new (empty instance)
+        /// </summary>
         public DataPortalClaim() {}
 
+        /// <summary>
+        /// new instance that contains the data of the <paramref name="claim"/>
+        /// </summary>
+        /// <param name="claim">a claim to create a new DataPortalClaim for</param>
         public DataPortalClaim(Claim claim)
         {
+            if (null == claim) throw new ArgumentNullException(nameof(claim));
+
             ClaimType = claim.Type;
             ClaimValue = claim.Value;
             ClaimValueType = claim.ValueType;

@@ -51,11 +51,11 @@ namespace A5Soft.CARMA.Application
         /// Gets a lookup value.
         /// </summary>
         /// <param name="requesterType">a type of the use case that requests the lookup</param>
-        public async Task<TLookup> InvokeAsync(Type requesterType)
+        public async Task<TLookup> FetchAsync(Type requesterType)
         {
             if (requesterType.IsNull()) throw new ArgumentNullException(nameof(requesterType));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync), requesterType);
+            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync), requesterType);
 
             TLookup result;
 
@@ -67,12 +67,12 @@ namespace A5Soft.CARMA.Application
 
                     if (!result.IsNull())
                     {
-                        _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+                        _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
                         return result;
                     }
 
-                    result = await _dataPortal.InvokeAsync<Type, TLookup>(
+                    result = await _dataPortal.FetchAsync<Type, TLookup>(
                         this.GetType().GetRemoteServiceInterfaceType(), requesterType, User);
 
                     SetLocalCacheValue(result);
@@ -83,7 +83,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync));
 
                 return result;
             }
@@ -92,7 +92,7 @@ namespace A5Soft.CARMA.Application
             {
                 Authorize(requesterType);
 
-                result = await FetchIntAsync();
+                result = await DoFetchAsync();
             }
             catch (Exception e)
             {
@@ -100,7 +100,7 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+            _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync));
 
             return result;
         }
@@ -128,7 +128,7 @@ namespace A5Soft.CARMA.Application
         /// Implement this method to fetch lookup value from a database or a server side cache.
         /// </summary>
         /// <remarks>If required, filter out the returned lookup values for the <see cref="User"/>.</remarks>
-        protected abstract Task<TLookup> FetchIntAsync();
+        protected abstract Task<TLookup> DoFetchAsync();
 
 
         private void Authorize(Type requesterType)

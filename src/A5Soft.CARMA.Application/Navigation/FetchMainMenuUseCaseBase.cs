@@ -57,7 +57,7 @@ namespace A5Soft.CARMA.Application.Navigation
             {
                 try
                 {
-                    result = await _dataPortal.InvokeAsync< IList<string>, MainMenu >(
+                    result = await _dataPortal.FetchAsync< IList<string>, MainMenu >(
                         this.GetType().GetRemoteServiceInterfaceType(), allowedPlugins, User);
                 }
                 catch (Exception e)

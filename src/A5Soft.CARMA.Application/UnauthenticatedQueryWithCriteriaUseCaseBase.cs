@@ -44,7 +44,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(criteria);
-                    result = await _dataPortal.InvokeAsync<TCriteria, TResult>(
+                    result = await _dataPortal.FetchUnauthenticatedAsync<TCriteria, TResult>(
                         this.GetType().GetRemoteServiceInterfaceType(), criteria);
                     await AfterDataPortalAsync(criteria, result);
                 }

@@ -40,11 +40,11 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         /// <param name="id">an identity of the entity to fetch</param>
         /// <returns>a domain entity</returns>
-        public async Task<T> InvokeAsync(IDomainEntityIdentity id)
+        public async Task<T> FetchAsync(IDomainEntityIdentity id)
         {
             if (id.IsNull()) throw new ArgumentNullException(nameof(id));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync), id);
+            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync), id);
 
             if (id.IsNew) throw new ArgumentException(
                 "Entity id must reference an already existing entity.", nameof(id));
@@ -56,7 +56,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(id);
-                    result = await _dataPortal.InvokeAsync<IDomainEntityIdentity, T>(
+                    result = await _dataPortal.FetchAsync<IDomainEntityIdentity, T>(
                         this.GetType().GetRemoteServiceInterfaceType(), id, User);
                     if (result is ITrackState stateful) stateful.SetValidationEngine(_validationEngineProvider);
                     await AfterDataPortalAsync(id, result);
@@ -67,7 +67,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+                _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
                 return result;
             }
@@ -78,7 +78,7 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await FetchAsync(id);
+                result = await DoFetchAsync(id);
             }
             catch (Exception e)
             {
@@ -89,7 +89,7 @@ namespace A5Soft.CARMA.Application
             if (Authorizer.AuthorizationImplementedForParam<T>())
                 Authorizer.IsAuthorized(User, result, true);
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+            _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
             return result;
         }
@@ -102,7 +102,7 @@ namespace A5Soft.CARMA.Application
         /// <remarks>At this stage user has already been authorized
         /// and the id param is guaranteed to be not null.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<T> FetchAsync(IDomainEntityIdentity id);
+        protected abstract Task<T> DoFetchAsync(IDomainEntityIdentity id);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.

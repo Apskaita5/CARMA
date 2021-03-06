@@ -40,9 +40,9 @@ namespace A5Soft.CARMA.Application
         /// e.g. company settings. 
         /// </summary>
         /// <returns>a domain singleton</returns>
-        public async Task<T> InvokeAsync()
+        public async Task<T> FetchAsync()
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync));
+            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync));
 
             T result;
 
@@ -51,7 +51,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync();
-                    result = await _dataPortal.InvokeAsync<T>(
+                    result = await _dataPortal.FetchAsync<T>(
                         this.GetType().GetRemoteServiceInterfaceType(), User);
                     await AfterDataPortalAsync(result);
                 }
@@ -61,7 +61,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+                _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
                 return result;
             }
@@ -70,7 +70,7 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await FetchAsync();
+                result = await DoFetchAsync();
             }
             catch (Exception e)
             {
@@ -78,7 +78,7 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync), result);
+            _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
             return result;
         }
@@ -89,7 +89,7 @@ namespace A5Soft.CARMA.Application
         /// <returns>a domain singleton instance</returns>
         /// <remarks>At this stage user has already been authorized.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<T> FetchAsync();
+        protected abstract Task<T> DoFetchAsync();
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.
