@@ -1,4 +1,4 @@
-﻿namespace A5Soft.CARMA.Application
+﻿namespace A5Soft.CARMA.Domain
 {
     /// <summary>
     /// Defines use case life time in a DI container.

@@ -10,7 +10,7 @@ namespace A5Soft.CARMA.Application.Authorization
     {
 
         /// <summary>
-        /// Gets a type of use case that the authorizer is for.
+        /// Gets a type of a use case that the authorizer is for.
         /// </summary>
         Type UseCaseType { get; }
 
@@ -22,7 +22,6 @@ namespace A5Soft.CARMA.Application.Authorization
         /// <param name="identity">user identity</param>
         /// <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
         /// if the user is not authorized</param>
-        /// <returns></returns>
         bool IsAuthorized(ClaimsIdentity identity, bool throwOnUnauthorized = false);
 
         /// <summary>
@@ -35,7 +34,6 @@ namespace A5Soft.CARMA.Application.Authorization
         /// <param name="parameter">a use case parameter to use for authorization</param>
         /// <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
         /// if the user is not authorized</param>
-        /// <returns></returns>
         bool IsAuthorized<TParam>(ClaimsIdentity identity, TParam parameter, bool throwOnUnauthorized = false);
 
         /// <summary>

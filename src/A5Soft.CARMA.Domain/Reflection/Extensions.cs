@@ -1,35 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace A5Soft.CARMA.Domain.Reflection
 {
+    /// <summary>
+    /// Extensions for common reflection tasks.
+    /// </summary>
     public static class Extensions
     {
 
-        public static PropertyInfo GetPropertyInfo<TSource, TProperty>(this TSource source,
-            Expression<Func<TSource, TProperty>> propertyLambda) where TSource : class
-        {
-            return GetPropertyInfo(propertyLambda);
-        }
-
-        public static TAttribute GetCustomAttribute<TAttribute, TSource, TProperty>(this TSource source,
-            Expression<Func<TSource, TProperty>> propertyLambda) where TSource : class where TAttribute : Attribute
-        {
-            return GetCustomAttribute<TAttribute, TSource, TProperty>(propertyLambda);
-        }
-
-        public static List<TAttribute> GetCustomAttributes<TAttribute, TSource, TProperty>(this TSource source,
-            Expression<Func<TSource, TProperty>> propertyLambda) where TSource : class where TAttribute : Attribute
-        {
-            return GetCustomAttributes<TAttribute, TSource, TProperty>(propertyLambda);
-        }
-
+        /// <summary>
+        /// Gets a list of custom attributes of type TAttribute for the property specified.
+        /// Includes attributes defined for the same property by the ancestor classes and interfaces.
+        /// </summary>
+        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+        /// <param name="baseProp"></param>
         public static List<TAttribute> GetCustomAttributesWithInheritance<TAttribute>(
             this PropertyInfo baseProp) where TAttribute : Attribute
         {
@@ -54,6 +42,12 @@ namespace A5Soft.CARMA.Domain.Reflection
             return result;
         }
 
+        /// <summary>
+        /// Gets a first custom attribute of type TAttribute for the property specified.
+        /// Includes attributes defined for the same property by the ancestor classes and interfaces.
+        /// </summary>
+        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+        /// <param name="baseProp"></param>
         public static TAttribute GetCustomAttributeWithInheritance<TAttribute>(
             this PropertyInfo baseProp) where TAttribute : Attribute
         {
@@ -74,28 +68,12 @@ namespace A5Soft.CARMA.Domain.Reflection
             return null;
         }
 
-        public static TAttribute GetCustomAttributeWithInheritance<TAttribute>(this Type type) where TAttribute : Attribute
-        {
-            if (null == type) throw new ArgumentNullException(nameof(type));
-
-            var result = type.GetCustomAttributes(typeof(TAttribute), false);
-            if (null != result && result.Length > 0) return (TAttribute)result[0];
-
-            foreach (var inheritedType in GetInheritedTypes(type))
-            {
-                result = inheritedType.GetCustomAttributes(typeof(TAttribute), false);
-                if (null != result && result.Length > 0) return (TAttribute)result[0];
-            }
-
-            foreach (var interfaceType in GetAllInterfaces(type))
-            {
-                result = interfaceType.GetCustomAttributes(typeof(TAttribute), false);
-                if (null != result && result.Length > 0) return (TAttribute)result[0];
-            }
-
-            return null;
-        }
-
+        /// <summary>
+        /// Gets a list of custom attributes of type TAttribute for the (class or interface) type specified.
+        /// Includes attributes defined by the ancestor classes and interfaces.
+        /// </summary>
+        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+        /// <param name="type"></param>
         public static List<TAttribute> GetCustomAttributesWithInheritance<TAttribute>(
             this Type type) where TAttribute : Attribute
         {
@@ -121,70 +99,73 @@ namespace A5Soft.CARMA.Domain.Reflection
         }
 
 
-        public static string GetEnumDisplayValue<T>(this T value)
+        /// <summary>
+        /// Gets a localized name of an enum value. (see <see cref="DisplayAttribute.Name"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
+        public static string GetEnumDisplayName<TEnum>(this TEnum value)
         {
-            return value.GetEnumDisplayProperty(a => a.Name, v =>
+            return value.GetEnumDisplayProperty(a => a.GetName(), 
+                v => value?.ToString() ?? string.Empty);
+        }
+
+        /// <summary>
+        /// Gets a localized short name of an enum value. (see <see cref="DisplayAttribute.ShortName"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
+        public static string GetEnumDisplayShortName<TEnum>(this TEnum value)
+        {
+            return value.GetEnumDisplayProperty(a => a.GetShortName(),
+                v => value?.ToString() ?? string.Empty);
+        }
+
+        /// <summary>
+        /// Gets a localized description of an enum value. (see <see cref="DisplayAttribute.Description"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
+        public static string GetEnumDescription<TEnum>(TEnum value)
+        {
+            return value.GetEnumDisplayProperty(a => a.GetDescription(), v => string.Empty);
+        }
+
+        /// <summary>
+        /// Gets a localized dataSource for the enum values.
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum</typeparam>
+        /// <param name="values"></param>
+        public static List<(TEnum Value, string Name, string Description)> GetEnumDataSource<TEnum>(
+            this IEnumerable<TEnum> values) where TEnum : struct
+        {
+            Type enumType = typeof(TEnum);
+            if (!enumType.IsEnum) throw new InvalidOperationException(
+                "Method GetEnumDisplayProperty is only applicable for Enum types.");
+
+            var result = new List<(TEnum Value, string Name, string Description)>();
+            foreach (var enumValue in values)
             {
-                if (null == value) return string.Empty;
-                return value.ToString();
-            });
+                var fieldInfo = enumType.GetField(enumValue.ToString());
+
+                var descriptionAttributes = fieldInfo.GetCustomAttributes(
+                    typeof(DisplayAttribute), false) as DisplayAttribute[];
+
+                if (null == descriptionAttributes || descriptionAttributes.Length < 1 ||
+                    descriptionAttributes[0].Name.IsNullOrWhiteSpace())
+                {
+                    result.Add((Value: enumValue, Name: enumValue.ToString(), Description: string.Empty));
+                }
+                else
+                {
+                    result.Add((Value: enumValue, Name: descriptionAttributes[0].GetName() ?? enumValue.ToString(), 
+                        Description: descriptionAttributes[0].GetDescription() ?? string.Empty));
+                }
+            }
+
+            return result;
         }
 
-        public static string GetEnumDisplayShortValue<T>(this T value)
-        {
-            return value.GetEnumDisplayProperty(a => a.ShortName, v =>
-            {
-                if (null == value) return string.Empty;
-                return value.ToString();
-            });
-        }
-
-        public static string GetEnumDescription<T>(T value)
-        {
-            return value.GetEnumDisplayProperty(a => a.Description, v => string.Empty);
-        }
-
-
-
-        private static TAttribute GetCustomAttribute<TAttribute, TSource, TProperty>(
-            Expression<Func<TSource, TProperty>> propertyLambda) where TAttribute : Attribute
-        {
-            var baseProp = GetPropertyInfo<TSource, TProperty>(propertyLambda);
-            return GetCustomAttributeWithInheritance<TAttribute>(baseProp);
-        }
-
-        private static List<TAttribute> GetCustomAttributes<TAttribute, TSource, TProperty>(
-            Expression<Func<TSource, TProperty>> propertyLambda) where TAttribute : Attribute
-        {
-            var baseProp = GetPropertyInfo<TSource, TProperty>(propertyLambda);
-            return GetCustomAttributesWithInheritance<TAttribute>(baseProp);
-        }
-
-        private static PropertyInfo GetPropertyInfo<TSource, TProperty>(
-            Expression<Func<TSource, TProperty>> propertyLambda)
-        {
-            var type = typeof(TSource);
-
-            if (!(propertyLambda.Body is MemberExpression member))
-                throw new ArgumentException(string.Format(
-                    "Expression '{0}' refers to a method, not a property.",
-                    propertyLambda.ToString()));
-
-            var propInfo = member.Member as PropertyInfo;
-            if (propInfo == null)
-                throw new ArgumentException(string.Format(
-                    "Expression '{0}' refers to a field, not a property.",
-                    propertyLambda.ToString()));
-
-            if (type != propInfo.ReflectedType &&
-                !type.IsSubclassOf(propInfo.ReflectedType))
-                throw new ArgumentException(string.Format(
-                    "Expresion '{0}' refers to a property that is not from type {1}.",
-                    propertyLambda.ToString(),
-                    type));
-
-            return propInfo;
-        }
 
         private static List<PropertyInfo> GetInheritedProperties(PropertyInfo prop)
         {
@@ -259,14 +240,14 @@ namespace A5Soft.CARMA.Domain.Reflection
             return result;
         }
 
-        private static string GetEnumDisplayProperty<T>(this T value, Func<DisplayAttribute, string> propGetter, 
-            Func<T, string> defaultValueGetter)
+        private static string GetEnumDisplayProperty<TEnum>(this TEnum value, Func<DisplayAttribute, string> propGetter, 
+            Func<TEnum, string> defaultValueGetter)
         {
             Type enumType = null;
-            if (typeof(T).IsEnum) enumType = typeof(T);
-            if (null == enumType) enumType = Nullable.GetUnderlyingType(typeof(T));
+            if (typeof(TEnum).IsEnum) enumType = typeof(TEnum);
+            if (null == enumType) enumType = Nullable.GetUnderlyingType(typeof(TEnum));
             if (null == enumType || !enumType.IsEnum) throw new InvalidOperationException(
-                "Method GetDescriptionAttributeForEnumValue is only applicable for Enum types.");
+                "Method GetEnumDisplayProperty is only applicable for Enum types.");
 
             if (null == value) return defaultValueGetter(value);
 
@@ -279,11 +260,9 @@ namespace A5Soft.CARMA.Domain.Reflection
                 propGetter(descriptionAttributes[0]).IsNullOrWhiteSpace())
                 return defaultValueGetter(value);
 
-            if (null != descriptionAttributes[0].ResourceType)
-                return LookupResource(descriptionAttributes[0].ResourceType, 
-                    propGetter(descriptionAttributes[0]));
+            var result = propGetter(descriptionAttributes[0]);
 
-            return propGetter(descriptionAttributes[0]);
+            return result.IsNullOrWhiteSpace() ? defaultValueGetter(value) : result;
         }
 
         private static string LookupResource(Type resourceManagerProvider, string resourceKey)

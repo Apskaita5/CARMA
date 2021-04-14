@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -23,7 +22,8 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         internal EntityMetadata(Type entityType)
         {
             if (null == entityType) throw new ArgumentNullException(nameof(entityType));
-            if (!entityType.IsClass && !entityType.IsInterface) throw new ArgumentException(
+            if ((!entityType.IsClass && !entityType.IsInterface) || entityType == typeof(string)) 
+                throw new ArgumentException(
                 "Metadata can only be defined for classes or interfaces.", nameof(entityType));
 
             EntityType = entityType;

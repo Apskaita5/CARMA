@@ -1,9 +1,11 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application
@@ -16,22 +18,14 @@ namespace A5Soft.CARMA.Application
     public abstract class FetchDomainSingletonUseCaseBase<T> : AuthorizedUseCaseBase
         where T : class, IDomainObject
     {
-        protected readonly IValidationEngineProvider _validationEngineProvider;
-        private readonly IClientDataPortal _dataPortal;
-        protected readonly ILogger _logger;
-
-
-        protected FetchDomainSingletonUseCaseBase(IValidationEngineProvider validationEngineProvider,
-            ILogger logger, IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider, 
-            ClaimsIdentity userIdentity) : base(authorizationProvider, userIdentity)
+        /// <inheritdoc />
+        protected FetchDomainSingletonUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(T).IsSerializable) throw new InvalidOperationException(
                 $"Domain entity must be (binary) serializable while type {typeof(T).FullName} is not.");
-
-            _validationEngineProvider = validationEngineProvider ??
-                throw new ArgumentNullException(nameof(validationEngineProvider));
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
         }
 
 
@@ -39,29 +33,31 @@ namespace A5Soft.CARMA.Application
         /// Fetches a domain singleton, i.e. a domain entity that only has one instance per domain,
         /// e.g. company settings. 
         /// </summary>
+        /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a domain singleton</returns>
-        public async Task<T> FetchAsync()
+        public async Task<T> FetchAsync(CancellationToken ct = default)
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync));
+            Logger.LogMethodEntry(this.GetType(), nameof(FetchAsync));
 
             T result;
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
-                    await BeforeDataPortalAsync();
-                    result = await _dataPortal.FetchAsync<T>(
-                        this.GetType().GetRemoteServiceInterfaceType(), User);
-                    await AfterDataPortalAsync(result);
+                    await BeforeDataPortalAsync(ct);
+                    result = await DataPortal.FetchAsync<T>(this.GetType(), User, ct);
+                    if (result is ITrackState statefulResult) 
+                        statefulResult.SetValidationEngine(ValidationProvider);
+                    await AfterDataPortalAsync(result, ct);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
+                Logger.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
                 return result;
             }
@@ -70,15 +66,15 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await DoFetchAsync();
+                result = await DoFetchAsync(ct);
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
+            Logger.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
             return result;
         }
@@ -89,13 +85,13 @@ namespace A5Soft.CARMA.Application
         /// <returns>a domain singleton instance</returns>
         /// <remarks>At this stage user has already been authorized.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<T> DoFetchAsync();
+        protected abstract Task<T> DoFetchAsync(CancellationToken ct);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.
         /// Only invoked if a remote data portal is used. 
         /// </summary>
-        protected virtual Task BeforeDataPortalAsync()
+        protected virtual Task BeforeDataPortalAsync(CancellationToken ct)
             => Task.CompletedTask;
 
         /// <summary>
@@ -103,8 +99,15 @@ namespace A5Soft.CARMA.Application
         /// a successful remote invocation. (e.g. clear local cache)
         /// Only invoked if a remote data portal is used. 
         /// </summary>
-        protected virtual Task AfterDataPortalAsync(T result)
+        protected virtual Task AfterDataPortalAsync(T result, CancellationToken ct)
             => Task.CompletedTask;
+
+
+        /// <summary>
+        /// Gets metadata for the entity fetched.
+        /// </summary>
+        public IEntityMetadata GetMetadata()
+            => MetadataProvider.GetEntityMetadata<T>();
 
     }
 }

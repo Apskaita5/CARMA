@@ -1,11 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using A5Soft.CARMA.Domain;
+using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
     /// <summary>
     /// A base interface for remote data portal implementations.
     /// </summary>
-    [Service(ServiceLifetime.Singleton, typeof(LocalClientPortal))]
+    [Service(ServiceLifetime.Singleton)]
     public interface IRemoteClientPortal 
     {
 
@@ -21,7 +23,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="request">json serialized remote method invocation request</param>
         /// <returns>binary serialized remote invocation response</returns>
         /// <remarks>From the implementation point of view the underlying (serialized) types are not important.</remarks>
-        Task<string> GetResponseAsync(string request);
+        Task<string> GetResponseAsync(string request, CancellationToken ct = default);
 
     }
 }

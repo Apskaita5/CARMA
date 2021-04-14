@@ -6,6 +6,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
     /// <summary>
     /// Default implementation of IMetadataProvider using validation attributes.
     /// </summary>
+    [DefaultServiceImplementation(typeof(IMetadataProvider))]
     public class DefaultMetadataProvider : IMetadataProvider
     {
         private static readonly ConcurrentDictionary<Type, EntityMetadata> _cache

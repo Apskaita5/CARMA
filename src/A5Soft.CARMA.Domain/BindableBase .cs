@@ -12,7 +12,6 @@ namespace A5Soft.CARMA.Domain
     [Serializable]
     public abstract class BindableBase : INotifyPropertyChanged, INotifyPropertyChanging, IDomainObject, IBindable
     {
-
         /// <summary>
         /// Creates an instance of the object.
         /// </summary>
@@ -22,6 +21,7 @@ namespace A5Soft.CARMA.Domain
         private bool _notifyPropertyChangedEnabled = false;
         private bool _notifyPropertyChangingEnabled = false;
         private BindingMode _bindingMode = BindingMode.WinForms;
+        private bool _suspendBinding = false;
 
 
         /// <inheritdoc cref="IBindable.NotifyPropertyChangedEnabled" />
@@ -100,6 +100,11 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected virtual void OnBindingModeChanged() { }
 
+        /// <summary>
+        /// apply with using pattern to temporally disable binding events
+        /// </summary>
+        public IDisposable SuspendBindings() 
+            => new SuspendBindingsInt(this);
 
         #region INotifyPropertyChanged
 
@@ -157,7 +162,7 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (NotifyPropertyChangedEnabled)
+            if (NotifyPropertyChangedEnabled && !_suspendBinding)
             {
                 _nonSerializableChangedHandlers?.Invoke(this,
                     new PropertyChangedEventArgs(propertyName));
@@ -176,7 +181,7 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual void OnPropertiesChanged(params string[] propertyNames)
         {
-            if (NotifyPropertyChangedEnabled)
+            if (NotifyPropertyChangedEnabled && !_suspendBinding)
             {
                 if (_bindingMode == BindingMode.WinForms)
                 {
@@ -270,7 +275,7 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual void OnPropertyChanging(string propertyName)
         {
-            if (NotifyPropertyChangingEnabled)
+            if (NotifyPropertyChangingEnabled && !_suspendBinding)
             {
                 _nonSerializableChangingHandlers?.Invoke(this,
                     new PropertyChangingEventArgs(propertyName));
@@ -289,7 +294,7 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual void OnPropertiesChanging(params string[] propertyNames)
         {
-            if (NotifyPropertyChangingEnabled)
+            if (NotifyPropertyChangingEnabled && !_suspendBinding)
             {
                 foreach (var propertyName in propertyNames)
                 {
@@ -315,6 +320,45 @@ namespace A5Soft.CARMA.Domain
         }
 
         #endregion
+
+        /// <summary>
+        /// apply with using pattern to temporally disable binding events
+        /// </summary>
+        private sealed class SuspendBindingsInt : IDisposable
+        {
+            private bool disposedValue;
+            private BindableBase _forDomainObject;
+
+            /// <summary>
+            /// apply with using pattern to temporally disable binding events 
+            /// </summary>
+            /// <param name="forDomainObject">a domain object to disable the binding events for</param>
+            public SuspendBindingsInt(BindableBase forDomainObject)
+            {
+                _forDomainObject = forDomainObject ?? throw new ArgumentNullException(nameof(forDomainObject));
+                forDomainObject._suspendBinding = true;
+            }
+
+            private void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        _forDomainObject._suspendBinding = false;
+                    }
+
+                    disposedValue = true;
+                }
+            }
+
+            
+            void IDisposable.Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+            }
+        }
 
     }
 }

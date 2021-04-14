@@ -1,5 +1,8 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
+using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -13,18 +16,11 @@ namespace A5Soft.CARMA.Application
     /// i.e. either a primitive or a POCO)</typeparam>
     public abstract class CommandWithParameterUseCaseBase<TParameter> : AuthorizedUseCaseBase
     {
-        protected readonly ILogger _logger;
-        private readonly IClientDataPortal _dataPortal;
-
-
         /// <inheritdoc />
-        protected CommandWithParameterUseCaseBase(ILogger logger, IClientDataPortal dataPortal,
-            IAuthorizationProvider authorizationProvider, ClaimsIdentity userIdentity) : 
-            base(authorizationProvider, userIdentity)
-        {
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
-        }
+        protected CommandWithParameterUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -33,23 +29,23 @@ namespace A5Soft.CARMA.Application
         /// <param name="parameter">a parameter for the command</param>
         public async Task InvokeAsync(TParameter parameter)
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync), parameter);
+            Logger.LogMethodEntry(this.GetType(), nameof(InvokeAsync), parameter);
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(parameter);
-                    await _dataPortal.InvokeAsync(this.GetType().GetRemoteServiceInterfaceType(), parameter, User);
+                    await DataPortal.InvokeAsync(this.GetType(), parameter, User);
                     await AfterDataPortalAsync(parameter);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
 
                 return;
             }
@@ -64,11 +60,11 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+            Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
         }
 
         /// <summary>
@@ -95,6 +91,32 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         protected virtual Task AfterDataPortalAsync(TParameter parameter)
             => Task.CompletedTask;
+
+
+        /// <summary>
+        /// Gets metadata for the command parameter.
+        /// Returns null if the parameter is not a class or an interface.
+        /// </summary>
+        public IEntityMetadata GetParameterMetadata()
+        {
+            var criteriaType = typeof(TParameter);
+            if (!criteriaType.IsInterface && !criteriaType.IsClass) return null;
+            if (criteriaType == typeof(string)) return null;
+            return MetadataProvider.GetEntityMetadata(criteriaType);
+        }
+
+        /// <summary>
+        /// Validates a parameter (as a POCO object) and returns a broken rules collection
+        /// that can be used to determine whether the parameter is valid and what are the
+        /// broken rules (if invalid).
+        /// </summary>
+        /// <param name="parameter">parameter to validate</param>
+        /// <remarks>Override this method in order to implement custom validation
+        /// or disable validation by returning a new (empty) <see cref="BrokenRulesCollection"/>.</remarks>
+        public virtual BrokenRulesCollection Validate(TParameter parameter)
+        {
+            return ValidationProvider.ValidatePoco(parameter);
+        }
 
     }
 }

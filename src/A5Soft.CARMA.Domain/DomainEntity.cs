@@ -30,9 +30,12 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
-        protected DomainEntity(IDomainEntityIdentity identity, IValidationEngineProvider validationEngineProvider) 
-            : base(validationEngineProvider)
+        protected DomainEntity(IDomainEntityIdentity identity, IValidationEngineProvider validationEngineProvider, 
+            bool allowNewIdentity = false) : base(validationEngineProvider)
         {
+            if (!allowNewIdentity && (identity?.IsNew ?? true)) throw new InvalidOperationException(
+                "Cannot set new (null) identity for an existing entity.");
+            if (identity.IsNull()) identity = CreateNewIdentity();
             EnsureValidIdentity(identity);
             _id = identity;
         }

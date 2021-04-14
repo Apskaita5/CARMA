@@ -4,7 +4,9 @@ using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Application
 {
@@ -15,23 +17,14 @@ namespace A5Soft.CARMA.Application
     public abstract class FetchDomainEntityUseCaseBase<T> : AuthorizedUseCaseBase
         where T : class, IDomainEntity
     {
-        protected readonly IValidationEngineProvider _validationEngineProvider;
-        private readonly IClientDataPortal _dataPortal;
-        protected readonly ILogger _logger;
-
-
         /// <inheritdoc />
-        protected FetchDomainEntityUseCaseBase(IValidationEngineProvider validationEngineProvider, 
-            ILogger logger, IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider, 
-            ClaimsIdentity userIdentity) : base(authorizationProvider, userIdentity)
+        protected FetchDomainEntityUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(T).IsSerializable) throw new InvalidOperationException(
                 $"Fetch result must be (binary) serializable while type {typeof(T).FullName} is not.");
-
-            _validationEngineProvider = validationEngineProvider ??
-                throw new ArgumentNullException(nameof(validationEngineProvider));
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
         }
 
 
@@ -39,35 +32,38 @@ namespace A5Soft.CARMA.Application
         /// Gets a domain entity by its identity.
         /// </summary>
         /// <param name="id">an identity of the entity to fetch</param>
+        /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a domain entity</returns>
-        public async Task<T> FetchAsync(IDomainEntityIdentity id)
+        public async Task<T> FetchAsync(IDomainEntityIdentity id, CancellationToken ct = default)
         {
             if (id.IsNull()) throw new ArgumentNullException(nameof(id));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync), id);
+            Logger.LogMethodEntry(this.GetType(), nameof(FetchAsync), id);
 
             if (id.IsNew) throw new ArgumentException(
                 "Entity id must reference an already existing entity.", nameof(id));
+            if (id.DomainEntityType != typeof(T)) throw new ArgumentException(
+                $"Specified id references entity type {id.DomainEntityType.FullName} " +
+                $"while the use case requires entity type {typeof(T).FullName}.");
 
             T result;
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
-                    await BeforeDataPortalAsync(id);
-                    result = await _dataPortal.FetchAsync<IDomainEntityIdentity, T>(
-                        this.GetType().GetRemoteServiceInterfaceType(), id, User);
-                    if (result is ITrackState stateful) stateful.SetValidationEngine(_validationEngineProvider);
-                    await AfterDataPortalAsync(id, result);
+                    await BeforeDataPortalAsync(id, ct);
+                    result = await DataPortal.FetchAsync<IDomainEntityIdentity, T>(this.GetType(), id, User, ct);
+                    if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
+                    await AfterDataPortalAsync(id, result, ct);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
+                Logger.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
                 return result;
             }
@@ -78,18 +74,18 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                result = await DoFetchAsync(id);
+                result = await DoFetchAsync(id, ct);
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
             if (Authorizer.AuthorizationImplementedForParam<T>())
                 Authorizer.IsAuthorized(User, result, true);
 
-            _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
+            Logger.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 
             return result;
         }
@@ -102,13 +98,13 @@ namespace A5Soft.CARMA.Application
         /// <remarks>At this stage user has already been authorized
         /// and the id param is guaranteed to be not null.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<T> DoFetchAsync(IDomainEntityIdentity id);
+        protected abstract Task<T> DoFetchAsync(IDomainEntityIdentity id, CancellationToken ct);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.
         /// Only invoked if a remote data portal is used. 
         /// </summary>
-        protected virtual Task BeforeDataPortalAsync(IDomainEntityIdentity id)
+        protected virtual Task BeforeDataPortalAsync(IDomainEntityIdentity id, CancellationToken ct)
             => Task.CompletedTask;
 
         /// <summary>
@@ -116,8 +112,14 @@ namespace A5Soft.CARMA.Application
         /// a successful remote invocation. (e.g. clear local cache)
         /// Only invoked if a remote data portal is used. 
         /// </summary>
-        protected virtual Task AfterDataPortalAsync(IDomainEntityIdentity id, T result)
+        protected virtual Task AfterDataPortalAsync(IDomainEntityIdentity id, T result, CancellationToken ct)
             => Task.CompletedTask;
+
+        /// <summary>
+        /// Gets metadata for the entity fetched.
+        /// </summary>
+        public IEntityMetadata GetMetadata() 
+            => MetadataProvider.GetEntityMetadata<T>();
 
     }
 }

@@ -4,42 +4,6 @@
         <name>A5Soft.CARMA.Domain</name>
     </assembly>
     <members>
-        <member name="T:A5Soft.CARMA.Domain.AuditableDomainEntity`1">
-            <summary>
-            A base class for all domain entities that have an identity (i.e. more than one entity
-            of the type exists in the domain and they are distinguished by identity value)
-            and auditing functionality (IAuditableEntity) implemented.
-            </summary>
-            <typeparam name="T">a type of the domain entity implementation</typeparam> 
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.AuditableDomainEntity`1.#ctor(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
-            <summary>
-            Creates a new instance of the object.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.AuditableDomainEntity`1.#ctor(A5Soft.CARMA.Domain.IDomainEntityIdentity,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,System.DateTime,System.String,System.DateTime,System.String)">
-            <summary>
-            Creates a new instance of the object.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.AuditableDomainEntity`1.InsertedAt">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.InsertedAt"/> 
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.AuditableDomainEntity`1.InsertedBy">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.InsertedBy"/>   
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.AuditableDomainEntity`1.UpdatedAt">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.UpdatedAt"/>  
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.AuditableDomainEntity`1.UpdatedBy">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.UpdatedBy"/>  
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.AuditableDomainEntity`1.OccHash">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.OccHash"/> 
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.AuditableDomainEntity`1.HideAuditTrace">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.IAuditableEntity.HideAuditTrace"/>  
-        </member>
         <member name="T:A5Soft.CARMA.Domain.BindableBase">
             <summary>
             This class implements INotifyPropertyChanged  and INotifyPropertyChanging in a 
@@ -73,6 +37,11 @@
         <member name="M:A5Soft.CARMA.Domain.BindableBase.OnBindingModeChanged">
             <summary>
             Override this method to update child objects bindings.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.BindableBase.SuspendBindings">
+            <summary>
+            apply with using pattern to temporally disable binding events
             </summary>
         </member>
         <member name="E:A5Soft.CARMA.Domain.BindableBase.PropertyChanged">
@@ -154,6 +123,17 @@
             <param name="value">the event handler to review</param>
             <returns></returns>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.BindableBase.SuspendBindingsInt">
+            <summary>
+            apply with using pattern to temporally disable binding events
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.BindableBase.SuspendBindingsInt.#ctor(A5Soft.CARMA.Domain.BindableBase)">
+            <summary>
+            apply with using pattern to temporally disable binding events 
+            </summary>
+            <param name="forDomainObject">a domain object to disable the binding events for</param>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.BindingMode">
             <summary>
             Describes binding events raising mode.
@@ -214,6 +194,51 @@
             <param name="childObject">Reference to the child object that was changed.</param>
             <param name="listArgs">ListChangedEventArgs object or null.</param>
             <param name="propertyArgs">PropertyChangedEventArgs object or null.</param>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.DefaultChildFactory`1">
+            <summary>
+            a default implementation for <see cref="T:A5Soft.CARMA.Domain.IChildFactory`1"/> that uses either constructor with a
+            <see cref="T:A5Soft.CARMA.Domain.Rules.IValidationEngineProvider"/> or a parameterless constructor.
+            </summary>
+            <typeparam name="TChild"></typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DefaultChildFactory`1.#ctor">
+            <summary>
+            Creates a new instance of child factory.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">if TChild has neither IValidationEngineProvider nor empty constructor</exception>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DefaultChildFactory`1.CreateNew(A5Soft.CARMA.Domain.IDomainObject,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.IChildFactory`1.CreateNew(A5Soft.CARMA.Domain.IDomainObject,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DefaultChildFactory`1.NewOrNull">
+            <summary>
+            if TC has either IValidationEngineProvider or empty constructor returns
+            a new <see cref="T:A5Soft.CARMA.Domain.IChildFactory`1"/> instance; otherwise returns null
+            </summary>
+            <typeparam name="TC">a type of children to create a factory for</typeparam>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute">
+            <summary>
+            Used to designate a default (remote) service or use case (interface) implementation
+            that should be added to IoC container.
+            </summary>  
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.#ctor(System.Type)">
+            <inheritdoc />
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.ServiceInterfaceType">
+            <summary>
+            a type of the service interface implemented by the class
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.GetServiceLifetime(System.Type)">
+            <summary>
+            Gets a service life time.
+            </summary>
+            <param name="implementation">a type of the service interface implementation</param>
+            <exception cref="T:System.ArgumentNullException">on null <paramref name="implementation"/></exception>
+            <exception cref="T:System.InvalidOperationException">if the service interface is not marked as a service</exception>
         </member>
         <member name="T:A5Soft.CARMA.Domain.DomainBindingList`1">
             <summary>
@@ -311,6 +336,11 @@
             </summary>
             <param name="item">Child object to check.</param>
         </member>
+        <member name="P:A5Soft.CARMA.Domain.DomainBindingList`1.ChildFactory">
+            <summary>
+            Set a child factory in order to enable dynamic adding of new items (<see cref="M:A5Soft.CARMA.Domain.DomainBindingList`1.AddNewCore"/> implementation by injection).
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.CreateNewChild">
             <summary>
             Override this method to create a new child instance that is added to the collection. 
@@ -346,7 +376,7 @@
             Clears the collection, moving all active items to the deleted list.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.AddRange(System.Collections.Generic.IList{`0},System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.AddRange(System.Collections.Generic.IEnumerable{`0},System.Boolean)">
             <summary>
             Add a range of items to the list.
             </summary>
@@ -373,6 +403,14 @@
             The value can be null for reference types.
             </param>
             <remarks></remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.Merge``1(System.Collections.Generic.IList{``0},System.Action{`0,``0})">
+            <summary>
+            merges children data from an untrusted source into the list
+            </summary>
+            <typeparam name="TIChild">type of child item domain interface</typeparam>
+            <param name="childrenByInterface">children data from an untrusted source</param>
+            <param name="mergeChild">method to merge untrusted data into a child item</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.OnAddEventHooks(`0)">
             <summary>
@@ -462,7 +500,7 @@
             Creates a new instance of the object.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.#ctor(A5Soft.CARMA.Domain.IDomainEntityIdentity,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.#ctor(A5Soft.CARMA.Domain.IDomainEntityIdentity,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,System.Boolean)">
             <summary>
             Creates a new instance of the object.
             </summary>
@@ -671,6 +709,11 @@
         <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.CanWriteProperty(System.String)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.CanWriteProperty(System.String)" />
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SuspendValidation">
+            <summary>
+            apply with using pattern to temporally disable validation
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.Delete">
             <summary>
             Marks the object for deletion. The object will be deleted as part of the
@@ -760,24 +803,28 @@
             For internal use.
             </summary>
             <param name="child">Child object.</param>
+            <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnAddEventHooks``1(``0,System.String)">
             <summary>
             Hook child object events.
             </summary>
             <param name="child">Child object.</param>
+            <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.RemoveEventHooks``1(``0,System.String)">
             <summary>
             For internal use only.
             </summary>
             <param name="child">Child object.</param>
+            <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnRemoveEventHooks``1(``0,System.String)">
             <summary>
             Unhook child object events.
             </summary>
             <param name="child">Child object.</param>
+            <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnNotifyPropertyChangingEnabledChanged">
             <summary>
@@ -827,7 +874,7 @@
             </summary>
             <param name="context">Serialization context object.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue``1(System.String,System.String,``0@,``0,System.Boolean,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetChildPropertyValue``1(System.String,System.String,``0@,``0,System.Boolean,System.Action)">
             <summary>
             Property setter that shall be used to set child object properties of the following types:
             1. BindableBase;
@@ -1415,6 +1462,17 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.DomainEntityBase`1.SuspendValidationInt`1">
+            <summary>
+            apply with using pattern to temporally disable validation
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SuspendValidationInt`1.#ctor(`1)">
+            <summary>
+            apply with using pattern to temporally disable validation
+            </summary>
+            <param name="entity">a domain object to temporally disable validation for</param>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Extensions.SplitCamelCase(System.String)">
             <summary>
             Returns a string split by camel case convention, e.g. TotalAmount -> Total Amount
@@ -1445,56 +1503,115 @@
             <param name="key">key to find</param>
             <returns>a dictionary value by key or null, if no such key in the dictionary</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.ComputeSha256Hash(System.String)">
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsSameIdentityAs(A5Soft.CARMA.Domain.IDomainEntityIdentity,A5Soft.CARMA.Domain.IDomainEntityIdentity)">
             <summary>
-            Gets a SHA256 hash value for a string.
+            Gets a value indicating whether the identity references the same entity.
             </summary>
-            <param name="rawData">a string to compute SHA256 hash for</param>
+            <param name="firstIdentity"></param>
+            <param name="identity">the identity to check</param>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.IAuditableEntity">
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.String)">
             <summary>
-            Common interface for the entities that are auditable,
-            i.e. include data on when it was created and last updated
-            as well as identifiers of the users who created and last updated the entity.
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Int32)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Nullable{System.Int32})">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Int64)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Nullable{System.Int64})">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Guid)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Nullable{System.Guid})">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.ValidatePoco``1(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,``0)">
+            <summary>
+            Validates a POCO value. Returns an empty collection if the value to validate is
+            null or not a class or an interface.
+            </summary>
+            <typeparam name="T">a type of the value to validate</typeparam>
+            <param name="validationEngine"></param>
+            <param name="valueToValidate">value to validate</param>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.GuidDomainEntityIdentity">
+            <summary>
+            <see cref="T:A5Soft.CARMA.Domain.IDomainEntityIdentity"/> implementation for Guid primary key.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IAuditableEntity.InsertedAt">
+        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.#ctor(System.Guid,System.Type)">
             <summary>
-            Gets an UTC date and time when the entity was created.
-            Returns null for a new entity not yet saved to the database.
+            Creates an GuidDomainEntityIdentity instance for an existing entity of type <paramref name="domainEntityType"/>
+            that has a (primary) key <paramref name="key"/>. 
+            </summary>
+            <param name="key">a (primary) key of the entity</param>
+            <param name="domainEntityType">a type of the entity</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.#ctor(System.Type)">
+            <summary>
+            Creates an IntDomainEntityIdentity instance for a new entity of type <paramref name="domainEntityType"/>. 
+            </summary>
+            <param name="domainEntityType">a type of the entity</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.Key">
+            <summary>
+            Gets a (typed) value of the underlying identity field (nullable for new entities).
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IAuditableEntity.InsertedBy">
-            <summary>
-            Gets an identifier (e.g. email) of the user who created the entity.
-            Returns string.Empty for a new entity not yet saved to the database.
-            </summary> 
+        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.DomainEntityType">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IAuditableEntity.UpdatedAt">
+        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IdentityValueType">
             <summary>
-            Gets an UTC date and time when the entity was last updated.
-            Returns null for a new entity not yet saved to the database.
-            Returns the same value as InsertedAt, if the entity has never been updated.
-            </summary>      
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IAuditableEntity.UpdatedBy">
-            <summary>
-            Gets an identifier (e.g. email) of the user who updated the entity last.
-            Returns string.Empty for a new entity not yet saved to the database.
-            Returns the same value as InsertedBy, if the entity has never been updated.
-            </summary>   
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IAuditableEntity.OccHash">
-            <summary>
-            Gets a hash of UpdatedAt for optimistic concurrency control.
+            Gets a type of the underlying identity field, i.e. Guid.
             </summary>
-            <remarks>UpdatedAt value shall not be used as a user might not be authorized to access audit trail data.</remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.IAuditableEntity.HideAuditTrace">
+        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IdentityValue">
             <summary>
-            Hides audit trail data, i.e. sets all audit trail properties to default values.
-            Used to hide audit trail data from a user who is not authorized to access audit trail data. 
+            Gets a value of the underlying identity field, i.e. boxed Guid? (nullable for new entities).
             </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IsNew">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.CompareTo(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.ToString">
+            <inheritdoc />
         </member>
         <member name="T:A5Soft.CARMA.Domain.IBindable">
             <summary>
@@ -1524,6 +1641,20 @@
             <summary>
             Gets a parent object if it's a child object, or null if it's a parent object.
             </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.IChildFactory`1">
+            <summary>
+            Implement to enable <see cref="T:A5Soft.CARMA.Domain.DomainBindingList`1"/> to add new child items without inheritance,
+            'see <see cref="P:A5Soft.CARMA.Domain.DomainBindingList`1.ChildFactory"/>.
+            </summary>
+            <typeparam name="TChild">a type of the child items that the factory can create</typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.IChildFactory`1.CreateNew(A5Soft.CARMA.Domain.IDomainObject,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+            <summary>
+            creates a new child item
+            </summary>
+            <param name="parent">a parent of the list (if any)</param>
+            <param name="validationEngineProvider">a validation engine provider for DI</param>
         </member>
         <member name="T:A5Soft.CARMA.Domain.IDomainEntity">
             <summary>
@@ -1616,6 +1747,46 @@
             <summary>
             Event indicating that a child object has changed.
             </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.IntDomainEntityIdentity">
+            <summary>
+            <see cref="T:A5Soft.CARMA.Domain.IDomainEntityIdentity"/> implementation for int primary key.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.IntDomainEntityIdentity.#ctor(System.Int32,System.Type)">
+            <summary>
+            Creates an IntDomainEntityIdentity instance for an existing entity of type <paramref name="domainEntityType"/>
+            that has a (primary) key <paramref name="key"/>. 
+            </summary>
+            <param name="key">a (primary) key of the entity</param>
+            <param name="domainEntityType">a type of the entity</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.IntDomainEntityIdentity.#ctor(System.Type)">
+            <summary>
+            Creates an IntDomainEntityIdentity instance for a new entity of type <paramref name="domainEntityType"/>. 
+            </summary>
+            <param name="domainEntityType">a type of the entity</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.Key">
+            <summary>
+            Gets a (typed) value of the underlying identity field (nullable for new entities).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.DomainEntityType">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IdentityValueType">
+            <summary>
+            Gets a type of the underlying identity field, i.e. int.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IdentityValue">
+            <summary>
+            Gets a value of the underlying identity field, i.e. boxed int? (nullable for new entities).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IsNew">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
         </member>
         <member name="T:A5Soft.CARMA.Domain.ITrackState">
             <summary>
@@ -1816,6 +1987,22 @@
             </summary>
             <param name="useInstanceDescription">whether to use instance description instead of
             an entity class description (for internal use only)</param>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.LookupBase">
+            <summary>
+            A base class for lookups (implements equality overloads).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.LookupBase.Id">
+            <summary>
+            An id of the referenced entity.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase.GetHashCode">
+            <inheritdoc />
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.AccountingRound(System.Double,System.Int32)">
             <summary>
@@ -2546,6 +2733,15 @@
             Stores details about a specific broken business rule.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.BrokenRule.#ctor(System.String,System.String,System.String,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            creates a new BrokenRule instance
+            </summary>
+            <param name="ruleName">name of the rule</param>
+            <param name="property">property affected by the rule</param>
+            <param name="description">description of the broken rule (error message)</param>
+            <param name="severity">severity of the broken rule</param>
+        </member>
         <member name="P:A5Soft.CARMA.Domain.Rules.BrokenRule.RuleName">
             <summary>
             Provides access to the name of the broken rule.
@@ -2554,9 +2750,9 @@
         </member>
         <member name="P:A5Soft.CARMA.Domain.Rules.BrokenRule.Description">
             <summary>
-            Provides access to the description of the broken rule.
+            Provides access to the description of the broken rule (error message).
             </summary>
-            <value>The description of the rule.</value>
+            <value>The description of the broken rule (error message).</value>
         </member>
         <member name="P:A5Soft.CARMA.Domain.Rules.BrokenRule.Property">
             <summary>
@@ -2666,6 +2862,32 @@
             </summary>
             <param name="severity">The severity of rules to include in the result.</param>
             <returns>The text of all broken rule descriptions matching the specified severity.</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection">
+            <summary>
+            Encapsulates a list of <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRule"/> as a result of POCO or custom validation.
+            See <see cref="M:A5Soft.CARMA.Domain.Extensions.ValidatePoco``1(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,``0)"/>.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection.#ctor(System.Collections.Generic.List{A5Soft.CARMA.Domain.Rules.BrokenRule})">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection.#ctor(A5Soft.CARMA.Domain.Rules.BrokenRule)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection.#ctor(System.String,System.String,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection.AddCustomBrokenRule(System.String,System.String,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            Adds a custom broken rule to the collection.
+            </summary>
+            <param name="property">property affected by the rule (if any)</param>
+            <param name="description">description of the broken rule (localized error message, required)</param>
+            <param name="severity">severity of the broken rule</param>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Rules.BrokenRulesManager`1">
             <summary>
@@ -3273,41 +3495,45 @@
             </summary>
             <remarks>Should NOT cause dialog "Are you sure?", only display field labels.</remarks>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.SingletonDomainEntity`1">
+        <member name="T:A5Soft.CARMA.Domain.ServiceAttribute">
             <summary>
-            A base class for all domain entities that have no identity (i.e. only one entity
-            of the type exists in the domain, e.g. common settings) and auditing functionality
-            (IAuditableEntity) implemented.
-            </summary>
-            <typeparam name="T">a type of the domain entity implementation</typeparam>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.SingletonDomainEntity`1.#ctor(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
-            <summary>
-            Creates a new instance of the object.
+            Used to designate a service interface that should be added to IoC container.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.SingletonDomainEntity`1.#ctor(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,System.DateTime,System.String,System.DateTime,System.String)">
+        <member name="M:A5Soft.CARMA.Domain.ServiceAttribute.#ctor(A5Soft.CARMA.Domain.ServiceLifetime)">
             <summary>
-            Creates a new instance of the object.
+            Default constructor for ServiceAttribute.
+            </summary>
+            <param name="lifetime">a lifetime of the service within an IoC container</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.ServiceAttribute.Lifetime">
+            <summary>
+            Gets a lifetime of the use case within a IoC container. Default is Transient.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.SingletonDomainEntity`1.InsertedAt">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.InsertedAt"/> 
+        <member name="T:A5Soft.CARMA.Domain.ServiceLifetime">
+            <summary>
+            Defines use case life time in a DI container.
+            </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.SingletonDomainEntity`1.InsertedBy">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.InsertedBy"/>   
+        <member name="F:A5Soft.CARMA.Domain.ServiceLifetime.Transient">
+            <summary>
+            created every time a use case is injected or requested
+            </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.SingletonDomainEntity`1.UpdatedAt">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.UpdatedAt"/>  
+        <member name="F:A5Soft.CARMA.Domain.ServiceLifetime.Scoped">
+            <summary>
+            Created per scope.
+            In a web application, every web request creates a new separated service scope.
+            That means scoped use cases are generally created per web request.
+            </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.SingletonDomainEntity`1.UpdatedBy">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.UpdatedBy"/>  
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.SingletonDomainEntity`1.OccHash">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IAuditableEntity.OccHash"/> 
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.SingletonDomainEntity`1.HideAuditTrace">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.IAuditableEntity.HideAuditTrace"/>  
+        <member name="F:A5Soft.CARMA.Domain.ServiceLifetime.Singleton">
+            <summary>
+            Created per DI container.
+            That generally means that they are created only one time per application
+            and then used for whole the application life time.
+            </summary>
         </member>
     </members>
 </doc>

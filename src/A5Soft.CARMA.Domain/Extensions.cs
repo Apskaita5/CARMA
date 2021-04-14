@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
+using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Domain
 {
+    /// <summary>
+    /// Extensions for common application functionality.
+    /// </summary>
     public static class Extensions
     {
 
@@ -59,76 +61,110 @@ namespace A5Soft.CARMA.Domain
         }
 
         /// <summary>
-        /// Gets a SHA256 hash value for a string.
+        /// Gets a value indicating whether the identity references the same entity.
         /// </summary>
-        /// <param name="rawData">a string to compute SHA256 hash for</param>
-        public static string ComputeSha256Hash(this string rawData)
-        {
-            if (rawData.IsNullOrWhiteSpace()) return string.Empty;
-            // Create a SHA256   
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-
-                // Convert byte array to a string   
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
-
-
+        /// <param name="firstIdentity"></param>
+        /// <param name="identity">the identity to check</param>
         public static bool IsSameIdentityAs(this IDomainEntityIdentity firstIdentity, IDomainEntityIdentity identity)
         {
-            if (firstIdentity.IsNull()) throw new ArgumentNullException(nameof(firstIdentity));
-            if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
+            if (null == firstIdentity && null == identity) return true;
+            if (null == firstIdentity || null == identity) return false;
 
             if (firstIdentity.DomainEntityType != identity.DomainEntityType) return false;
 
             if (firstIdentity.IsNew != identity.IsNew) return false;
 
-            if (firstIdentity.IsNew) return ReferenceEquals(firstIdentity, identity);
+            if (firstIdentity.IsNew) return true;
 
             return firstIdentity.CompareTo(identity) == 0;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this string value)
         {
             return !value.IsNullOrWhiteSpace();
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this int value)
         {
             return value > 0;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this int? value)
         {
             return value.HasValue && value.Value > 0;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this long value)
         {
             return value > 0;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this long? value)
         {
             return value.HasValue && value.Value > 0;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this Guid value)
         {
             return value != Guid.Empty;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the value is a (potentially) valid primary key.
+        /// </summary>
+        /// <param name="value"></param>
         public static bool IsValidKey(this Guid? value)
         {
             return value.HasValue && value.Value != Guid.Empty;
+        }
+
+        /// <summary>
+        /// Validates a POCO value. Returns an empty collection if the value to validate is
+        /// null or not a class or an interface.
+        /// </summary>
+        /// <typeparam name="T">a type of the value to validate</typeparam>
+        /// <param name="validationEngine"></param>
+        /// <param name="valueToValidate">value to validate</param>
+        public static BrokenRulesCollection ValidatePoco<T>(this IValidationEngineProvider validationEngine,
+            T valueToValidate)
+        {
+            if (null == validationEngine) throw new ArgumentNullException(nameof(validationEngine));
+
+            if (null == valueToValidate) return new BrokenRulesCollection();
+
+            var pocoType = typeof(T);
+            if (!pocoType.IsInterface && !pocoType.IsClass) return new BrokenRulesCollection();
+            if (pocoType == typeof(string) || typeof(ILookup).IsAssignableFrom(pocoType)) 
+                return new BrokenRulesCollection();
+
+            var result = validationEngine.GetValidationEngine(pocoType)
+                .GetAllBrokenRules(valueToValidate);
+
+            return new BrokenRulesCollection(result);
         }
 
     }

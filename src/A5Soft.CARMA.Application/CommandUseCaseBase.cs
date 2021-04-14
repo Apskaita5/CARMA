@@ -3,6 +3,8 @@ using A5Soft.CARMA.Application.DataPortal;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Rules;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 
 namespace A5Soft.CARMA.Application
@@ -12,18 +14,11 @@ namespace A5Soft.CARMA.Application
     /// </summary>
     public abstract class CommandUseCaseBase : AuthorizedUseCaseBase
     {
-        private readonly IClientDataPortal _dataPortal;
-        protected readonly ILogger _logger;
-
-
         /// <inheritdoc />
-        protected CommandUseCaseBase(ILogger logger, IClientDataPortal dataPortal, 
-            IAuthorizationProvider authorizationProvider, ClaimsIdentity userIdentity) 
-            : base(authorizationProvider, userIdentity)
-        {
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
-        }
+        protected CommandUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -31,23 +26,23 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         public async Task InvokeAsync()
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(InvokeAsync));
+            Logger.LogMethodEntry(this.GetType(), nameof(InvokeAsync));
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync();
-                    await _dataPortal.InvokeAsync(this.GetType().GetRemoteServiceInterfaceType(), User);
+                    await DataPortal.InvokeAsync(this.GetType(), User);
                     await AfterDataPortalAsync();
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
                 
-                _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
 
                 return;
             }
@@ -60,11 +55,11 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+            Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
         }
 
         /// <summary>

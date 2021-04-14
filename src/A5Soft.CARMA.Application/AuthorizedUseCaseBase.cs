@@ -1,33 +1,37 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
-using A5Soft.CARMA.Domain;
 using System;
 using System.Security.Claims;
+using A5Soft.CARMA.Application.DataPortal;
+using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Application
 {
     /// <summary>
     /// A base class for all use cases that implement authorization.
     /// </summary>
-    public abstract class AuthorizedUseCaseBase : IAuthorizedUseCase
+    /// <remarks>Authorization is only meaningful for remote execution.</remarks>
+    public abstract class AuthorizedUseCaseBase : RemoteUseCaseBase, IAuthorizedUseCase
     {
-
-        /// <inheritdoc cref="IAuthorizedUseCase.User" />
-        public ClaimsIdentity User { get; }
-
         /// <summary>
         /// Gets an authorizer for the use case.
         /// </summary>
-        protected IUseCaseAuthorizer Authorizer { get; }
+        protected readonly IUseCaseAuthorizer Authorizer;
 
 
-        protected AuthorizedUseCaseBase(IAuthorizationProvider authorizationProvider, ClaimsIdentity userIdentity)
+        /// <inheritdoc />
+        protected AuthorizedUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider,
+            IMetadataProvider metadataProvider, ILogger logger) :
+            base(dataPortal, validationProvider, metadataProvider, logger)
         {
-            if (authorizationProvider.IsNull()) throw new ArgumentNullException(nameof(authorizationProvider));
-
-            User = userIdentity ?? throw new ArgumentNullException(nameof(userIdentity));
-            Authorizer = authorizationProvider.GetAuthorizer(this.GetType());
+            User = user ?? throw new ArgumentNullException(nameof(user));
+            Authorizer = authorizer ?? throw new ArgumentNullException(nameof(authorizer));
         }
 
+
+        /// <inheritdoc cref="IAuthorizedUseCase.User" />
+        public ClaimsIdentity User { get; }
 
         /// <inheritdoc cref="IAuthorizedUseCase.CanInvoke" />
         public bool CanInvoke(bool throwOnNotAuthorized = false)

@@ -15,7 +15,7 @@ namespace A5Soft.CARMA.Domain
     /// </summary>
     /// <typeparam name="TChild">Type of item contained in list.</typeparam>
     [Serializable]
-    public abstract class DomainBindingList<TChild> : BindingList<TChild>, 
+    public class DomainBindingList<TChild> : BindingList<TChild>, 
         INotifyChildChanged, ITrackState, IChildInternal, IBindable, INotifyCollectionChanged
         where TChild : class, ITrackState
     {
@@ -25,7 +25,7 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// Creates an instance of the object.
         /// </summary>
-        protected DomainBindingList(IValidationEngineProvider validationEngineProvider)
+        public DomainBindingList(IValidationEngineProvider validationEngineProvider)
         {
             Initialize();
             this.AllowNew = true;
@@ -69,7 +69,7 @@ namespace A5Soft.CARMA.Domain
         public void SetValidationEngine(IValidationEngineProvider validationEngineProvider)
         {
             _validationEngineProvider = validationEngineProvider;
-            foreach (ITrackState statefulChild in this)
+            foreach (var statefulChild in this)
             {
                 statefulChild?.SetValidationEngine(validationEngineProvider);
             }
@@ -322,7 +322,7 @@ namespace A5Soft.CARMA.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Microsoft.Design", "CA1002:DoNotExposeGenericLists")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        protected List<TChild> DeletedList
+        public List<TChild> DeletedList
         {
             get
             {
@@ -351,7 +351,13 @@ namespace A5Soft.CARMA.Domain
         #endregion
 
         #region Insert, Remove, Clear
-        
+
+        /// <summary>
+        /// Set a child factory in order to enable dynamic adding of new items (<see cref="AddNewCore"/> implementation by injection).
+        /// </summary>
+        public IChildFactory<TChild> ChildFactory { get; set; } =
+            DefaultChildFactory<TChild>.NewOrNull();
+
         protected override object AddNewCore()
         {
             var item = CreateNewChild();
@@ -364,8 +370,9 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected virtual TChild CreateNewChild()
         {
+            if (null != ChildFactory) return ChildFactory.CreateNew(_parent, _validationEngineProvider);
             throw new NotSupportedException(
-                $"AddNewCore is not supported by {this.GetType().FullName} (CreateNewChild not implemented)");
+                $"AddNewCore is not supported by {this.GetType().FullName} (CreateNewChild not implemented, ChildFactory not set)");
         }
 
         [NonSerialized()]
@@ -512,7 +519,7 @@ namespace A5Soft.CARMA.Domain
         /// <param name="range">List of items to add.</param>
         /// <param name="raiseResetEvent">whether to raise ListChangedType.Reset event for
         /// the entire range instead of ListChangedType.ItemAdded events for each item added.</param>
-        public void AddRange(IList<TChild> range, bool raiseResetEvent = false)
+        public void AddRange(IEnumerable<TChild> range, bool raiseResetEvent = false)
         {
             if (raiseResetEvent)
             {
@@ -587,6 +594,65 @@ namespace A5Soft.CARMA.Domain
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(
                     NotifyCollectionChangedAction.Replace, item, child, index));
+            }
+        }
+
+        /// <summary>
+        /// merges children data from an untrusted source into the list
+        /// </summary>
+        /// <typeparam name="TIChild">type of child item domain interface</typeparam>
+        /// <param name="childrenByInterface">children data from an untrusted source</param>
+        /// <param name="mergeChild">method to merge untrusted data into a child item</param>
+        public virtual void Merge<TIChild>(IList<TIChild> childrenByInterface, Action<TChild, TIChild> mergeChild)
+            where TIChild : IDomainEntity
+        {
+            if (null == childrenByInterface) throw new ArgumentNullException(nameof(childrenByInterface));
+            if (null == mergeChild) throw new ArgumentNullException(nameof(mergeChild));
+            if (!typeof(IDomainEntity).IsAssignableFrom(typeof(TChild))) throw new InvalidOperationException(
+                $"Can only merge domain object lists for children that implement IDomainEntity while {typeof(TChild).FullName} does not.");
+
+            bool found;
+
+            for (int i = this.Count-1; i > -1; i--)
+            {
+                found = false;
+
+                foreach (var iChild in childrenByInterface)
+                {
+                    if (((IDomainEntity)this[i]).Id == iChild.Id)
+                    {
+                        mergeChild(this[i], iChild);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found && this.AllowRemove)
+                {
+                    RemoveAt(i);
+                }
+            }
+
+            if (this.AllowNew)
+            {
+                foreach (var iChild in childrenByInterface)
+                {
+                    found = false;
+                    foreach (IDomainEntity child in this)
+                    {
+                        if (child.Id == iChild.Id)
+                        {
+                           found = true;
+                           break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        var newItem = this.AddNew();
+                        mergeChild(newItem, iChild);
+                    }
+                }
             }
         }
 

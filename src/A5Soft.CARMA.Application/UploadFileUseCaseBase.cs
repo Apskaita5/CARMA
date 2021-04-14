@@ -4,6 +4,8 @@ using A5Soft.CARMA.Domain;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Application
 {
@@ -12,18 +14,11 @@ namespace A5Soft.CARMA.Application
     /// </summary>
     public abstract class UploadFileUseCaseBase : AuthorizedUseCaseBase
     {
-        protected readonly ILogger _logger;
-        private readonly IClientDataPortal _dataPortal;
-
-
         /// <inheritdoc />
-        protected UploadFileUseCaseBase(ILogger logger, IClientDataPortal dataPortal,
-            IAuthorizationProvider authorizationProvider, ClaimsIdentity userIdentity) 
-            : base(authorizationProvider, userIdentity)
-        {
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
-        }
+        protected UploadFileUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -34,23 +29,23 @@ namespace A5Soft.CARMA.Application
         {
             if (file.IsNull()) throw new ArgumentNullException(nameof(file));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(UploadFileAsync));
+            Logger.LogMethodEntry(this.GetType(), nameof(UploadFileAsync));
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(file);
-                    await _dataPortal.InvokeAsync(this.GetType().GetRemoteServiceInterfaceType(), file, User);
+                    await DataPortal.InvokeAsync(this.GetType(), file, User);
                     await AfterDataPortalAsync(file);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
+                Logger.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
 
                 return;
             }
@@ -63,11 +58,11 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
+            Logger.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
         }
 
         /// <summary>

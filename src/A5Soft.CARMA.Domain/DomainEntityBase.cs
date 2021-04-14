@@ -25,7 +25,6 @@ namespace A5Soft.CARMA.Domain
         : BindableBase, ITrackState, IChildInternal, INotifyChildChanged, IDataErrorInfo
         where T : DomainEntityBase<T>
     {
-
         #region Constructors
 
         /// <summary>
@@ -57,8 +56,11 @@ namespace A5Soft.CARMA.Domain
         private bool _isDeleted;
         private bool _containsNewData;
         private bool _isDirty = true;
+        
         [NonSerialized]
         private BrokenRulesManager<T> _brokenRules;
+        [NonSerialized]
+        private bool _suspendValidation = false;
 
 
         private BrokenRulesManager<T> RulesManager {
@@ -224,6 +226,7 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual void CheckPropertyRules(params string[] propertyNames)
         {
+            if (_suspendValidation) return;
             if (null == propertyNames || propertyNames.Length < 1) 
                 throw new ArgumentNullException(nameof(propertyNames));
 
@@ -232,7 +235,7 @@ namespace A5Soft.CARMA.Domain
             {
                 affectedProps.AddRange(RulesManager.CheckPropertyRules(propertyName));
             }
-            OnPropertiesChanged(affectedProps.ToArray());
+            OnPropertiesChanged(affectedProps.Distinct().ToArray());
         }
 
         /// <summary>
@@ -377,8 +380,13 @@ namespace A5Soft.CARMA.Domain
             return true;
         }
 
+        /// <summary>
+        /// apply with using pattern to temporally disable validation
+        /// </summary>
+        public IDisposable SuspendValidation() => new SuspendValidationInt<DomainEntityBase<T>>(this);
+
         #endregion
-        
+
         #region Delete
 
         /// <summary>
@@ -643,6 +651,7 @@ namespace A5Soft.CARMA.Domain
         /// For internal use.
         /// </summary>
         /// <param name="child">Child object.</param>
+        /// <param name="fieldName">a name of a (private) field that manages child value</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected void AddEventHooks<TC>(TC child, string fieldName) where TC : class
         {
@@ -656,6 +665,7 @@ namespace A5Soft.CARMA.Domain
         /// Hook child object events.
         /// </summary>
         /// <param name="child">Child object.</param>
+        /// <param name="fieldName">a name of a (private) field that manages child value</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnAddEventHooks<TC>(TC child, string fieldName) where TC : class
         {
@@ -709,6 +719,7 @@ namespace A5Soft.CARMA.Domain
         /// For internal use only.
         /// </summary>
         /// <param name="child">Child object.</param>
+        /// <param name="fieldName">a name of a (private) field that manages child value</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected void RemoveEventHooks<TC>(TC child, string fieldName) where TC : class
         {
@@ -721,6 +732,7 @@ namespace A5Soft.CARMA.Domain
         /// Unhook child object events.
         /// </summary>
         /// <param name="child">Child object.</param>
+        /// <param name="fieldName">a name of a (private) field that manages child value</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnRemoveEventHooks<TC>(TC child, string fieldName) where TC : class
         {
@@ -976,7 +988,7 @@ namespace A5Soft.CARMA.Domain
         /// 7. Invokes post processing action or, if it's null, raises PropertyHasChanged
         /// (i.e. checks rules and raises binding event).</remarks>
         /// <returns>true if the property has been changed, otherwise false</returns>
-        protected bool SetPropertyValue<TValue>(string propertyName, string fieldName, 
+        protected bool SetChildPropertyValue<TValue>(string propertyName, string fieldName, 
             ref TValue oldValue, TValue newValue, bool addEventHooks = true, Action postProcessing = null) 
             where TValue : class
         {
@@ -2221,6 +2233,44 @@ namespace A5Soft.CARMA.Domain
         }
 
         #endregion
+
+        /// <summary>
+        /// apply with using pattern to temporally disable validation
+        /// </summary>
+        private sealed class SuspendValidationInt<TC> : IDisposable where TC : DomainEntityBase<T>
+        {
+            private readonly TC _entity;
+            private bool disposedValue;
+
+            /// <summary>
+            /// apply with using pattern to temporally disable validation
+            /// </summary>
+            /// <param name="entity">a domain object to temporally disable validation for</param>
+            public SuspendValidationInt(TC entity)
+            {
+                _entity = entity ?? throw new ArgumentNullException(nameof(entity));
+                _entity._suspendValidation = true;
+            }
+
+            private void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        _entity._suspendValidation = false;
+                    }
+
+                    disposedValue = true;
+                }
+            }
+
+            void IDisposable.Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+            }
+        }
 
     }
 }

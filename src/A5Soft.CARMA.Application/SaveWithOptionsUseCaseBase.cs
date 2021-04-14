@@ -1,6 +1,7 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Security.Claims;
@@ -22,14 +23,11 @@ namespace A5Soft.CARMA.Application
         where TDomObject : class, ITrackState
         where TDomInterface : class, IDomainObject
     {
-        protected readonly IValidationEngineProvider _validationEngineProvider;
-        private readonly IClientDataPortal _dataPortal;
-        protected readonly ILogger _logger;
-
-
-        protected SaveWithOptionsUseCaseBase(IValidationEngineProvider validationEngineProvider, 
-            ILogger logger, IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider, 
-            ClaimsIdentity userIdentity) : base(authorizationProvider, userIdentity)
+        /// <inheritdoc />
+        protected SaveWithOptionsUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer,
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider,
+            IMetadataProvider metadataProvider, ILogger logger)
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TDomInterface).IsInterface) throw new InvalidOperationException(
                 $"TDomInterface generic parameter for SaveUseCaseBase shall be an interface, while the provided parameter type is {typeof(TDomInterface).FullName}.");
@@ -37,11 +35,6 @@ namespace A5Soft.CARMA.Application
                 $"Generic parameter type {typeof(TDomObject).FullName} does not implement interface defined by generic parameter TDomInterface - {typeof(TDomInterface).FullName}.");
             if (!typeof(TDomObject).IsSerializable) throw new InvalidOperationException(
                 $"Domain entity must be (binary) serializable while type {typeof(TDomObject).FullName} is not.");
-                                            
-            _validationEngineProvider = validationEngineProvider ??
-                throw new ArgumentNullException(nameof(validationEngineProvider));
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
         }
 
 
@@ -56,27 +49,27 @@ namespace A5Soft.CARMA.Application
         {
             if (domainDto.IsNull()) throw new ArgumentNullException(nameof(domainDto));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(SaveAsync), domainDto, options);
+            Logger.LogMethodEntry(this.GetType(), nameof(SaveAsync), domainDto, options);
 
             TDomObject result;
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(domainDto, options);
-                    result = await _dataPortal.FetchAsync<TDomInterface, TOptions, TDomObject>(
-                        this.GetType().GetRemoteServiceInterfaceType(), domainDto, options, User);
-                    if (result is ITrackState stateful) stateful.SetValidationEngine(_validationEngineProvider);
+                    result = await DataPortal.FetchAsync<TDomInterface, TOptions, TDomObject>(
+                        this.GetType(), domainDto, options, User);
+                    if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
                     await AfterDataPortalAsync(domainDto, options, result);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
+                Logger.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
 
                 return result;
             }
@@ -92,11 +85,11 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
+            Logger.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
 
             return result;
         }
@@ -132,6 +125,32 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         protected virtual Task AfterDataPortalAsync(TDomInterface domainDto, TOptions options, TDomObject result)
             => Task.CompletedTask;
+
+
+        /// <summary>
+        /// Gets metadata for the save options.
+        /// Returns null if the save options is not a class or an interface.
+        /// </summary>
+        public IEntityMetadata GetOptionsMetadata()
+        {
+            var criteriaType = typeof(TOptions);
+            if (!criteriaType.IsInterface && !criteriaType.IsClass) return null;
+            if (criteriaType == typeof(string)) return null;
+            return MetadataProvider.GetEntityMetadata(criteriaType);
+        }
+
+        /// <summary>
+        /// Validates save options (as a POCO object) and returns a broken rules collection
+        /// that can be used to determine whether the options are valid and what are the
+        /// broken rules (if invalid).
+        /// </summary>
+        /// <param name="options">save options to validate</param>
+        /// <remarks>Override this method in order to implement custom validation
+        /// or disable validation by returning a new (empty) <see cref="BrokenRulesCollection"/>.</remarks>
+        public virtual BrokenRulesCollection Validate(TOptions options)
+        {
+            return ValidationProvider.ValidatePoco(options);
+        }
 
     }
 }

@@ -1,6 +1,5 @@
 ﻿using A5Soft.CARMA.Domain;
 using System;
-using System.Reflection;
 using System.Security.Claims;
 
 namespace A5Soft.CARMA.Application.Authorization.Default
@@ -11,24 +10,10 @@ namespace A5Soft.CARMA.Application.Authorization.Default
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple =  false, Inherited = false)]
     public abstract class AuthorizationBaseAttribute : Attribute
     {
-        private Func<string> _errorMessageResourceAccessor = null;
-        private readonly string _errorMessageResourceName;
-        private readonly Type _errorMessageResourceType;
-                       
-
         /// <summary>
-        /// Default constructor for any authorization attribute (unless derived authorization attribute overrides resource type)
+        /// constructor
         /// </summary>
-        /// <param name="errorMessageResourceName">the resource name (property name) to use as the key for lookups on the resource type</param>
-        /// <param name="errorMessageResourceType">the resource type to use for error message lookups</param>
-        protected AuthorizationBaseAttribute(string errorMessageResourceName, Type errorMessageResourceType)
-        {
-            if (errorMessageResourceName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(errorMessageResourceName));
-            
-            _errorMessageResourceName = errorMessageResourceName;
-            _errorMessageResourceType = errorMessageResourceType ?? 
-                throw new ArgumentNullException(nameof(errorMessageResourceType)); ;
-        }
+        protected AuthorizationBaseAttribute() { }
 
 
         /// <summary>
@@ -47,7 +32,7 @@ namespace A5Soft.CARMA.Application.Authorization.Default
         {
             EnsureValidAuthorizationParameters(useCaseType, identity, logger);
 
-            return Authorize(identity, logger, throwOnUnauthorized);
+            return Authorize(identity, useCaseType, logger, throwOnUnauthorized);
         }
 
         /// <summary>
@@ -68,7 +53,7 @@ namespace A5Soft.CARMA.Application.Authorization.Default
         {
             EnsureValidAuthorizationParameters(useCaseType, identity, logger);
 
-            return Authorize(identity, parameter, logger, throwOnUnauthorized);
+            return Authorize(identity, useCaseType, parameter, logger, throwOnUnauthorized);
         }
 
         /// <summary>
@@ -86,11 +71,13 @@ namespace A5Soft.CARMA.Application.Authorization.Default
         /// (i.e. whether the user is authorized to invoke a use case at least for some parameters)
         /// </summary>
         /// <param name="identity">user identity (guaranteed not null and authenticated)</param>
+        /// <param name="useCaseType">a type of the use case that is authorized</param>
         /// <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
         /// if the user is not authorized</param>
         /// <param name="logger">a logger to use for authorization warnings</param>
         /// <returns>true if the user is authorized; false otherwise</returns>
-        protected abstract bool Authorize(ClaimsIdentity identity, ILogger logger, bool throwOnUnauthorized);
+        protected abstract bool Authorize(ClaimsIdentity identity, Type useCaseType, 
+            ILogger logger, bool throwOnUnauthorized);
 
         /// <summary>
         /// Override this method to implement actual authorization for a use case with a parameter
@@ -98,77 +85,28 @@ namespace A5Soft.CARMA.Application.Authorization.Default
         /// </summary>
         /// <typeparam name="TParam">a type of use case parameter to use for authorization</typeparam>
         /// <param name="identity">user identity (guaranteed not null and authenticated)</param>
+        /// <param name="useCaseType">a type of the use case that is authorized</param>
         /// <param name="parameter">a use case parameter to use for authorization</param>
         /// <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
         /// if the user is not authorized</param>
         /// <param name="logger">a logger to use for authorization warnings</param>
         /// <returns>true if the user is authorized; false otherwise</returns>
-        protected abstract bool Authorize<TParam>(ClaimsIdentity identity, TParam parameter,
-            ILogger logger, bool throwOnUnauthorized);
+        protected abstract bool Authorize<TParam>(ClaimsIdentity identity, Type useCaseType, 
+            TParam parameter, ILogger logger, bool throwOnUnauthorized);
 
         /// <summary>
         /// Override this method to throw an application specific not authenticated exception.
         /// </summary>
         protected abstract void ThrowNotAuthenticatedException();
-
-
-        /// <summary>
-        /// Gets the localized (authorization) error message string, coming from evaluating the 
-        /// errorMessageResourceType and errorMessageResourceName pair.
-        /// </summary>
-        protected string ErrorMessageString
-        {
-            get
-            {
-                this.SetupResourceAccessor();
-                return this._errorMessageResourceAccessor();
-            }
-        }
-
+                        
+        
         /// <summary>
         /// Override this method to 
         /// </summary>
         protected virtual Type UseCaseType 
             => null;
-
-
-        /// <summary>
-        /// Validates the configuration of this attribute and sets up the appropriate error string accessor.
-        /// This method bypasses all verification once the ResourceAccessor has been set.
-        /// </summary>
-        /// <exception cref="InvalidOperationException"> is thrown if the current attribute is malformed.</exception>
-        private void SetupResourceAccessor()
-        {
-            if (null != this._errorMessageResourceAccessor)
-            {
-                var property = this._errorMessageResourceType.GetProperty(this._errorMessageResourceName, 
-                    BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic);
-                if (null != property)
-                {
-                    MethodInfo propertyGetter = property.GetGetMethod(true /*nonPublic*/);
-                    // We only support internal and public properties
-                    if (null == propertyGetter || (!propertyGetter.IsAssembly && !propertyGetter.IsPublic))
-                    {
-                        // Set the property to null so the exception is thrown as if the property wasn't found
-                        property = null;
-                    }
-                }
-
-                if (property == null)
-                {
-                    throw new InvalidOperationException($"Resource type {_errorMessageResourceType.FullName} does not have a public or internal property {_errorMessageResourceName}.");
-                }
-                if (property.PropertyType != typeof(string))
-                {
-                    throw new InvalidOperationException($"Resource type {_errorMessageResourceType.FullName} property {_errorMessageResourceName} is not string.");
-                }
-
-                this._errorMessageResourceAccessor = delegate {
-                    return (string)property.GetValue(null, null);
-                };
-            }
-        }
-
+                    
+        
         private void EnsureValidAuthorizationParameters(Type useCaseType, ClaimsIdentity identity, ILogger logger)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));

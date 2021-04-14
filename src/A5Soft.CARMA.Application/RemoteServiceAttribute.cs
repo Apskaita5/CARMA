@@ -1,4 +1,5 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain;
+using System;
 
 namespace A5Soft.CARMA.Application
 {
@@ -15,10 +16,8 @@ namespace A5Soft.CARMA.Application
         /// Default constructor for RemoteServiceAttribute.
         /// </summary>
         /// <param name="lifetime">a lifetime of the service within an IoC container</param>
-        /// <param name="defaultImplementation">a default implementation of the interface (if any) to
-        /// use in IoC container unless specified otherwise</param>
-        public RemoteServiceAttribute(ServiceLifetime lifetime = ServiceLifetime.Transient,
-            Type defaultImplementation = null) : base(lifetime, defaultImplementation) { }
+        public RemoteServiceAttribute(ServiceLifetime lifetime = ServiceLifetime.Transient) 
+            : base(lifetime) { }
 
     }
 }

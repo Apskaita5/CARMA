@@ -72,8 +72,8 @@ namespace A5Soft.CARMA.Application
                         return result;
                     }
 
-                    result = await _dataPortal.FetchAsync<Type, TLookup>(
-                        this.GetType().GetRemoteServiceInterfaceType(), requesterType, User);
+                    result = await _dataPortal.FetchAsync<Type, TLookup>(this.GetType(), 
+                        requesterType, User);
 
                     SetLocalCacheValue(result);
                 }

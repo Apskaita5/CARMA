@@ -27,8 +27,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         public DefaultValidationEngine(IEntityMetadata metadata)
         {
             EntityMetadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
-            if (typeof(ILookup).IsAssignableFrom(metadata.EntityType)) throw new ArgumentException(string.Format(
-                "Cannot create validation engine for lookup entity {0}.", EntityMetadata.EntityType.FullName));
+            if (typeof(ILookup).IsAssignableFrom(metadata.EntityType)) throw new ArgumentException(
+                $"Cannot create validation engine for lookup entity {EntityMetadata.EntityType.FullName}.");
 
             _entityValidationRules = new ReadOnlyCollection<EntityValidationRule>(EntityMetadata.EntityType
                 .GetCustomAttributesWithInheritance<ValidationAttribute>()

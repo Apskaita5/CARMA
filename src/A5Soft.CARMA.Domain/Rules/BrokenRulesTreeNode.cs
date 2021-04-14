@@ -14,6 +14,7 @@ namespace A5Soft.CARMA.Domain.Rules
     /// external code, such as a UI, to display the list of broken rules
     /// to the user.
     /// </remarks>
+    [Serializable]
     public class BrokenRulesTreeNode
     {
         private readonly List<BrokenRule> _brokenRules;

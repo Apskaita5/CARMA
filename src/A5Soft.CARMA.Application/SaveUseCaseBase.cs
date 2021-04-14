@@ -5,6 +5,7 @@ using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Application
 {
@@ -19,14 +20,11 @@ namespace A5Soft.CARMA.Application
         where TDomObject : class, ITrackState
         where TDomInterface : class, IDomainObject
     {
-        protected readonly IValidationEngineProvider _validationEngineProvider;
-        protected readonly ILogger _logger;
-        private readonly IClientDataPortal _dataPortal;
-
-
-        protected SaveUseCaseBase(IValidationEngineProvider validationEngineProvider, 
-            ILogger logger, IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider, 
-            ClaimsIdentity userIdentity) : base(authorizationProvider, userIdentity)
+        /// <inheritdoc />
+        protected SaveUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TDomInterface).IsInterface) throw new InvalidOperationException(
                 $"TDomInterface generic parameter for SaveUseCaseBase shall be an interface, while the provided parameter type is {typeof(TDomInterface).FullName}.");
@@ -34,13 +32,7 @@ namespace A5Soft.CARMA.Application
                 $"Generic parameter type {typeof(TDomObject).FullName} does not implement interface defined by generic parameter TDomInterface - {typeof(TDomInterface).FullName}.");
             if (!typeof(TDomObject).IsSerializable) throw new InvalidOperationException(
                 $"Domain entity must be (binary) serializable while type {typeof(TDomObject).FullName} is not.");
-                                      
-            _validationEngineProvider = validationEngineProvider ??
-                throw new ArgumentNullException(nameof(validationEngineProvider));
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
         }
-
 
 
         /// <summary>
@@ -53,27 +45,27 @@ namespace A5Soft.CARMA.Application
         {
             if (domainDto.IsNull()) throw new ArgumentNullException(nameof(domainDto));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(SaveAsync), domainDto);
+            Logger.LogMethodEntry(this.GetType(), nameof(SaveAsync), domainDto);
 
             TDomObject result;
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(domainDto);
-                    result = await _dataPortal.FetchAsync<TDomInterface, TDomObject>(
-                        this.GetType().GetRemoteServiceInterfaceType(), domainDto, User);
-                    if (result is ITrackState stateful) stateful.SetValidationEngine(_validationEngineProvider);
+                    result = await DataPortal.FetchAsync<TDomInterface, TDomObject>(
+                        this.GetType(), domainDto, User);
+                    if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
                     await AfterDataPortalAsync(domainDto, result);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
+                Logger.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
 
                 return result;
             }
@@ -87,11 +79,11 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
+            Logger.LogMethodExit(this.GetType(), nameof(SaveAsync), result);
 
             return result;
         }

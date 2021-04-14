@@ -8,6 +8,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
     /// <summary>
     /// Default implementation of validation engine provider using validation attributes.
     /// </summary>
+    [DefaultServiceImplementation(typeof(IValidationEngineProvider))]
     public class DefaultValidationEngineProvider : IValidationEngineProvider
     {
         private static readonly ConcurrentDictionary<Type, DefaultValidationEngine> _Cache

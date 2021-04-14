@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Application
 {
@@ -14,18 +16,11 @@ namespace A5Soft.CARMA.Application
     /// i.e. either a primitive or a POCO)</typeparam>
     public abstract class UploadFileWithOptionsUseCaseBase<TOptions> : AuthorizedUseCaseBase
     {
-        protected readonly ILogger _logger;
-        private readonly IClientDataPortal _dataPortal;
-
-
         /// <inheritdoc />
-        protected UploadFileWithOptionsUseCaseBase(ILogger logger, IClientDataPortal dataPortal,
-            IAuthorizationProvider authorizationProvider, ClaimsIdentity userIdentity)
-            : base(authorizationProvider, userIdentity)
-        {
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            _logger = logger;
-        }
+        protected UploadFileWithOptionsUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
+            IMetadataProvider metadataProvider, ILogger logger) 
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -38,23 +33,23 @@ namespace A5Soft.CARMA.Application
         {
             if (file.IsNull()) throw new ArgumentNullException(nameof(file));
 
-            _logger?.LogMethodEntry(this.GetType(), nameof(UploadFileAsync), options);
+            Logger.LogMethodEntry(this.GetType(), nameof(UploadFileAsync), options);
 
-            if (_dataPortal.IsRemote)
+            if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(file, options);
-                    await _dataPortal.InvokeAsync(this.GetType().GetRemoteServiceInterfaceType(), file, options, User);
+                    await DataPortal.InvokeAsync(this.GetType(), file, options, User);
                     await AfterDataPortalAsync(file, options);
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e);
+                    Logger.LogError(e);
                     throw;
                 }
 
-                _logger?.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
+                Logger.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
 
                 return;
             }
@@ -69,11 +64,11 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                _logger?.LogError(e);
+                Logger.LogError(e);
                 throw;
             }
 
-            _logger?.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
+            Logger.LogMethodExit(this.GetType(), nameof(UploadFileAsync));
         }
 
         /// <summary>
@@ -104,6 +99,32 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         protected virtual Task AfterDataPortalAsync(FileContent file, TOptions options)
             => Task.CompletedTask;
+
+
+        /// <summary>
+        /// Gets metadata for the upload options.
+        /// Returns null if the upload options is not a class or an interface.
+        /// </summary>
+        public IEntityMetadata GetOptionsMetadata()
+        {
+            var criteriaType = typeof(TOptions);
+            if (!criteriaType.IsInterface && !criteriaType.IsClass) return null;
+            if (criteriaType == typeof(string)) return null;
+            return MetadataProvider.GetEntityMetadata(criteriaType);
+        }
+
+        /// <summary>
+        /// Validates upload options (as a POCO object) and returns a broken rules collection
+        /// that can be used to determine whether the options are valid and what are the
+        /// broken rules (if invalid).
+        /// </summary>
+        /// <param name="options">upload options to validate</param>
+        /// <remarks>Override this method in order to implement custom validation
+        /// or disable validation by returning a new (empty) <see cref="BrokenRulesCollection"/>.</remarks>
+        public virtual BrokenRulesCollection Validate(TOptions options)
+        {
+            return ValidationProvider.ValidatePoco(options);
+        }
 
     }
 }

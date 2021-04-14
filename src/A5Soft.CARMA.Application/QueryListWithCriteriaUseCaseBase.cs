@@ -1,27 +1,31 @@
-﻿using A5Soft.CARMA.Application.DataPortal;
+﻿using A5Soft.CARMA.Application.Authorization;
+using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application
 {
     /// <summary>
-    /// A base use case for an unauthenticated query operation (that gets a query result
-    /// for an unauthenticated user using query criteria provided).
-    /// E.g. login use case returns ClaimsIdentity.
+    /// A base use case for a query operation that gets a list of query results.
     /// </summary>
     /// <typeparam name="TResult">a type of the query result (must be binary serializable)</typeparam>
     /// <typeparam name="TCriteria">a type of the query parameter (must be json serializable,
     /// i.e. either a primitive or a POCO)</typeparam>
-    public abstract class UnauthenticatedQueryWithCriteriaUseCaseBase<TResult, TCriteria> : RemoteUseCaseBase
+    public abstract class QueryListWithCriteriaUseCaseBase<TResult, TCriteria> : AuthorizedUseCaseBase
+        where TResult : class
     {
+
         /// <inheritdoc />
-        protected UnauthenticatedQueryWithCriteriaUseCaseBase(IClientDataPortal dataPortal,
-            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider,
-            ILogger logger) : base(dataPortal, validationProvider, metadataProvider, logger)
+        protected QueryListWithCriteriaUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer,
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider,
+            IMetadataProvider metadataProvider, ILogger logger)
+            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TResult).IsSerializable) throw new InvalidOperationException(
                 $"Query result must be (binary) serializable while type {typeof(TResult).FullName} is not.");
@@ -29,24 +33,24 @@ namespace A5Soft.CARMA.Application
 
 
         /// <summary>
-        /// Gets a query result using query criteria provided.
+        /// Gets a query result list using query criteria provided.
         /// </summary>
         /// <param name="criteria">a criteria for the query</param>
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a query result</returns>
-        public async Task<TResult> InvokeAsync(TCriteria criteria, CancellationToken ct = default)
+        public async Task<List<TResult>> QueryAsync(TCriteria criteria, CancellationToken ct = default)
         {
-            Logger.LogMethodEntry(this.GetType(), nameof(InvokeAsync), criteria);
+            Logger.LogMethodEntry(this.GetType(), nameof(QueryAsync), criteria);
 
-            TResult result;
+            List<TResult> result;
 
             if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(criteria, ct);
-                    result = await DataPortal.FetchUnauthenticatedAsync<TCriteria, TResult>(
-                        this.GetType(), criteria, ct);
+                    result = await DataPortal.FetchAsync<TCriteria, List<TResult>>(
+                        this.GetType(), criteria, User, ct);
                     await AfterDataPortalAsync(criteria, result, ct);
                 }
                 catch (Exception e)
@@ -55,14 +59,18 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                Logger.LogMethodExit(this.GetType(), nameof(QueryAsync));
 
                 return result;
             }
 
+            if (Authorizer.AuthorizationImplementedForParam<TCriteria>())
+                Authorizer.IsAuthorized(User, criteria, true);
+            else CanInvoke(true);
+
             try
             {
-                result = await QueryIntAsync(criteria, ct);
+                result = await DoQueryAsync(criteria, ct);
             }
             catch (Exception e)
             {
@@ -70,20 +78,20 @@ namespace A5Soft.CARMA.Application
                 throw;
             }
 
-            Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+            Logger.LogMethodExit(this.GetType(), nameof(QueryAsync));
 
             return result;
         }
-
 
         /// <summary>
         /// Implement this method to fetch a query result.
         /// </summary>
         /// <param name="criteria">a criteria for the query</param>
         /// <returns>a query result</returns>
-        /// <remarks>The criteria param is NOT guaranteed to be not null (as it could be a valid option).
+        /// <remarks>At this stage user has already been authorized.
+        /// The criteria param is NOT guaranteed to be not null (as it could be a valid option).
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<TResult> QueryIntAsync(TCriteria criteria, CancellationToken ct);
+        protected abstract Task<List<TResult>> DoQueryAsync(TCriteria criteria, CancellationToken ct);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.
@@ -94,25 +102,18 @@ namespace A5Soft.CARMA.Application
 
         /// <summary>
         /// Implement this method for any actions that should be taken after
-        /// a successful remote invocation. 
+        /// a successful remote invocation. (e.g. clear local cache)
         /// Only invoked if a remote data portal is used. 
         /// </summary>
-        protected virtual Task AfterDataPortalAsync(TCriteria criteria, TResult result,
-            CancellationToken ct)
+        protected virtual Task AfterDataPortalAsync(TCriteria criteria, List<TResult> result, CancellationToken ct)
             => Task.CompletedTask;
 
 
         /// <summary>
         /// Gets metadata for the entity fetched.
-        /// Returns null if the entity is not a class or an interface.
         /// </summary>
         public IEntityMetadata GetMetadata()
-        {
-            var resultType = typeof(TResult);
-            if (!resultType.IsInterface && !resultType.IsClass) return null;
-            if (resultType == typeof(string)) return null;
-            return MetadataProvider.GetEntityMetadata<TResult>();
-        }
+            => MetadataProvider.GetEntityMetadata<TResult>();
 
         /// <summary>
         /// Gets metadata for the query criteria.

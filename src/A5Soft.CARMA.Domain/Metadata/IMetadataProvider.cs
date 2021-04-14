@@ -5,6 +5,7 @@ namespace A5Soft.CARMA.Domain.Metadata
     /// <summary>
     /// Common interface for metadata providers (services) for use in dependency injection.
     /// </summary>
+    [Service(ServiceLifetime.Singleton)]
     public interface IMetadataProvider
     {
 

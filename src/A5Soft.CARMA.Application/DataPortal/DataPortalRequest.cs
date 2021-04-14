@@ -17,20 +17,10 @@ namespace A5Soft.CARMA.Application.DataPortal
 
         #region Constructors
 
-        public DataPortalRequest() { }
-
-        private DataPortalRequest(Type remoteServiceInterface, ClaimsIdentity identity, 
+        private DataPortalRequest(Type remoteServiceType, ClaimsIdentity identity, 
             params DataPortalParameter[] parameters)
         {
-            RemoteServiceInterface = remoteServiceInterface;
-
-            if (!RemoteServiceInterface.IsInterface) throw new ArgumentException(
-                $"Type {RemoteServiceInterface.FullName} is not an interface.", 
-                nameof(RemoteServiceInterface));
-            if (!RemoteServiceInterface.GetCustomAttributes<RemoteMethodAttribute>(false).Any()) 
-                throw new ArgumentException(
-                $"Interface {RemoteServiceInterface.FullName} is not a marked with a RemoteServiceAttribute.", 
-                nameof(RemoteServiceInterface));
+            RemoteServiceInterface = ResolveRemoteServiceInterface(remoteServiceType);
 
             Culture = CultureInfo.CurrentCulture;
             UICulture = CultureInfo.CurrentUICulture;
@@ -43,6 +33,38 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             if (null == parameters) UseCaseParams = new List<DataPortalParameter>();
             else UseCaseParams = new List<DataPortalParameter>(parameters);
+        }
+
+        private Type ResolveRemoteServiceInterface(Type remoteServiceType)
+        {
+            if (remoteServiceType.IsInterface)
+            {
+                if (null == remoteServiceType.GetCustomAttribute(typeof(RemoteUseCaseBase), false))
+                    throw new InvalidOperationException($"Service interface of type " +
+                        $"{remoteServiceType.FullName} is not marked with a RemoteServiceAttribute.");
+                return remoteServiceType;
+            }
+
+            if (remoteServiceType.IsClass && remoteServiceType != typeof(string))
+            {
+                var result = remoteServiceType.GetInterfaces()
+                    .Where(t => t.GetCustomAttributes(typeof(RemoteServiceAttribute), false).Any())
+                    .ToList();
+
+                if (result.Count < 1) throw new InvalidOperationException(
+                    $"Service implementation (class) of type {remoteServiceType.FullName} " +
+                    $"does not implement an interface with a RemoteServiceAttribute.");
+
+                if (result.Count > 1) throw new InvalidOperationException(
+                    $"Service implementation (class) of type {remoteServiceType.FullName} " +
+                    $"implements more than one interface with a RemoteServiceAttribute: " +
+                    $"{string.Join(", ", result)}.");
+
+                return result[0];
+            }
+
+            throw new InvalidOperationException($"Type {remoteServiceType.FullName} " +
+                $"is neither a class nor an interface.");
         }
 
         #endregion
@@ -85,7 +107,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>a parameter signature for the remote method to invoke</returns>
         public Type[] GetRemoteMethodSignature()
         {
-            if (null == UseCaseParams || UseCaseParams.Count < 1) return new Type[] { };
+            if (null == UseCaseParams || UseCaseParams.Count < 1) return Type.EmptyTypes;
             return UseCaseParams.Select(p => p.ParameterType).ToArray();
         }
 
@@ -194,78 +216,78 @@ namespace A5Soft.CARMA.Application.DataPortal
 
         #region Static Factory Methods
 
-        public static DataPortalRequest NewDataPortalRequest(Type interfaceType, ClaimsIdentity identity)
+        public static DataPortalRequest NewDataPortalRequest(Type remoteServiceType, ClaimsIdentity identity)
         {
             if (null == identity) throw new ArgumentNullException(nameof(identity));
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, identity);
+            return new DataPortalRequest(remoteServiceType, identity);
         }
 
-        public static DataPortalRequest NewDataPortalRequest<TArg>(Type interfaceType, 
+        public static DataPortalRequest NewDataPortalRequest<TArg>(Type remoteServiceType, 
             TArg parameter, ClaimsIdentity identity)
         {
             if (null == identity) throw new ArgumentNullException(nameof(identity));
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, identity,
+            return new DataPortalRequest(remoteServiceType, identity,
                 DataPortalParameter.NewParameter(parameter));
         }
 
         public static DataPortalRequest NewDataPortalRequest<TArg1, TArg2>(
-            Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity)
+            Type remoteServiceType, TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity)
         {
             if (null == identity) throw new ArgumentNullException(nameof(identity));
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, identity,
+            return new DataPortalRequest(remoteServiceType, identity,
                 DataPortalParameter.NewParameter(firstParameter),
                 DataPortalParameter.NewParameter(secondParameter));
         }
 
         public static DataPortalRequest NewDataPortalRequest<TArg1, TArg2, TArg3>(
-            Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, 
+            Type remoteServiceType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, 
             ClaimsIdentity identity)
         {
             if (null == identity) throw new ArgumentNullException(nameof(identity));
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, identity,
+            return new DataPortalRequest(remoteServiceType, identity,
                 DataPortalParameter.NewParameter(firstParameter),
                 DataPortalParameter.NewParameter(secondParameter),
                 DataPortalParameter.NewParameter(thirdParameter));
         }
 
-        public static DataPortalRequest NewDataPortalRequest(Type interfaceType)
+        public static DataPortalRequest NewDataPortalRequest(Type remoteServiceType)
         {
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
-            return new DataPortalRequest(interfaceType, null);
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
+            return new DataPortalRequest(remoteServiceType, null);
         }
 
-        public static DataPortalRequest NewDataPortalRequest<TArg>(Type interfaceType, TArg parameter)
+        public static DataPortalRequest NewDataPortalRequest<TArg>(Type remoteServiceType, TArg parameter)
         {
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, null,
+            return new DataPortalRequest(remoteServiceType, null,
                 DataPortalParameter.NewParameter(parameter));
         }
 
         public static DataPortalRequest NewDataPortalRequest<TArg1, TArg2>(
-            Type interfaceType, TArg1 firstParameter, TArg2 secondParameter)
+            Type remoteServiceType, TArg1 firstParameter, TArg2 secondParameter)
         {
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, null,
+            return new DataPortalRequest(remoteServiceType, null,
                 DataPortalParameter.NewParameter(firstParameter),
                 DataPortalParameter.NewParameter(secondParameter));
         }
 
         public static DataPortalRequest NewDataPortalRequest<TArg1, TArg2, TArg3>(
-            Type interfaceType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
+            Type remoteServiceType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
-            if (null == interfaceType) throw new ArgumentNullException(nameof(interfaceType));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
 
-            return new DataPortalRequest(interfaceType, null,
+            return new DataPortalRequest(remoteServiceType, null,
                 DataPortalParameter.NewParameter(firstParameter),
                 DataPortalParameter.NewParameter(secondParameter),
                 DataPortalParameter.NewParameter(thirdParameter));

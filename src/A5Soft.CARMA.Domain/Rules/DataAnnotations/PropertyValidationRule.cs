@@ -13,6 +13,10 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         private readonly ValidationAttribute _validator;
 
 
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="attribute">validation attribute</param>
         public PropertyValidationRule(ValidationAttribute attribute)
         {
             _validator = attribute ?? throw new ArgumentNullException(nameof(attribute));

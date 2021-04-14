@@ -1,26 +1,27 @@
-﻿using A5Soft.CARMA.Application.Authorization;
-using A5Soft.CARMA.Application.DataPortal;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Application.Authorization;
+using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Application
 {
     /// <summary>
-    /// A base use case for a query operation without a criteria
-    /// (that gets a query result that is not dependent on any criteria).
+    /// A base use case for a query operation without a criteria when the result is a list of query results.
     /// </summary>
-    /// <typeparam name="TResult">a type of the query result (must be binary serializable)</typeparam>
-    public abstract class QueryUseCaseBase<TResult> : AuthorizedUseCaseBase
+    /// <typeparam name="TResult">a type of the query result (list item; must be binary serializable)</typeparam>
+    public abstract class QueryListUseCaseBase<TResult> : AuthorizedUseCaseBase
         where TResult : class
     {
+
         /// <inheritdoc />
-        protected QueryUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
+        protected QueryListUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer,
+            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider,
+            IMetadataProvider metadataProvider, ILogger logger)
             : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TResult).IsSerializable) throw new InvalidOperationException(
@@ -33,18 +34,18 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a query result</returns>
-        public async Task<TResult> QueryAsync(CancellationToken ct = default)
+        public async Task<List<TResult>> QueryAsync(CancellationToken ct = default)
         {
             Logger.LogMethodEntry(this.GetType(), nameof(QueryAsync));
 
-            TResult result;
+            List<TResult> result;
 
             if (DataPortal.IsRemote)
             {
                 try
                 {
                     await BeforeDataPortalAsync(ct);
-                    result = await DataPortal.FetchAsync<TResult>(this.GetType(), User, ct);
+                    result = await DataPortal.FetchAsync<List<TResult>>(this.GetType(), User, ct);
                     await AfterDataPortalAsync(result, ct);
                 }
                 catch (Exception e)
@@ -81,7 +82,7 @@ namespace A5Soft.CARMA.Application
         /// <returns>a query result</returns>
         /// <remarks>At this stage user has already been authorized.
         /// This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<TResult> DoQueryAsync(CancellationToken ct);
+        protected abstract Task<List<TResult>> DoQueryAsync(CancellationToken ct);
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.
@@ -95,7 +96,7 @@ namespace A5Soft.CARMA.Application
         /// a successful remote invocation. (e.g. clear local cache)
         /// Only invoked if a remote data portal is used. 
         /// </summary>
-        protected virtual Task AfterDataPortalAsync(TResult result, CancellationToken ct)
+        protected virtual Task AfterDataPortalAsync(List<TResult> result, CancellationToken ct)
             => Task.CompletedTask;
 
         /// <summary>
