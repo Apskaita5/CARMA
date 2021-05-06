@@ -1,11 +1,9 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
-using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 
 namespace A5Soft.CARMA.Application
 {
@@ -15,10 +13,10 @@ namespace A5Soft.CARMA.Application
     public abstract class CommandUseCaseBase : AuthorizedUseCaseBase
     {
         /// <inheritdoc />
-        protected CommandUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
+        protected CommandUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -33,7 +31,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync();
-                    await DataPortal.InvokeAsync(this.GetType(), User);
+                    await DataPortal.InvokeAsync(this.GetType(), await GetIdentityAsync());
                     await AfterDataPortalAsync();
                 }
                 catch (Exception e)
@@ -47,7 +45,7 @@ namespace A5Soft.CARMA.Application
                 return;
             }
 
-            CanInvoke(true);
+            await CanInvokeAsync(true);
 
             try
             {

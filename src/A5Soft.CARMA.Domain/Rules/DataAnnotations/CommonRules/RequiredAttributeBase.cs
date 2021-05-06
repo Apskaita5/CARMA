@@ -1,23 +1,18 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain.Math;
+using A5Soft.CARMA.Domain.Metadata;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using A5Soft.CARMA.Domain.Math;
-using A5Soft.CARMA.Domain.Metadata;
+using System.ComponentModel.DataAnnotations;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
     /// <summary>
     /// A base class for required rule.
-    /// Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-    /// in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-    /// in the constructor.
-    /// </summary>
+    /// </summary> 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class RequiredAttribute : System.ComponentModel.DataAnnotations.RequiredAttribute,
-        IPropertyValidationAttribute
+    public abstract class RequiredAttributeBase : RequiredAttribute, IPropertyValidationAttribute
     {
-        
         /// <summary>
         /// Gets or sets a value indicating whether the property value is a reference (primary key) of a domain entity.
         /// </summary>
@@ -40,23 +35,19 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// </summary>
         public RuleSeverity Severity { get; set; }
 
+        /// <inheritdoc />
+        public override bool RequiresValidationContext 
+            => true;
 
-        /// <summary>
-        /// Extended and localized version of Required that handles:
-        /// - string (IsNullOrWhiteSpace);
-        /// - key references of types int, long, Guid and string;
-        /// - nullable types (shall have value to be valid);
-        /// - IList (shall have at least one item to be valid);
-        /// - numeric types (based on AllowNegative and SignificantDigits values);
-        /// - any other type (null != value, which includes ILookup implementations).
-        /// </summary>
-        public RequiredAttribute()
+
+        /// <inheritdoc />
+        protected RequiredAttributeBase()
         {
             this.AllowEmptyStrings = false;
         }
 
 
-        /// <inheritdoc cref="System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid" />
+        /// <inheritdoc />
         public override bool IsValid(object value)
         {
             if (Severity == RuleSeverity.Error) return IsValidInternal(value);
@@ -69,9 +60,31 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         {
             if (IsValidInternal(propInfo.GetValue(instance))) return null;
 
-            return new BrokenRule(this.GetType().FullName, propInfo.Name, string.Format(
-                CultureInfo.CurrentCulture, this.ErrorMessageString, propInfo.GetDisplayName()), Severity);
+            return new BrokenRule(this.GetType().FullName, propInfo.Name, 
+                GetLocalizedErrorMessageFor(propInfo.GetDisplayName()), Severity);
         }
+
+
+        /// <inheritdoc />
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (null == validationContext) throw new ArgumentNullException(nameof(validationContext));
+
+            if (Severity != RuleSeverity.Error || IsValidInternal(value)) return null;
+
+            var displayName = validationContext.DisplayName.IsNullOrWhiteSpace()
+                ? validationContext.GetPropertyDisplayName()
+                : validationContext.DisplayName;
+
+            return new ValidationResult(GetLocalizedErrorMessageFor(displayName));
+        }
+
+        /// <summary>
+        /// Implement this method to get a localized error message for current culture.
+        /// </summary>
+        /// <param name="localizedPropName">a localized name of the property that is invalid</param>
+        /// <returns>a localized error message for current culture</returns>
+        protected abstract string GetLocalizedErrorMessageFor(string localizedPropName);
 
 
         private bool IsValidInternal(object value)
@@ -80,25 +93,13 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
             if (IsKeyReference)
             {
-                if (value is string val)
-                {
-                    return val.IsValidKey();
-                }
-                else if (value is int intVal)
-                {
-                    return intVal.IsValidKey();
-                }
-                else if (value is long longVal)
-                {
-                    return longVal.IsValidKey();
-                }
-                else if (value is Guid guidVal)
-                {
-                    return guidVal.IsValidKey();
-                }
-                
+                if (value is string val) return val.IsValidKey();
+                if (value is int intVal) return intVal.IsValidKey();
+                if (value is long longVal) return longVal.IsValidKey();
+                if (value is Guid guidVal) return guidVal.IsValidKey();
+                if (value is IDomainEntityIdentity identity) return !identity.IsNew;
                 throw new NotSupportedException(
-                    $"Key type {value.GetType().FullName} is not supported by RequiredAttribute.");
+                    $"Reference key type {value.GetType().FullName} is not supported by RequiredAttribute.");
             }
             else if (value is string val)
             {
@@ -119,7 +120,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
                 if (AllowNegative) return byteValue != 0;
                 return byteValue > 0;
             }
-            else if (value is Int16 int16Value)
+            else if (value is short int16Value)
             {
                 if (AllowNegative) return int16Value != 0;
                 return int16Value > 0;
@@ -136,7 +137,15 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             }
             else if (value is IList list)
             {
-                return (null != list && list.Count > 0);
+                return (list.Count > 0);
+            }
+            else if (value is IDomainEntityIdentity identity)
+            {
+                return !identity.IsNew;
+            }
+            else if (value is ILookup lookup)
+            {
+                return (null != lookup.Id && !lookup.Id.IsNew);
             }
 
             return true;

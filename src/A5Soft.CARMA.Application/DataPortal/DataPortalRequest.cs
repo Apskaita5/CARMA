@@ -26,10 +26,17 @@ namespace A5Soft.CARMA.Application.DataPortal
             UICulture = CultureInfo.CurrentUICulture;
 
             if (null != identity && identity.IsAuthenticated)
+            {
                 IdentityClaims = identity.Claims
                     .Select(c => new DataPortalClaim(c))
                     .ToList();
-            else IdentityClaims = new List<DataPortalClaim>();
+                AuthenticationType = identity.AuthenticationType;
+            }
+            else
+            {
+                IdentityClaims = new List<DataPortalClaim>();
+                AuthenticationType = string.Empty;
+            }
 
             if (null == parameters) UseCaseParams = new List<DataPortalParameter>();
             else UseCaseParams = new List<DataPortalParameter>(parameters);
@@ -93,6 +100,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         public List<DataPortalClaim> IdentityClaims { get; set; }
 
         /// <summary>
+        /// Gets or sets an authentication type for the user who invokes the remote method.
+        /// </summary>
+        public string AuthenticationType { get; set; }
+
+        /// <summary>
         /// Gets or sets a list of (serialized) parameters for remote method invocation.
         /// </summary>
         public List<DataPortalParameter> UseCaseParams { get; set; }
@@ -143,16 +155,14 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <summary>
         /// Gets a ClaimsIdentity instance with the claims within the request.
         /// </summary>
-        /// <param name="authenticationType">a type (code) of the data portal authentication on server</param>
-        /// <returns>a ClaimsIdentity instance with the claims within the request</returns>
-        public ClaimsIdentity GetIdentity(string authenticationType)
+        public ClaimsIdentity GetIdentity()
         {
-            if (authenticationType.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(authenticationType));
+            if (AuthenticationType.IsNullOrWhiteSpace()) return new ClaimsIdentity();
 
             if (null != IdentityClaims && IdentityClaims.Count > 0)
             {
                 return new ClaimsIdentity(IdentityClaims
-                    .Select(p => p.ToClaim()), authenticationType);
+                    .Select(p => p.ToClaim()), AuthenticationType);
             }
 
             return new ClaimsIdentity();
@@ -206,7 +216,7 @@ namespace A5Soft.CARMA.Application.DataPortal
                 $"Remote service interface type shall be an interface while type " +
                 $"{RemoteServiceInterface.FullName} is not.");
             if (!RemoteServiceInterface.GetCustomAttributes(
-                typeof(RemoteMethodAttribute), false).Any())
+                typeof(RemoteServiceAttribute), false).Any())
                 throw new ArgumentException(
                     $"Remote service interface type {RemoteServiceInterface.FullName} " +
                     $"is not marked with a RemoteServiceAttribute.");

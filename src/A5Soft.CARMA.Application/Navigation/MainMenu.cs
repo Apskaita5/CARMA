@@ -22,10 +22,12 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <param name="resourceType"><see cref="Type"/> that contains the resources
         /// for <see cref="MenuItem.DisplayName"/> and <see cref="MenuItem.Description"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
-        public void AddMainMenuTopGroup(string name, string displayName, string description,
+        public MenuItem AddMainMenuTopGroup(string name, string displayName, string description,
             Type resourceType, string icon = "")
         {
-            TopItems.Add(MenuItem.CreateMainMenuTopGroup(name, displayName, description, resourceType, icon));
+            var result = MenuItem.CreateMainMenuTopGroup(name, displayName, description, resourceType, icon);
+            TopItems.Add(result);
+            return result;
         }
 
         /// <summary>

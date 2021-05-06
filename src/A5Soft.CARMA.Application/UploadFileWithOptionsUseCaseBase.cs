@@ -17,10 +17,10 @@ namespace A5Soft.CARMA.Application
     public abstract class UploadFileWithOptionsUseCaseBase<TOptions> : AuthorizedUseCaseBase
     {
         /// <inheritdoc />
-        protected UploadFileWithOptionsUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
+        protected UploadFileWithOptionsUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(file, options);
-                    await DataPortal.InvokeAsync(this.GetType(), file, options, User);
+                    await DataPortal.InvokeAsync(this.GetType(), file, options, await GetIdentityAsync());
                     await AfterDataPortalAsync(file, options);
                 }
                 catch (Exception e)
@@ -55,8 +55,8 @@ namespace A5Soft.CARMA.Application
             }
 
             if (Authorizer.AuthorizationImplementedForParam<TOptions>())
-                Authorizer.IsAuthorized(User, options, true);
-            else CanInvoke(true);
+                Authorizer.IsAuthorized(await GetIdentityAsync(), options, true);
+            else await CanInvokeAsync(true);
 
             try
             {

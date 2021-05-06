@@ -5,7 +5,6 @@ using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,10 +21,10 @@ namespace A5Soft.CARMA.Application
     {
 
         /// <inheritdoc />
-        protected QueryListWithCriteriaUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer,
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider,
-            IMetadataProvider metadataProvider, ILogger logger)
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
+        protected QueryListWithCriteriaUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger)
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TResult).IsSerializable) throw new InvalidOperationException(
                 $"Query result must be (binary) serializable while type {typeof(TResult).FullName} is not.");
@@ -50,7 +49,7 @@ namespace A5Soft.CARMA.Application
                 {
                     await BeforeDataPortalAsync(criteria, ct);
                     result = await DataPortal.FetchAsync<TCriteria, List<TResult>>(
-                        this.GetType(), criteria, User, ct);
+                        this.GetType(), criteria, await GetIdentityAsync(), ct);
                     await AfterDataPortalAsync(criteria, result, ct);
                 }
                 catch (Exception e)
@@ -65,8 +64,8 @@ namespace A5Soft.CARMA.Application
             }
 
             if (Authorizer.AuthorizationImplementedForParam<TCriteria>())
-                Authorizer.IsAuthorized(User, criteria, true);
-            else CanInvoke(true);
+                Authorizer.IsAuthorized(await GetIdentityAsync(), criteria, true);
+            else await CanInvokeAsync(true);
 
             try
             {

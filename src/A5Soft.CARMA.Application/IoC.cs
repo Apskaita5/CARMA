@@ -13,33 +13,40 @@ namespace A5Soft.CARMA.Application
     {
 
         /// <summary>
-        /// Gets a dictionary of default service implementations that are
-        /// defined in the assemblies specified. (key is a service interface type)
+        /// Gets a list of default service implementations that are defined in the assemblies specified.
         /// </summary>
         /// <param name="assemblies"></param>
-        public static Dictionary<Type, (Type Implementation, ServiceLifetime Lifetime)> GetDefaultServices(
+        /// <param name="buildConfiguration">application build configuration (client/server)
+        /// to get service implementations for</param>
+        public static List<ApplicationServiceInfo> GetDefaultServices(BuildConfiguration buildConfiguration,
             params Assembly[] assemblies)
         {
             if (null == assemblies || assemblies.Length < 1) throw new ArgumentNullException(nameof(assemblies));
+            if (buildConfiguration == BuildConfiguration.Any) throw new ArgumentException(
+                "Cannot get service implementations for all app build configurations.");
 
-            var result = new Dictionary<Type, (Type Implementation, ServiceLifetime Lifetime)>();
+            var result = new List<ApplicationServiceInfo>();
 
             foreach (var assembly in assemblies)
             {
-                var implementations = assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract)
+                var implementations = assembly.GetTypes()
+                    .Where(t => t.IsClass && !t.IsAbstract)
                     .Select(t => (Implementation: t,
                         Attr: t.GetCustomAttribute<DefaultServiceImplementationAttribute>()))
-                    .Where(i => null != i.Attr);
+                    .Where(i => null != i.Attr && i.Attr.ForBuildConfiguration.HasFlag(buildConfiguration))
+                    .Select(v => new ApplicationServiceInfo(v.Attr.ServiceInterfaceType, 
+                        v.Implementation, v.Attr.GetServiceLifetime(v.Implementation)));
+
                 foreach (var implementation in implementations)
                 {
-                    if (result.ContainsKey(implementation.Attr.ServiceInterfaceType)) 
-                        throw new InvalidOperationException(
-                            $"Service interface type {implementation.Attr.ServiceInterfaceType.FullName} " +
-                            $"has multiple default implementations: {result[implementation.Attr.ServiceInterfaceType].Implementation.FullName} " +
-                            $"and {implementation.Implementation.FullName}.");
+                    var duplicate = result.FirstOrDefault(
+                        s => s.InterfaceType == implementation.InterfaceType);
+                    if (null != duplicate) throw new InvalidOperationException(
+                            $"Service interface type {implementation.InterfaceType} " +
+                            $"has multiple default implementations: {duplicate.ImplementationType.FullName} " +
+                            $"and {implementation.ImplementationType.FullName}.");
                     
-                    result.Add(implementation.Attr.ServiceInterfaceType, (implementation.Implementation,
-                        implementation.Attr.GetServiceLifetime(implementation.Implementation)));
+                    result.Add(implementation);
                 }
             }
 
@@ -47,23 +54,13 @@ namespace A5Soft.CARMA.Application
         }
 
         /// <summary>
-        /// Appends default service implementations for CARMA framework (if there are no
-        /// default implementations at the application level).
+        /// Gets default service implementations for CARMA framework.
         /// </summary>
-        /// <param name="dic"></param>
-        public static void AppendFrameworkImplementations(
-            this Dictionary<Type, (Type Implementation, ServiceLifetime Lifetime)> dic)
+        public static List<ApplicationServiceInfo> GetFrameworkServices()
         {
-            if (null == dic) throw new ArgumentNullException(nameof(dic));
-
-            var frameworkImplementations = GetDefaultServices(
-                typeof(IoC).Assembly, typeof(IDomainObject).Assembly);
-
-            foreach (var frameworkImplementation in frameworkImplementations)
-            {
-                if (!dic.ContainsKey(frameworkImplementation.Key)) dic.Add(
-                    frameworkImplementation.Key, frameworkImplementation.Value);
-            }
+            return GetDefaultServices(BuildConfiguration.Client, 
+                    typeof(IoC).Assembly, typeof(IDomainObject).Assembly)
+                .ToList();
         }
 
     }

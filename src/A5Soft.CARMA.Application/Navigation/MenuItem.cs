@@ -27,7 +27,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// overload to create a separator menu item
         /// </summary>
-        private MenuItem()
+        protected MenuItem()
         {
             Name = string.Empty;
             ResourceType = null;
@@ -137,7 +137,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Gets a name of the menu item (should be unique within main menu).
         /// </summary>
-        public string Name { get; }
+        public string Name { get; protected set; }
                
         /// <summary>
         /// Gets the <see cref="System.Type"/> that contains the resources for <see cref="DisplayName"/>
@@ -155,18 +155,18 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Gets a value indicating whether the menu item can be invoked by the user.
         /// </summary>
-        public bool IsEnabled { get; private set; }
+        public bool IsEnabled { get; protected set; }
 
          /// <summary>
         /// Gets a type of the menu item.
         /// </summary>
-        public MenuItemType ItemType { get; }
+        public MenuItemType ItemType { get; protected set; }
 
         /// <summary>
         /// Gets a type of the (main) use case that handles action associated with the menu item.
         /// E.g. create invoice use case handles menu item "New Invoice".
         /// </summary>
-        public Type UseCaseType { get; private set; }
+        public Type UseCaseType { get; protected set; }
 
         /// <summary>
         /// Sub items of this menu item. Optional.
@@ -227,7 +227,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// but a public static property with a name matching the <see cref="DisplayName"/> value couldn't be found
         /// on the <see cref="ResourceType"/>.
         /// </exception>
-        public string GetDisplayName()
+        public virtual string GetDisplayName()
         {
             return this._displayName.GetLocalizableValue();
         }
@@ -253,7 +253,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// but a public static property with a name matching the <see cref="Description"/> value couldn't be found
         /// on the <see cref="ResourceType"/>.
         /// </exception>
-        public string GetDescription()
+        public virtual string GetDescription()
         {
             return this._description.GetLocalizableValue();
         }
@@ -310,7 +310,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
         /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
-        public void AddMenuGroup(string name, string displayName, string description, Type resourceType,
+        public MenuItem AddMenuGroup(string name, string displayName, string description, Type resourceType,
             string icon = "")
         {
             if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
@@ -318,7 +318,11 @@ namespace A5Soft.CARMA.Application.Navigation
 
             if (null == Items) Items = new List<MenuItem>();
 
-            Items.Add(new MenuItem(name, displayName, description, resourceType, icon));
+            var result = new MenuItem(name, displayName, description, resourceType, icon);
+
+            Items.Add(result);
+
+            return result;
         }
 
         /// <summary>
@@ -388,7 +392,7 @@ namespace A5Soft.CARMA.Application.Navigation
             return null;
         }
 
-        internal void SetAuthorization(IAuthorizationProvider authorizationProvider, ClaimsIdentity user)
+        protected internal virtual void SetAuthorization(IAuthorizationProvider authorizationProvider, ClaimsIdentity user)
         {
             if (ItemType == MenuItemType.Submenu)
             {

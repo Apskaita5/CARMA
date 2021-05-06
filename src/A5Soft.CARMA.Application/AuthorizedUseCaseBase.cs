@@ -1,6 +1,7 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
@@ -13,6 +14,8 @@ namespace A5Soft.CARMA.Application
     /// <remarks>Authorization is only meaningful for remote execution.</remarks>
     public abstract class AuthorizedUseCaseBase : RemoteUseCaseBase, IAuthorizedUseCase
     {
+        private IAuthenticationStateProvider _authenticationStateProvider;
+
         /// <summary>
         /// Gets an authorizer for the use case.
         /// </summary>
@@ -20,23 +23,28 @@ namespace A5Soft.CARMA.Application
 
 
         /// <inheritdoc />
-        protected AuthorizedUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider,
-            IMetadataProvider metadataProvider, ILogger logger) :
-            base(dataPortal, validationProvider, metadataProvider, logger)
+        protected AuthorizedUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(dataPortal, validationProvider, metadataProvider, logger)
         {
-            User = user ?? throw new ArgumentNullException(nameof(user));
-            Authorizer = authorizer ?? throw new ArgumentNullException(nameof(authorizer));
+            _authenticationStateProvider = authenticationStateProvider 
+                ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
+            Authorizer = authorizer?.GetAuthorizer(this.GetType()) ?? throw new ArgumentNullException(nameof(authorizer));
         }
 
 
-        /// <inheritdoc cref="IAuthorizedUseCase.User" />
-        public ClaimsIdentity User { get; }
-
-        /// <inheritdoc cref="IAuthorizedUseCase.CanInvoke" />
-        public bool CanInvoke(bool throwOnNotAuthorized = false)
+        /// <inheritdoc cref="IAuthorizedUseCase.GetIdentityAsync" />
+        public Task<ClaimsIdentity> GetIdentityAsync()
         {
-            return Authorizer.IsAuthorized(User, throwOnNotAuthorized);
+            return _authenticationStateProvider.GetIdentityAsync();
+        }
+
+        /// <inheritdoc cref="IAuthorizedUseCase.CanInvokeAsync" />
+        public async Task<bool> CanInvokeAsync(bool throwOnNotAuthorized = false)
+        {
+            var currentIdentity = await _authenticationStateProvider.GetIdentityAsync();
+            return Authorizer.IsAuthorized(currentIdentity, throwOnNotAuthorized);
         }
  
     }

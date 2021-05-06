@@ -1,7 +1,6 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
 using System;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using A5Soft.CARMA.Domain.Metadata;
@@ -18,10 +17,10 @@ namespace A5Soft.CARMA.Application
         where TResult : class
     {
         /// <inheritdoc />
-        protected QueryUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
+        protected QueryUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TResult).IsSerializable) throw new InvalidOperationException(
                 $"Query result must be (binary) serializable while type {typeof(TResult).FullName} is not.");
@@ -44,7 +43,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(ct);
-                    result = await DataPortal.FetchAsync<TResult>(this.GetType(), User, ct);
+                    result = await DataPortal.FetchAsync<TResult>(this.GetType(), await GetIdentityAsync(), ct);
                     await AfterDataPortalAsync(result, ct);
                 }
                 catch (Exception e)
@@ -58,7 +57,7 @@ namespace A5Soft.CARMA.Application
                 return result;
             }
 
-            CanInvoke(true);
+            await CanInvokeAsync(true);
 
             try
             {

@@ -19,10 +19,10 @@ namespace A5Soft.CARMA.Application
         where T : class, IDomainObject
     {
         /// <inheritdoc />
-        protected FetchDomainSingletonUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
+        protected FetchDomainSingletonUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(T).IsSerializable) throw new InvalidOperationException(
                 $"Domain entity must be (binary) serializable while type {typeof(T).FullName} is not.");
@@ -46,7 +46,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(ct);
-                    result = await DataPortal.FetchAsync<T>(this.GetType(), User, ct);
+                    result = await DataPortal.FetchAsync<T>(this.GetType(), await GetIdentityAsync(), ct);
                     if (result is ITrackState statefulResult) 
                         statefulResult.SetValidationEngine(ValidationProvider);
                     await AfterDataPortalAsync(result, ct);
@@ -62,7 +62,7 @@ namespace A5Soft.CARMA.Application
                 return result;
             }
 
-            CanInvoke(true);
+            await CanInvokeAsync(true);
 
             try
             {

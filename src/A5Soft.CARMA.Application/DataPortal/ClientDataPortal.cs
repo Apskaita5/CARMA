@@ -16,22 +16,22 @@ namespace A5Soft.CARMA.Application.DataPortal
     [DefaultServiceImplementation(typeof(IClientDataPortal))]
     public sealed class ClientDataPortal : IClientDataPortal
     {
-        private readonly IRemoteClientPortal _remoteClientPortal;
+        private readonly IDataPortalProxy _dataPortalProxy;
 
 
         /// <summary>
         /// constructor for DI
         /// </summary>
-        /// <param name="remoteClientPortal">remote client portal to use</param>
-        public ClientDataPortal(IRemoteClientPortal remoteClientPortal)
+        /// <param name="dataPortalProxy">remote client portal to use</param>
+        public ClientDataPortal(IDataPortalProxy dataPortalProxy)
         {
-            _remoteClientPortal = remoteClientPortal ?? throw new ArgumentNullException(nameof(remoteClientPortal));
+            _dataPortalProxy = dataPortalProxy ?? throw new ArgumentNullException(nameof(dataPortalProxy));
         }
 
 
         /// <inheritdoc cref="IClientDataPortal.IsRemote" />
         public bool IsRemote => 
-            _remoteClientPortal?.IsRemote ?? false;
+            _dataPortalProxy?.IsRemote ?? false;
 
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TResult}" />
@@ -199,7 +199,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             if (!IsRemote) throw new InvalidOperationException(
                 "Cannot invoke remote method on a data portal that is not remote.");
 
-            var response = await _remoteClientPortal.GetResponseAsync(
+            var response = await _dataPortalProxy.GetResponseAsync(
                 JsonConvert.SerializeObject(request), ct);
 
             var result = BinaryDeserialize<DataPortalResponse>(response);

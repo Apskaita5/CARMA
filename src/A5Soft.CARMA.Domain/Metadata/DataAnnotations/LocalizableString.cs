@@ -9,6 +9,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
     /// This class is currently compiled in both System.Web.dll and System.ComponentModel.DataAnnotations.dll.
     /// See: https://github.com/microsoft/referencesource/blob/master/System.ComponentModel.DataAnnotations/DataAnnotations/LocalizableString.cs
     /// </summary>
+    [Serializable]
     public class LocalizableString
     {
 

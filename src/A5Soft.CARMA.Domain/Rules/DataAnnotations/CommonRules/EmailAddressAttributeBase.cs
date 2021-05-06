@@ -1,19 +1,16 @@
 ﻿using A5Soft.CARMA.Domain.Metadata;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
 
     /// <summary>
     /// A base class for email rule.
-    /// Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-    /// in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-    /// in the constructor.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class EmailAddressAttribute : System.ComponentModel.DataAnnotations.DataTypeAttribute, 
+    public abstract class EmailAddressAttributeBase : System.ComponentModel.DataAnnotations.DataTypeAttribute, 
         IPropertyValidationAttribute
     {
 
@@ -27,12 +24,19 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// </summary>
         public RuleSeverity Severity { get; set; }
 
+        /// <inheritdoc />
+        public override bool RequiresValidationContext
+            => true;
 
-        public EmailAddressAttribute() : base(System.ComponentModel.DataAnnotations.DataType.EmailAddress)
+
+        /// <summary>
+        /// Email validation rule
+        /// </summary>
+        protected EmailAddressAttributeBase() : base(DataType.EmailAddress)
         { }
 
 
-        /// <inheritdoc cref="System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid" />
+        /// <inheritdoc />
         public override bool IsValid(object value)
         {
             if (Severity != RuleSeverity.Error) return true;
@@ -45,10 +49,31 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         {
             if (IsValidInternal(propInfo.GetValue(instance) as string)) return null;
 
-            return new BrokenRule(this.GetType().FullName, propInfo.Name, string.Format(
-                CultureInfo.CurrentCulture, this.ErrorMessageString, propInfo.GetDisplayName()), Severity);
+            return new BrokenRule(this.GetType().FullName, propInfo.Name,
+                GetLocalizedErrorMessageFor(propInfo.GetDisplayName()), Severity);
         }
 
+
+        /// <inheritdoc />
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (null == validationContext) throw new ArgumentNullException(nameof(validationContext));
+
+            if (Severity != RuleSeverity.Error || IsValidInternal(value as string)) return null;
+
+            var displayName = validationContext.DisplayName.IsNullOrWhiteSpace()
+                ? validationContext.GetPropertyDisplayName()
+                : validationContext.DisplayName;
+
+            return new ValidationResult(GetLocalizedErrorMessageFor(displayName));
+        }
+
+        /// <summary>
+        /// Implement this method to get a localized error message for current culture.
+        /// </summary>
+        /// <param name="localizedPropName">a localized name of the property that is invalid</param>
+        /// <returns>a localized error message for current culture</returns>
+        protected abstract string GetLocalizedErrorMessageFor(string localizedPropName);
 
         private bool IsValidInternal(string value)
         {

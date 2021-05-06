@@ -4,7 +4,6 @@ using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application
@@ -17,10 +16,10 @@ namespace A5Soft.CARMA.Application
     public abstract class CommandWithParameterUseCaseBase<TParameter> : AuthorizedUseCaseBase
     {
         /// <inheritdoc />
-        protected CommandWithParameterUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
+        protected CommandWithParameterUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -36,7 +35,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(parameter);
-                    await DataPortal.InvokeAsync(this.GetType(), parameter, User);
+                    await DataPortal.InvokeAsync(this.GetType(), parameter, await GetIdentityAsync());
                     await AfterDataPortalAsync(parameter);
                 }
                 catch (Exception e)
@@ -51,8 +50,8 @@ namespace A5Soft.CARMA.Application
             }
 
             if (Authorizer.AuthorizationImplementedForParam<TParameter>())
-                Authorizer.IsAuthorized(User, parameter, true);
-            else CanInvoke(true);
+                Authorizer.IsAuthorized(await GetIdentityAsync(), parameter, true);
+            else await CanInvokeAsync(true);
 
             try
             {

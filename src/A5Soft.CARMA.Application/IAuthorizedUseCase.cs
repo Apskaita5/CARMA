@@ -1,26 +1,24 @@
 ﻿using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application
 {
     /// <summary>
     /// Base interface for all use cases that implement authorization.
     /// </summary>
-    public interface IAuthorizedUseCase : IUseCase 
+    public interface IAuthorizedUseCase : IUseCase
     {
-
         /// <summary>
-        /// Gets an identity of the user of the use case.
+        /// Gets a current identity of the user.
         /// </summary>
-        ClaimsIdentity User { get; }
-
-        
+        Task<ClaimsIdentity> GetIdentityAsync();
+                                         
         /// <summary>
-        /// Gets a value indicating if the user is authorized to invoke the use case.
+        /// Gets a value indicating whether the current user is authorized to invoke the use case.
         /// </summary>
         /// <param name="throwOnNotAuthorized">whether to throw a (security) exception
         /// if the user is not authorized</param>
-        /// <returns>a value indicating if the user is authorized to invoke the use case</returns>
-        bool CanInvoke(bool throwOnNotAuthorized = false);
-
+        /// <returns>a value indicating whether the user is authorized to invoke the use case</returns>
+        Task<bool> CanInvokeAsync(bool throwOnNotAuthorized = false);
     }
 }

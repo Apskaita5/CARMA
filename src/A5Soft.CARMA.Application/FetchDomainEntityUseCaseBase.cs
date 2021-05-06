@@ -3,7 +3,6 @@ using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Rules;
 using System;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using A5Soft.CARMA.Domain.Metadata;
@@ -18,10 +17,10 @@ namespace A5Soft.CARMA.Application
         where T : class, IDomainEntity
     {
         /// <inheritdoc />
-        protected FetchDomainEntityUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
+        protected FetchDomainEntityUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(T).IsSerializable) throw new InvalidOperationException(
                 $"Fetch result must be (binary) serializable while type {typeof(T).FullName} is not.");
@@ -53,7 +52,8 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(id, ct);
-                    result = await DataPortal.FetchAsync<IDomainEntityIdentity, T>(this.GetType(), id, User, ct);
+                    result = await DataPortal.FetchAsync<IDomainEntityIdentity, T>(this.GetType(), 
+                        id, await GetIdentityAsync(), ct);
                     if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
                     await AfterDataPortalAsync(id, result, ct);
                 }
@@ -69,8 +69,8 @@ namespace A5Soft.CARMA.Application
             }
 
             if (Authorizer.AuthorizationImplementedForParam<IDomainEntityIdentity>())
-                Authorizer.IsAuthorized(User, id, true);
-            else Authorizer.IsAuthorized(User, true);
+                Authorizer.IsAuthorized(await GetIdentityAsync(), id, true);
+            else Authorizer.IsAuthorized(await GetIdentityAsync(), true);
 
             try
             {
@@ -83,7 +83,7 @@ namespace A5Soft.CARMA.Application
             }
 
             if (Authorizer.AuthorizationImplementedForParam<T>())
-                Authorizer.IsAuthorized(User, result, true);
+                Authorizer.IsAuthorized(await GetIdentityAsync(), result, true);
 
             Logger.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using A5Soft.CARMA.Domain;
 
 namespace A5Soft.CARMA.Application.Authorization.Default
 {
     /// <summary>
     /// Default implementation of IAuthorizationProvider using authorization attributes.
     /// </summary>
+    [DefaultServiceImplementation(typeof(IAuthorizationProvider))]
     public class DefaultAuthorizationProvider : IAuthorizationProvider
     {
         private static readonly ConcurrentDictionary<Type, UseCaseAuthorizer> _cache

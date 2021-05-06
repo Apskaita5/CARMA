@@ -97,7 +97,7 @@ namespace A5Soft.CARMA.Domain.Reflection
 
             return result;
         }
-
+               
 
         /// <summary>
         /// Gets a localized name of an enum value. (see <see cref="DisplayAttribute.Name"/>)

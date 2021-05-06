@@ -12,18 +12,20 @@ namespace A5Soft.CARMA.Application.Navigation
     /// <summary>
     /// A base use case for app main menu fetch operation.
     /// </summary>
-    public abstract class FetchMainMenuUseCaseBase
+    public abstract class FetchMainMenuUseCaseBase : IUseCase
     {
+        private readonly IAuthenticationStateProvider _authenticationStateProvider;
         private readonly IClientDataPortal _dataPortal;
         protected readonly ILogger _logger;
 
-        protected FetchMainMenuUseCaseBase(IClientDataPortal dataPortal, 
-            IAuthorizationProvider authorizationProvider, ClaimsIdentity user, ILogger logger)
+        protected FetchMainMenuUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider, ILogger logger)
         {
             _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            User = user ?? throw new ArgumentNullException(nameof(user));
-            AuthorizationProvider =
-                authorizationProvider ?? throw new ArgumentNullException(nameof(authorizationProvider));
+            _authenticationStateProvider = authenticationStateProvider 
+                ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
+            AuthorizationProvider = authorizationProvider 
+                ?? throw new ArgumentNullException(nameof(authorizationProvider));
             _logger = logger;
         }
 
@@ -31,7 +33,10 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Gets a current user.
         /// </summary>
-        public ClaimsIdentity User { get; }
+        public Task<ClaimsIdentity> GetIdentityAsync()
+        {
+            return _authenticationStateProvider.GetIdentityAsync();
+        }
 
         /// <summary>
         /// Gets an authorization service.
@@ -42,14 +47,14 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Fetches a main menu for the current user. 
         /// </summary>
-        /// <param name="allowedPlugins">a list of the plugin ids that are supported by the app,
-        /// e.g. a client winforms app</param>
         /// <returns>a main menu for the current user</returns>
-        public async Task<MainMenu> FetchAsync(IList<string> allowedPlugins)
+        public async Task<MainMenu> FetchAsync()
         {
-            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync), allowedPlugins);
+            _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync));
 
-            if (null == User || !User.IsAuthenticated) return new MainMenu();
+            var identity = await GetIdentityAsync();
+
+            if (null == identity || !identity.IsAuthenticated) return new MainMenu();
 
             MainMenu result;
 
@@ -57,8 +62,7 @@ namespace A5Soft.CARMA.Application.Navigation
             {
                 try
                 {
-                    result = await _dataPortal.FetchAsync< IList<string>, MainMenu >(
-                        this.GetType(), allowedPlugins, User);
+                    result = await _dataPortal.FetchAsync<MainMenu>(this.GetType(), identity);
                 }
                 catch (Exception e)
                 {
@@ -75,16 +79,16 @@ namespace A5Soft.CARMA.Application.Navigation
             {
                 result = GetBaseMainMenu();
 
-                var replacedUseCaseInterfaces = await GetReplacedUseCaseInterfaceTypesAsync(allowedPlugins);
+                var replacedUseCaseInterfaces = await GetReplacedUseCaseInterfaceTypesAsync();
 
                 result.ReplaceUseCases(replacedUseCaseInterfaces);
 
-                var plugins = await GetPluginMenuItemsAsync(allowedPlugins);
+                var plugins = await GetPluginMenuItemsAsync();
 
                 foreach (var itemsCollection in plugins)
                 {
                     foreach (var menuKey in itemsCollection
-                        .Select(p => p.Key.Trim().ToLowerInvariant()).Distinct())
+                        .Select(p => p.MenuGroupName.Trim().ToLowerInvariant()).Distinct())
                     {
                         var menuItem = result.GetMenuGroup(menuKey);
                         if (menuItem.IsNull()) throw new InvalidOperationException(
@@ -92,15 +96,16 @@ namespace A5Soft.CARMA.Application.Navigation
 
                         menuItem.AddSeparator();
                         foreach (var item in itemsCollection
-                            .Where(p => p.Key.Trim().ToLowerInvariant() == menuKey)
-                            .Select(p => p.Value))
+                            .Where(p => p.MenuGroupName.Trim().Equals(menuKey, 
+                                StringComparison.OrdinalIgnoreCase))
+                            .Select(p => p.MenuItem))
                         {
                             menuItem.AddPluginMenuItem(item);
                         }
                     }
                 }
 
-                result.SetAuthorization(AuthorizationProvider, User);
+                result.SetAuthorization(AuthorizationProvider, identity);
             }
             catch (Exception e)
             {
@@ -123,22 +128,16 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Implement this method to fetch a list of menu items for each relevant plugin.
         /// </summary>
-        /// <param name="allowedPlugins">a list of the plugin ids that are supported by the app,
-        /// e.g. a client winforms app</param>
         /// <remarks>This method is always executed on server side (if data portal is configured).</remarks>
-        protected abstract Task<List<List<KeyValuePair<string, MenuItem>>>> GetPluginMenuItemsAsync(
-            IList<string> allowedPlugins);
+        protected abstract Task<List<List<(string MenuGroupName, MenuItem MenuItem)>>> GetPluginMenuItemsAsync();
 
         /// <summary>
         /// Implement this method to fetch a dictionary of replaced use case interfaces for each relevant plugin.
         /// </summary>
-        /// <param name="allowedPlugins">a list of the plugin ids that are supported by the app,
-        /// e.g. a client winforms app</param>
         /// <remarks>This method is always executed on server side (if data portal is configured).
         /// Plugins may wish to change how the base menu behaves,
         /// e.g. to create a new invoice using plugin use case instead of the base one.</remarks>
-        protected abstract Task<Dictionary<Type, Type>> GetReplacedUseCaseInterfaceTypesAsync(
-            IList<string> allowedPlugins);
+        protected abstract Task<Dictionary<Type, Type>> GetReplacedUseCaseInterfaceTypesAsync();
 
     }
 }

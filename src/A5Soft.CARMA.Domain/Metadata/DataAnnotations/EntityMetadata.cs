@@ -91,6 +91,13 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
 
         #region IEntityMetadata Methods
 
+        /// <inheritdoc cref="IEntityMetadata.GetPropertyMetadata" />
+        public IPropertyMetadata GetPropertyMetadata(string propertyName)
+        {
+            if (Properties.ContainsKey(propertyName)) return Properties[propertyName];
+            return null;
+        }
+
         /// <inheritdoc cref="IEntityMetadata.GetDisplayNameForNew" />
         public string GetDisplayNameForNew()
         {

@@ -15,10 +15,10 @@ namespace A5Soft.CARMA.Application
     public abstract class UploadFileUseCaseBase : AuthorizedUseCaseBase
     {
         /// <inheritdoc />
-        protected UploadFileUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
+        protected UploadFileUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger) { }
 
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(file);
-                    await DataPortal.InvokeAsync(this.GetType(), file, User);
+                    await DataPortal.InvokeAsync(this.GetType(), file, await GetIdentityAsync());
                     await AfterDataPortalAsync(file);
                 }
                 catch (Exception e)
@@ -50,7 +50,7 @@ namespace A5Soft.CARMA.Application
                 return;
             }
 
-            CanInvoke(true);
+            await CanInvokeAsync(true);
 
             try
             {

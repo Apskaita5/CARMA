@@ -40,6 +40,15 @@ namespace A5Soft.CARMA.Domain.Metadata
 
 
         /// <summary>
+        /// Gets a <see cref="IPropertyMetadata"/> instance for the property specified
+        /// (null if no metadata for the property).
+        /// </summary>
+        /// <param name="propertyName">a name of the property to get the metadata for</param>
+        /// <returns>a <see cref="IPropertyMetadata"/> instance for the property specified
+        /// (null if no metadata for the property)</returns>
+        IPropertyMetadata GetPropertyMetadata(string propertyName);
+
+        /// <summary>
         /// Gets a localized value that is used for display in the UI
         /// for a new instance of the entity (typically used as a form caption/header).
         /// </summary>

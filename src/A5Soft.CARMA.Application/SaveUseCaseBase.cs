@@ -3,7 +3,6 @@ using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Rules;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using A5Soft.CARMA.Domain.Metadata;
 
@@ -21,10 +20,10 @@ namespace A5Soft.CARMA.Application
         where TDomInterface : class, IDomainObject
     {
         /// <inheritdoc />
-        protected SaveUseCaseBase(ClaimsIdentity user, IUseCaseAuthorizer authorizer, 
-            IClientDataPortal dataPortal, IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger) 
-            : base(user, authorizer, dataPortal, validationProvider, metadataProvider, logger)
+        protected SaveUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizer, IClientDataPortal dataPortal, 
+            IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider, ILogger logger) 
+            : base(authenticationStateProvider, authorizer, dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TDomInterface).IsInterface) throw new InvalidOperationException(
                 $"TDomInterface generic parameter for SaveUseCaseBase shall be an interface, while the provided parameter type is {typeof(TDomInterface).FullName}.");
@@ -55,7 +54,7 @@ namespace A5Soft.CARMA.Application
                 {
                     await BeforeDataPortalAsync(domainDto);
                     result = await DataPortal.FetchAsync<TDomInterface, TDomObject>(
-                        this.GetType(), domainDto, User);
+                        this.GetType(), domainDto, await GetIdentityAsync());
                     if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
                     await AfterDataPortalAsync(domainDto, result);
                 }
@@ -71,7 +70,7 @@ namespace A5Soft.CARMA.Application
             }
 
             // Cannot trust user input (domainDto), no point to take it into account for authorization
-            CanInvoke(true);
+            await CanInvokeAsync(true);
 
             try
             {

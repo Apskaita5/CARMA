@@ -114,7 +114,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             foreach (var propertyValidationRule in _propertyValidationRules[propName])
             {
                 var brokenRule = propertyValidationRule.GetValidationResult(
-                    instance, propInfo, dependentProps);
+                    instance, propInfo, EntityMetadata.Properties.Select(kv => kv.Value));
                 if (!brokenRule.IsNull()) result.Add(brokenRule);
             }
 

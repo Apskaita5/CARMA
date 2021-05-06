@@ -28,8 +28,7 @@ namespace A5Soft.CARMA.Application.Authorization.Default
             var authorizationAttributes = useCaseType.GetCustomAttributes(typeof(AuthorizationBaseAttribute), false);
             if ((null == authorizationAttributes || authorizationAttributes.Length < 1) && useCaseType.IsClass)
             {
-                foreach (Type entityInterface in useCaseType.GetInterfaces()
-                    .Where(t => typeof(IDomainObject).IsAssignableFrom(t)))
+                foreach (Type entityInterface in useCaseType.GetInterfaces())
                 {
                     authorizationAttributes = entityInterface.GetCustomAttributes(typeof(AuthorizationBaseAttribute), false);
                     if (null != authorizationAttributes && authorizationAttributes.Length > 0) break;

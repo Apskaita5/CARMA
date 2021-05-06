@@ -1,10 +1,12 @@
 ﻿using System;
+using A5Soft.CARMA.Domain;
 
 namespace A5Soft.CARMA.Application.Authorization
 {
     /// <summary>
     /// A base interface for authorization (engine) providers.
     /// </summary>
+    [Service(ServiceLifetime.Singleton)]
     public interface IAuthorizationProvider
     {
         /// <summary>

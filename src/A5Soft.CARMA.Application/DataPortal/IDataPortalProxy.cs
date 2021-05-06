@@ -8,7 +8,7 @@ namespace A5Soft.CARMA.Application.DataPortal
     /// A base interface for remote data portal implementations.
     /// </summary>
     [Service(ServiceLifetime.Singleton)]
-    public interface IRemoteClientPortal 
+    public interface IDataPortalProxy 
     {
 
         /// <summary>

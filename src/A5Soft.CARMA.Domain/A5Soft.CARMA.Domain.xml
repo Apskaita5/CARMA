@@ -149,6 +149,26 @@
             Binding events mode adapted to WPF applications.
             </summary>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.BuildConfiguration">
+            <summary>
+            Application build configurations type (client/server).
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.BuildConfiguration.Client">
+            <summary>
+            service implementation should only be injected for client app
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.BuildConfiguration.Server">
+            <summary>
+            service implementation should only be injected for server app
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.BuildConfiguration.Any">
+            <summary>
+            service implementation should be injected for any app build configuration
+            </summary>
+        </member>
         <member name="P:A5Soft.CARMA.Domain.ChildChangedEventArgs.ChildObject">
             <summary>
             Gets a reference to the changed child object.
@@ -224,12 +244,22 @@
             that should be added to IoC container.
             </summary>  
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.#ctor(System.Type)">
-            <inheritdoc />
+        <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.#ctor(System.Type,A5Soft.CARMA.Domain.BuildConfiguration)">
+            <summary>
+            add the attribute
+            </summary>
+            <param name="serviceInterfaceType">a type of the service interface implemented by the class</param>
+            <param name="forBuildConfiguration">a configuration of the app build (client/server/any)
+            that the implementation is meant for</param>
         </member>
         <member name="P:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.ServiceInterfaceType">
             <summary>
             a type of the service interface implemented by the class
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.ForBuildConfiguration">
+            <summary>
+            a configuration of the app build (client/server/any) that the implementation is meant for
             </summary>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.GetServiceLifetime(System.Type)">
@@ -1473,6 +1503,11 @@
             </summary>
             <param name="entity">a domain object to temporally disable validation for</param>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Extensions">
+            <summary>
+            Extensions for common application functionality.
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Extensions.SplitCamelCase(System.String)">
             <summary>
             Returns a string split by camel case convention, e.g. TotalAmount -> Total Amount
@@ -2311,6 +2346,9 @@
         <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata.Methods">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.Methods" />
         </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata.GetPropertyMetadata(System.String)">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetPropertyMetadata(System.String)" />
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata.GetDisplayNameForNew">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetDisplayNameForNew" />
         </member>
@@ -2549,6 +2587,15 @@
             Gets a collection of metadata descriptions for entity methods.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetPropertyMetadata(System.String)">
+            <summary>
+            Gets a <see cref="T:A5Soft.CARMA.Domain.Metadata.IPropertyMetadata"/> instance for the property specified
+            (null if no metadata for the property).
+            </summary>
+            <param name="propertyName">a name of the property to get the metadata for</param>
+            <returns>a <see cref="T:A5Soft.CARMA.Domain.Metadata.IPropertyMetadata"/> instance for the property specified
+            (null if no metadata for the property)</returns>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetDisplayNameForNew">
             <summary>
             Gets a localized value that is used for display in the UI
@@ -2708,6 +2755,63 @@
             </summary>
             <param name="instance">the entity instance to get a property value for</param>
             <returns>a property value for the entity instance</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Reflection.Extensions">
+            <summary>
+            Extensions for common reflection tasks.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetCustomAttributesWithInheritance``1(System.Reflection.PropertyInfo)">
+            <summary>
+            Gets a list of custom attributes of type TAttribute for the property specified.
+            Includes attributes defined for the same property by the ancestor classes and interfaces.
+            </summary>
+            <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+            <param name="baseProp"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetCustomAttributeWithInheritance``1(System.Reflection.PropertyInfo)">
+            <summary>
+            Gets a first custom attribute of type TAttribute for the property specified.
+            Includes attributes defined for the same property by the ancestor classes and interfaces.
+            </summary>
+            <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+            <param name="baseProp"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetCustomAttributesWithInheritance``1(System.Type)">
+            <summary>
+            Gets a list of custom attributes of type TAttribute for the (class or interface) type specified.
+            Includes attributes defined by the ancestor classes and interfaces.
+            </summary>
+            <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+            <param name="type"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDisplayName``1(``0)">
+            <summary>
+            Gets a localized name of an enum value. (see <see cref="P:System.ComponentModel.DataAnnotations.DisplayAttribute.Name"/>)
+            </summary>
+            <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDisplayShortName``1(``0)">
+            <summary>
+            Gets a localized short name of an enum value. (see <see cref="P:System.ComponentModel.DataAnnotations.DisplayAttribute.ShortName"/>)
+            </summary>
+            <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDescription``1(``0)">
+            <summary>
+            Gets a localized description of an enum value. (see <see cref="P:System.ComponentModel.DataAnnotations.DisplayAttribute.Description"/>)
+            </summary>
+            <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDataSource``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Gets a localized dataSource for the enum values.
+            </summary>
+            <typeparam name="TEnum">type of enum</typeparam>
+            <param name="values"></param>
         </member>
         <member name="T:A5Soft.CARMA.Domain.RemovingItemEventArgs">
             <summary>
@@ -2966,305 +3070,501 @@
             <returns>a description of all broken rules with the severity specified
             using the specified separator as line separator</returns>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute">
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase">
             <summary>
             A base class for at least one property required rule.
-            Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-            in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-            in the constructor.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.#ctor(System.String)">
-            <summary>
-            Creates a new instance of AtLeastOneRequiredAttribute.
-            </summary>
-            <param name="referenceProperty">a name of the other property</param>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.RequiresValidationContext">
-            <inheritdoc cref="P:System.ComponentModel.DataAnnotations.ValidationAttribute.RequiresValidationContext" />
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.ReferenceProperty">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.ReferenceProperty">
             <summary>
             Gets a name of the other property to check.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.IsKeyReference">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.DependsOnProperties">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.IDependsOnProperties.DependsOnProperties" />
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.IsKeyReference">
             <summary>
             Gets or sets a value indicating whether the property value is a reference (primary key) of a domain entity.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.ReferencePropertyIsKeyReference">
-            <summary>
-            Gets or sets a value indicating whether the reference property value is a reference (primary key)
-            of a domain entity.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.Severity">
-            <summary>
-            Gets or sets a value indicating severity of broken rule.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.DependsOnProperties">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.IDependsOnProperties.DependsOnProperties" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute">
-            <summary>
-            A base class for (properties) string values equal rule.
-            Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-            in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-            in the constructor.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute.#ctor(System.String)">
-            <summary>
-            Creates a new instance of CompareStringsAttribute.
-            </summary>
-            <param name="referenceProperty">a name of the other property</param>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute.RequiresValidationContext">
-            <inheritdoc cref="P:System.ComponentModel.DataAnnotations.ValidationAttribute.RequiresValidationContext" />
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute.ReferenceProperty">
-            <summary>
-            Gets a name of the other property to check.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute.Severity">
-            <summary>
-            Gets or sets a value indicating severity of broken rule.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute.DependsOnProperties">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.IDependsOnProperties.DependsOnProperties" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CompareStringsAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttribute">
-            <summary>
-            A base class for date sanity rule, i.e. not in future and not too far in past (20 years or more).
-            Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-            in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-            in the constructor.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttribute.#ctor">
-            <summary>
-            Date sanity rule, i.e. not in future and not too far in past (20 years or more).
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttribute.Severity">
-            <summary>
-            Gets or sets a value indicating severity of broken rule. Default - Warning.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttribute.IsValid(System.Object)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid(System.Object)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttribute">
-            <summary>
-            A base class for email rule.
-            Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-            in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-            in the constructor.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttribute.AllowMultipleAddresses">
-            <summary>
-            Gets or sets a value indicating whether multiple email addresses can be specified delimited by ;.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttribute.Severity">
-            <summary>
-            Gets or sets a value indicating severity of broken rule.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttribute.IsValid(System.Object)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid(System.Object)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute">
-            <summary>
-            A base class for numeric range (double of int only) validation.
-            Implementation shall set ErrorMessageResourceType in the constructor and override
-            abstract methods to provide different resource property names for different types of errors.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.Severity">
-            <summary>
-            Gets or sets a value indicating severity of broken rule.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.Digits">
-            <summary>
-            Gets or sets significant digits to compare double values (default - 2).
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.#ctor(System.Double,System.Double)">
-            <summary>
-            Creates a new range attribute.
-            </summary>
-            <param name="minimum">minimum allowed value</param>
-            <param name="maximum">maximum allowed value</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.#ctor(System.Int32,System.Int32)">
-            <summary>
-            Creates a new range attribute.
-            </summary>
-            <param name="minimum">minimum allowed value</param>
-            <param name="maximum">maximum allowed value</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.#ctor(System.Double,System.Boolean)">
-            <summary>
-            Creates a new range attribute.
-            </summary>
-            <param name="threshold">threshold value (either min or max subject to isMin parameter)</param>
-            <param name="isMin">whether the threshold value is minimum allowed value (otherwise - max)</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.#ctor(System.Int32,System.Boolean)">
-            <summary>
-            Creates a new range attribute.
-            </summary>
-            <param name="threshold">threshold value (either min or max subject to isMin parameter)</param>
-            <param name="isMin">whether the threshold value is minimum allowed value (otherwise - max)</param>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.ErrorMessageResourceNameForRange">
-            <summary>
-            Provide resource property name for error message if value is out of allowed range.
-            Parameter sequence is: localized property name, min value, max value.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.ErrorMessageResourceNameForMin">
-            <summary>
-            Provide resource property name for error message if value is smaller than allowed.
-            Parameter sequence is: localized property name, min value, max value.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.ErrorMessageResourceNameForMax">
-            <summary>
-            Provide resource property name for error message if value is greater than allowed.
-            Parameter sequence is: localized property name, min value, max value.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.IsValid(System.Object)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid(System.Object)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RangeAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute">
-            <summary>
-            A base class for required rule.
-            Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-            in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-            in the constructor.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.IsKeyReference">
-            <summary>
-            Gets or sets a value indicating whether the property value is a reference (primary key) of a domain entity.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.AllowNegative">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.AllowNegative">
             <summary>
             Gets or sets a value indicating whether negative numeric property value is valid.
             Only applicable for numeric properties. Default is false.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.SignificantDigits">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.SignificantDigits">
             <summary>
             Gets or sets significant digits when evaluating numeric property value.
             Only applicable for numeric properties. Default is 2.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.Severity">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.Severity">
             <summary>
             Gets or sets a value indicating severity of broken rule.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.#ctor">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.#ctor(System.String)">
             <summary>
-            Extended and localized version of Required that handles:
-            - string (IsNullOrWhiteSpace);
-            - key references of types int, long, Guid and string;
-            - nullable types (shall have value to be valid);
-            - IList (shall have at least one item to be valid);
-            - numeric types (based on AllowNegative and SignificantDigits values);
-            - any other type (null != value, which includes ILookup implementations).
+            Creates a new instance of AtLeastOneRequiredAttribute.
             </summary>
+            <param name="referenceProperty">a name of the other property</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.IsValid(System.Object)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid(System.Object)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
         </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute">
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.AtLeastOneRequiredAttributeBase.GetLocalizedErrorMessageFor(System.String,System.String)">
             <summary>
-            A base class for string length validation.
-            Implementation shall set ErrorMessageResourceType in the constructor and override
-            abstract methods to provide different resource property names for different types of errors.
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <param name="localizedOtherPropName">a localized name of the other property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase">
+            <summary>
+            A base class for date sanity rule, i.e. not in future and not too far in past (20 years or more).
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.Severity">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.Severity">
+            <summary>
+            Gets a value indicating severity of broken rule. Default - Warning.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.#ctor(A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            Date sanity rule, i.e. not in future and not too far in past (20 years or more).
+            </summary>
+            <param name="severity">a value indicating severity of broken rule. Default - Warning.</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.GetTooOldLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message if the value is too old for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase.GetInFutureLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message if the value is in future for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase">
+            <summary>
+            A base class for email rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.AllowMultipleAddresses">
+            <summary>
+            Gets or sets a value indicating whether multiple email addresses can be specified delimited by ;.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.Severity">
             <summary>
             Gets or sets a value indicating severity of broken rule.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.ErrorMessageResourceNameForMaxLength">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.#ctor">
             <summary>
-            Provide resource property name for error message if string length is greater than allowed.
-            Parameter sequence is: localized property name, min length, max length.
+            Email validation rule
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.ErrorMessageResourceNameForRange">
-            <summary>
-            Provide resource property name for error message if string length is greater or smaller than allowed.
-            Parameter sequence is: localized property name, min length, max length.
-            </summary>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.ErrorMessageResourceNameForExact">
-            <summary>
-            Provide resource property name for error message if string length is greater or smaller
-            than allowed exact length (i.e. when min value is equal to max value).
-            Parameter sequence is: localized property name, min length, max length.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.IsValid(System.Object)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid(System.Object)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.FormatErrorMessage(System.String)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.FormatErrorMessage(System.String)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.StringLengthAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
         </member>
-        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttribute">
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EmailAddressAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase">
+            <summary>
+            A base class for (property) values equal rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.ReferenceProperty">
+            <summary>
+            Gets a name of the other property to check.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.DependsOnProperties">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.IDependsOnProperties.DependsOnProperties" />
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.SignificantDigits">
+            <summary>
+            Gets or sets significant digits when evaluating numeric property value.
+            Only applicable for numeric properties. Default is 2.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.Severity">
+            <summary>
+            Gets or sets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.#ctor(System.String)">
+            <summary>
+            (property) values equal rule
+            </summary>
+            <param name="referenceProperty">a name of the other property</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.EqualToAttributeBase.GetLocalizedErrorMessageFor(System.String,System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <param name="localizedOtherPropName">a localized name of the other property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase">
+            <summary>
+            A base class for exact string length validation.
+            </summary> 
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.Severity">
+            <summary>
+            Gets or sets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.#ctor(System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+             exact string length rule
+            </summary>
+            <param name="length">string length (that is valid)</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.ExactLengthAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.Extensions">
+            <summary>
+            Extension methods for data annotation attributes.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.Extensions.GetPropertyDisplayName(System.ComponentModel.DataAnnotations.ValidationContext,System.String)">
+            <summary>
+            Gets a localized display name for the property if it is defined by <see cref="T:System.ComponentModel.DataAnnotations.DisplayAttribute"/>
+            (either directly for the property or by the ancestors or interfaces). Returns property name
+            if no <see cref="T:System.ComponentModel.DataAnnotations.DisplayAttribute"/> defined.
+            </summary>
+            <param name="validationContext">validation context</param>
+            <param name="otherPropertyName">a name of the other (not <see cref="P:System.ComponentModel.DataAnnotations.ValidationContext.MemberName"/>)
+            property to get a localized display name for</param>
+            <returns>a localized display name for the property or property name
+            if no <see cref="T:System.ComponentModel.DataAnnotations.DisplayAttribute"/> defined</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="validationContext"/> is null</exception>
+            <exception cref="T:System.InvalidOperationException"><paramref name="validationContext"/> has no
+            <see cref="P:System.ComponentModel.DataAnnotations.ValidationContext.ObjectType"/> set</exception>
+            <exception cref="T:System.InvalidOperationException"><paramref name="otherPropertyName"/> is null or empty and
+            <paramref name="validationContext"/> has no <see cref="P:System.ComponentModel.DataAnnotations.ValidationContext.MemberName"/> set</exception>
+            <exception cref="T:System.InvalidOperationException">no such property for the type</exception>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase">
+            <summary>
+            A base class for max string length validation.
+            </summary> 
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.Severity">
+            <summary>
+            Gets or sets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.#ctor(System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+             max string length rule
+            </summary>
+            <param name="maximumLength">maximum string length</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase">
+            <summary>
+            A base class for maximal numeric value validation.
+            </summary> 
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.Severity">
+            <summary>
+            Gets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.Digits">
+            <summary>
+            Gets significant digits to compare double or decimal values (default - 2).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.#ctor(System.Double,System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            max numeric value validation
+            </summary>
+            <param name="maxValue">max allowed value</param>
+            <param name="digits">significant digits to compare double or decimal values (default - 2)</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.#ctor(System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            max numeric value validation
+            </summary>
+            <param name="maxValue">max allowed value</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxValueAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase">
+            <summary>
+            A base class for min string length validation.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.Severity">
+            <summary>
+            Gets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.#ctor(System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+             min string length rule
+            </summary>
+            <param name="minimumLength">minimum required string length</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinLengthAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase">
+            <summary>
+            A base class for minimal numeric value validation.
+            </summary> 
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.Severity">
+            <summary>
+            Gets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.Digits">
+            <summary>
+            Gets significant digits to compare double or decimal values (default - 2).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.#ctor(System.Double,System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            minimal numeric value validation
+            </summary>
+            <param name="minValue">minimal allowed value</param>
+            <param name="digits">significant digits to compare double or decimal values (default - 2)</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.#ctor(System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            minimal numeric value validation
+            </summary>
+            <param name="minValue">minimal allowed value</param>
+            <param name="severity">a value indicating severity of broken rule</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MinValueAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase">
+            <summary>
+            A base class for required rule.
+            </summary> 
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.IsKeyReference">
+            <summary>
+            Gets or sets a value indicating whether the property value is a reference (primary key) of a domain entity.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.AllowNegative">
+            <summary>
+            Gets or sets a value indicating whether negative numeric property value is valid.
+            Only applicable for numeric properties. Default is false.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.SignificantDigits">
+            <summary>
+            Gets or sets significant digits when evaluating numeric property value.
+            Only applicable for numeric properties. Default is 2.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.Severity">
+            <summary>
+            Gets or sets a value indicating severity of broken rule.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RequiredAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase">
             <summary>
             A base class for url value rule.
-            Can use it as is by setting ErrorMessageResourceType and ErrorMessageResourceName values
-            in the attribute decorator or inherit this class and set ErrorMessageResourceType and ErrorMessageResourceName
-            in the constructor.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttribute.Severity">
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase.Severity">
             <summary>
-            Gets or sets a value indicating severity of broken rule.
+            Gets a value indicating severity of broken rule.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttribute.IsValid(System.Object)">
-            <inheritdoc cref="M:System.ComponentModel.DataAnnotations.ValidationAttribute.IsValid(System.Object)" />
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase.#ctor(A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            url format rule
+            </summary>
+            <param name="severity">a value indicating severity of broken rule</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase.IsValid(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.UrlAttributeBase.GetLocalizedErrorMessageFor(System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="localizedPropName">a localized name of the property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.DefaultValidationEngine">
             <summary>
@@ -3353,6 +3653,12 @@
             <summary>
             Default implementation of property validation rules using ValidationAttribute.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.PropertyValidationRule.#ctor(System.ComponentModel.DataAnnotations.ValidationAttribute)">
+            <summary>
+            constructor
+            </summary>
+            <param name="attribute">validation attribute</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.PropertyValidationRule.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.IPropertyValidationRule.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />

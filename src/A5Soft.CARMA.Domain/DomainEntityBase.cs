@@ -306,7 +306,7 @@ namespace A5Soft.CARMA.Domain
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
         public virtual bool IsSelfValid 
-            => RulesManager.ErrorCount > 0;
+            => RulesManager.ErrorCount < 1;
 
         /// <inheritdoc cref="ITrackState.HasWarnings" />
         [Browsable(false)]

@@ -27,9 +27,14 @@ namespace A5Soft.CARMA.Application
     {
         protected readonly ILogger _logger;
         private readonly IClientDataPortal _dataPortal;
+        private readonly IAuthenticationStateProvider _authenticationStateProvider;
 
-        /// <inheritdoc cref="IAuthorizedUseCase.User" />
-        public ClaimsIdentity User { get; }
+
+        /// <inheritdoc cref="IAuthorizedUseCase.GetIdentityAsync" />
+        public Task<ClaimsIdentity> GetIdentityAsync()
+        {
+            return _authenticationStateProvider.GetIdentityAsync();
+        }
 
         /// <summary>
         /// Gets an authorization provider.
@@ -37,10 +42,11 @@ namespace A5Soft.CARMA.Application
         protected IAuthorizationProvider AuthorizationProvider { get; }
 
 
-        protected LookupServiceBase(IAuthorizationProvider authorizationProvider, 
-            IClientDataPortal dataPortal, ClaimsIdentity userIdentity, ILogger logger)
+        protected LookupServiceBase(IAuthenticationStateProvider authenticationStateProvider, 
+            IAuthorizationProvider authorizationProvider, IClientDataPortal dataPortal, ILogger logger)
         {
-            User = userIdentity ?? throw new ArgumentNullException(nameof(userIdentity));
+            _authenticationStateProvider = authenticationStateProvider 
+                ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
             AuthorizationProvider = authorizationProvider ?? throw new ArgumentNullException(nameof(authorizationProvider));
             _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
             _logger = logger;
@@ -53,7 +59,7 @@ namespace A5Soft.CARMA.Application
         /// <param name="requesterType">a type of the use case that requests the lookup</param>
         public async Task<TLookup> FetchAsync(Type requesterType)
         {
-            if (requesterType.IsNull()) throw new ArgumentNullException(nameof(requesterType));
+            if (null == requesterType) throw new ArgumentNullException(nameof(requesterType));
 
             _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync), requesterType);
 
@@ -73,7 +79,7 @@ namespace A5Soft.CARMA.Application
                     }
 
                     result = await _dataPortal.FetchAsync<Type, TLookup>(this.GetType(), 
-                        requesterType, User);
+                        requesterType, await GetIdentityAsync());
 
                     SetLocalCacheValue(result);
                 }
@@ -90,7 +96,7 @@ namespace A5Soft.CARMA.Application
 
             try
             {
-                Authorize(requesterType);
+                await AuthorizeAsync(requesterType);
 
                 result = await DoFetchAsync();
             }
@@ -131,7 +137,7 @@ namespace A5Soft.CARMA.Application
         protected abstract Task<TLookup> DoFetchAsync();
 
 
-        private void Authorize(Type requesterType)
+        private async Task AuthorizeAsync(Type requesterType)
         {
             if (!typeof(IAuthorizedUseCase).IsAssignableFrom(requesterType))
                 throw new ArgumentException($"Only use cases that implement IAuthorizedUseCase " +
@@ -148,10 +154,10 @@ namespace A5Soft.CARMA.Application
                 $"can request lookup values while {requesterType.FullName} is not.");
             if (null == attribute.LookupTypes || Array.IndexOf(attribute.LookupTypes, typeof(TLookup)) < 0)
                 throw new ArgumentException($"Use case {requesterType.FullName} " +
-                    $"does not require lookup of type {typeof(TLookup).FullName}.");
+                    $"does not require a lookup of type {typeof(TLookup).FullName}.");
 
             var authorizer = AuthorizationProvider.GetAuthorizer(requesterType);
-            if (!authorizer.IsAuthorized(User)) throw new SecurityException(
+            if (!authorizer.IsAuthorized(await GetIdentityAsync())) throw new SecurityException(
                 $"User is not authorized to invoke the requesting use case ({requesterType.FullName}).");
         }
 
