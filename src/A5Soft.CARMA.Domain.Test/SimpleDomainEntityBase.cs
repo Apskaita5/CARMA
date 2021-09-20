@@ -2,7 +2,7 @@
 
 namespace A5Soft.CARMA.Domain.Test
 {
-    public class SimpleDomainEntityBase : DomainEntityBase<SimpleDomainEntityBase>
+    public class SimpleDomainEntityBase : DomainObject<SimpleDomainEntityBase>
     {
         #region Private Fields
 

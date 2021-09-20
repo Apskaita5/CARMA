@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace A5Soft.CARMA.Application
 {
@@ -6,10 +7,10 @@ namespace A5Soft.CARMA.Application
     /// A container class for file data and metadata.
     /// </summary>
     [Serializable]
-    public class FileContent
+    public class FileContent : IDisposable
     {
 
-        public FileContent(byte[] content, string contentType, string fileName)
+        public FileContent(Stream content, string contentType, string fileName)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content));
             ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
@@ -20,7 +21,7 @@ namespace A5Soft.CARMA.Application
         /// <summary>
         /// Gets a (binary) file content.
         /// </summary>
-        public byte[] Content { get; }
+        public Stream Content { get; }
 
         /// <summary>
         /// Gets a file content MIME type as defined by IANA.
@@ -32,6 +33,12 @@ namespace A5Soft.CARMA.Application
         /// Gets a name of the file.
         /// </summary>
         public string FileName { get; }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Content.Dispose();
+        }
 
     }
 }

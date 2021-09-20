@@ -14,7 +14,7 @@ namespace A5Soft.CARMA.Application
     /// <remarks>Authorization is only meaningful for remote execution.</remarks>
     public abstract class AuthorizedUseCaseBase : RemoteUseCaseBase, IAuthorizedUseCase
     {
-        private IAuthenticationStateProvider _authenticationStateProvider;
+        private readonly IAuthenticationStateProvider _authenticationStateProvider;
 
         /// <summary>
         /// Gets an authorizer for the use case.
@@ -38,6 +38,17 @@ namespace A5Soft.CARMA.Application
         public Task<ClaimsIdentity> GetIdentityAsync()
         {
             return _authenticationStateProvider.GetIdentityAsync();
+        }
+
+        /// <summary>
+        /// Updates a current identity of the user.
+        /// </summary>
+        /// <param name="updatedIdentity">an updated identity of the user</param>
+        protected void UpdateIdentity(ClaimsIdentity updatedIdentity)
+        {
+            if (null == updatedIdentity) throw new ArgumentNullException(nameof(updatedIdentity));
+
+            _authenticationStateProvider.NotifyIdentityChanged(updatedIdentity);
         }
 
         /// <inheritdoc cref="IAuthorizedUseCase.CanInvokeAsync" />

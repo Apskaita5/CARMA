@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.IO;
+using System.Threading;
 using A5Soft.CARMA.Domain;
 using System.Threading.Tasks;
 
@@ -24,6 +25,15 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>binary serialized remote invocation response</returns>
         /// <remarks>From the implementation point of view the underlying (serialized) types are not important.</remarks>
         Task<string> GetResponseAsync(string request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Calls a remote service (e.g. HTTP server) with the json serialized remote method invocation request
+        /// and returns response stream for file download.
+        /// </summary>
+        /// <param name="request">json serialized remote method invocation request</param>
+        /// <returns>response stream for file download</returns>
+        /// <remarks>From the implementation point of view the underlying (serialized) types are not important.</remarks>
+        Task<Stream> DownloadAsync(string request, CancellationToken ct = default);
 
     }
 }

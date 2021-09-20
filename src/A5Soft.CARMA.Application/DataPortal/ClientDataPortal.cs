@@ -58,6 +58,19 @@ namespace A5Soft.CARMA.Application.DataPortal
             return (TResult)result.Result;
         }
 
+        /// <inheritdoc cref="IClientDataPortal.DownloadAsync{TArg}" />
+        public async Task<Stream> DownloadAsync<TArg>(Type useCaseType, TArg parameter,
+            ClaimsIdentity identity, CancellationToken ct = default)
+        {
+            if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
+            if (!IsRemote) throw new InvalidOperationException(
+                "Cannot invoke remote method on a data portal that is not remote.");
+
+            var request = DataPortalRequest.NewDataPortalRequest(useCaseType, parameter, identity);
+
+            return await _dataPortalProxy.DownloadAsync(JsonConvert.SerializeObject(request), ct);
+        }
+
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1, TArg2, TResult}" />
         public async Task<TResult> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity, 
@@ -125,6 +138,18 @@ namespace A5Soft.CARMA.Application.DataPortal
                     secondParameter, thirdParameter), ct);
 
             return (TResult)result.Result;
+        }
+
+        /// <inheritdoc cref="IClientDataPortal.DownloadUnauthenticatedAsync{TArg}" />
+        public async Task<Stream> DownloadUnauthenticatedAsync<TArg>(Type useCaseType, TArg parameter,
+            CancellationToken ct = default)
+        {
+            if (!IsRemote) throw new InvalidOperationException(
+                "Cannot invoke remote method on a data portal that is not remote.");
+
+            var request = DataPortalRequest.NewDataPortalRequest(useCaseType, parameter);
+
+            return await _dataPortalProxy.DownloadAsync(JsonConvert.SerializeObject(request), ct);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync" />
@@ -198,7 +223,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         {
             if (!IsRemote) throw new InvalidOperationException(
                 "Cannot invoke remote method on a data portal that is not remote.");
-
+               
             var response = await _dataPortalProxy.GetResponseAsync(
                 JsonConvert.SerializeObject(request), ct);
 

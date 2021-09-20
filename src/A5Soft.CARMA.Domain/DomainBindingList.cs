@@ -23,13 +23,27 @@ namespace A5Soft.CARMA.Domain
         #region Constructors
 
         /// <summary>
-        /// Creates an instance of the object.
+        /// Creates a parent instance of the object.
         /// </summary>
+        /// <param name="validationEngineProvider">Validation engine to use for child items.</param>
         public DomainBindingList(IValidationEngineProvider validationEngineProvider)
         {
             Initialize();
             this.AllowNew = true;
             _validationEngineProvider = validationEngineProvider;
+        }
+
+        /// <summary>
+        /// Creates an instance of the object as a child of parent domain object.
+        /// </summary>
+        /// <param name="parent">a parent of the list</param>
+        /// <param name="validationEngineProvider">Validation engine to use for child items.</param>
+        public DomainBindingList(IDomainObject parent, IValidationEngineProvider validationEngineProvider)
+        {
+            Initialize();
+            this.AllowNew = true;
+            _validationEngineProvider = validationEngineProvider;
+            SetParent(parent);
         }
 
         #endregion

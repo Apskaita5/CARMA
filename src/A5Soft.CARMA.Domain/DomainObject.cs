@@ -3,34 +3,31 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using A5Soft.CARMA.Domain.Math;
-using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Domain
 {
     /// <summary>
-    /// a base class for all domain entities
+    /// a base class for all domain objects that needs to track their state
     /// </summary>
     /// <typeparam name="T">type of the domain entity implementation</typeparam>
     /// <remarks>inherit from this class for entities that have no identity
     /// (only one instance per domain, e.g. some common settings) and no auditing functionality</remarks>
     [Serializable]
-    public abstract class DomainEntityBase<T> 
+    public abstract class DomainObject<T> 
         : BindableBase, ITrackState, IChildInternal, INotifyChildChanged, IDataErrorInfo
-        where T : DomainEntityBase<T>
+        where T : DomainObject<T>
     {
         #region Constructors
 
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
-        protected DomainEntityBase(IValidationEngineProvider validationEngineProvider)
+        protected DomainObject(IValidationEngineProvider validationEngineProvider)
         {
             Initialize();
             _brokenRules = new BrokenRulesManager<T>((T)this, validationEngineProvider);
@@ -383,7 +380,7 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// apply with using pattern to temporally disable validation
         /// </summary>
-        public IDisposable SuspendValidation() => new SuspendValidationInt<DomainEntityBase<T>>(this);
+        public IDisposable SuspendValidation() => new SuspendValidationInt<DomainObject<T>>(this);
 
         #endregion
 
@@ -2237,7 +2234,7 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// apply with using pattern to temporally disable validation
         /// </summary>
-        private sealed class SuspendValidationInt<TC> : IDisposable where TC : DomainEntityBase<T>
+        private sealed class SuspendValidationInt<TC> : IDisposable where TC : DomainObject<T>
         {
             private readonly TC _entity;
             private bool disposedValue;

@@ -5,7 +5,7 @@ using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Domain.Test
 {
-    public class ParentDomainEntityBase : DomainEntityBase<ParentDomainEntityBase>
+    public class ParentDomainEntityBase : DomainObject<ParentDomainEntityBase>
     {
         #region Private Fields
 

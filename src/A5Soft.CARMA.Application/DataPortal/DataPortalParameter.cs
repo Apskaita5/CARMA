@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using Newtonsoft.Json;
+﻿using System;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
@@ -35,15 +33,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             if (null == ParameterType) throw new InvalidOperationException(
                 "DataPortalParameter value type cannot be null.");
 
-            if (null == SerializedValue) return null;
-
-            if (ParameterType.IsInterface)
-            {
-                var args = JObject.Parse(SerializedValue);
-                return args.toProxy(ParameterType);
-            }
-
-            return JsonConvert.DeserializeObject(SerializedValue, ParameterType);
+            return ParameterType.Deserialize(SerializedValue);
         }
 
         /// <summary>
@@ -60,15 +50,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             if (!typeof(T).IsAssignableFrom(ParameterType)) throw new InvalidCastException(
                 $"Requested data portal parameter type {typeof(T).FullName} is not assignable from original parameter type {ParameterType.FullName}.");
 
-            if (null == SerializedValue) return default;
-
-            if (typeof(T).IsInterface)
-            {
-                var args = JObject.Parse(SerializedValue);
-                return args.toProxy<T>();
-            }
-
-            return JsonConvert.DeserializeObject<T>(SerializedValue);
+            return (T)ParameterType.Deserialize(SerializedValue);
         }
 
 
@@ -83,7 +65,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return new DataPortalParameter()
             {
                 ParameterType = typeof(T),
-                SerializedValue = JsonConvert.SerializeObject(forValue)
+                SerializedValue = JsonExtensions.Serialize(forValue)
             };
         }
 

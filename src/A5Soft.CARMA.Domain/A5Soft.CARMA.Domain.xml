@@ -278,8 +278,16 @@
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.#ctor(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
             <summary>
-            Creates an instance of the object.
+            Creates a parent instance of the object.
             </summary>
+            <param name="validationEngineProvider">Validation engine to use for child items.</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.#ctor(A5Soft.CARMA.Domain.IDomainObject,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+            <summary>
+            Creates an instance of the object as a child of parent domain object.
+            </summary>
+            <param name="parent">a parent of the list</param>
+            <param name="validationEngineProvider">Validation engine to use for child items.</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.Initialize">
             <summary>
@@ -584,45 +592,45 @@
             </para>
             </remarks>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.DomainEntityBase`1">
+        <member name="T:A5Soft.CARMA.Domain.DomainObject`1">
             <summary>
-            a base class for all domain entities
+            a base class for all domain objects that needs to track their state
             </summary>
             <typeparam name="T">type of the domain entity implementation</typeparam>
             <remarks>inherit from this class for entities that have no identity
             (only one instance per domain, e.g. some common settings) and no auditing functionality</remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.#ctor(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.#ctor(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
             <summary>
             Creates a new instance of the object.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.Initialize">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.Initialize">
             <summary>
             Override this method to set up event handlers so user code in a partial class
             can respond to events raised by generated code.
             If child objects are initialized, invoke RegisterChildValue method.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetValidationEngine(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetValidationEngine(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.SetValidationEngine(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsDeleted">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsDeleted">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsDeleted" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsDirty">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsDirty">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsDirty" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsSelfDirty">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsSelfDirty">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsSelfDirty" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.ContainsNewData">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.ContainsNewData">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.ContainsNewData" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.SelfContainsNewData">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.SelfContainsNewData">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.SelfContainsNewData" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.MarkNew">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkNew">
             <summary>
             Marks the object as being a new object. This also marks the object
             as being dirty and ensures that it is not marked for deletion.
@@ -632,7 +640,7 @@
             implementation after executing your new code.
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.MarkDeleted">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkDeleted">
             <summary>
             Marks an object for deletion. This also marks the object as being dirty.
             </summary>
@@ -641,7 +649,7 @@
             to have the object deleted when it is saved to the database.
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.MarkDirty">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkDirty">
             <summary>
             Marks an object as being dirty, or changed.
             </summary>
@@ -656,7 +664,7 @@
             </para>
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.MarkDirty(System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkDirty(System.Boolean)">
             <summary>
             Marks an object as being dirty, or changed.
             </summary>
@@ -665,7 +673,7 @@
             raised to indicate that the object's state has changed.
             </param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.PropertyHasChanged(System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.PropertyHasChanged(System.String)">
             <summary>
             Performs processing required when a property has changed.
             </summary>
@@ -676,7 +684,7 @@
             property changed event for the current property is raised.
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.PropertiesHaveChanged(System.String[])">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.PropertiesHaveChanged(System.String[])">
             <summary>
             Performs processing required when a range of properties have changed.
             </summary>
@@ -688,21 +696,21 @@
             property changed event for the current property is raised.
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.CheckPropertyRules(System.String[])">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.CheckPropertyRules(System.String[])">
             <summary>
             Check rules for the property and notifies UI of properties that may have changed.
             </summary>
             <param name="propertyNames">The properties to check the rules for.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.CheckObjectRules">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.CheckObjectRules">
             <summary>
             Check object rules and notifies UI of properties that may have changed. 
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.CheckRules(System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.CheckRules(System.Boolean)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.CheckRules(System.Boolean)" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.MarkClean">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkClean">
             <summary>
             Forces the object's IsDirty and ContainsNewData flags to false.
             </summary>
@@ -710,41 +718,41 @@
             This method is normally called automatically and is not intended to be called manually.
             </remarks>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsSavable">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsSavable">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsSavable" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsValid">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsValid">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsValid" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsSelfValid">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsSelfValid">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsSelfValid" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.HasWarnings">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.HasWarnings">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.HasWarnings" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.HasSelfWarnings">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.HasSelfWarnings">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.HasSelfWarnings" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.BrokenRules">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.BrokenRules">
             <summary>
             Gets a collection of broken rules for the domain entity.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.LockedProperties">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.LockedProperties">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.LockedProperties" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.GetBrokenRulesTree(System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.GetBrokenRulesTree(System.Boolean)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.GetBrokenRulesTree(System.Boolean)" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.CanWriteProperty(System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.CanWriteProperty(System.String)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.CanWriteProperty(System.String)" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SuspendValidation">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SuspendValidation">
             <summary>
             apply with using pattern to temporally disable validation
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.Delete">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.Delete">
             <summary>
             Marks the object for deletion. The object will be deleted as part of the
             next save operation.
@@ -756,32 +764,32 @@
             mark the object for deletion.
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.DeleteChild">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.DeleteChild">
             <summary>
             Called by a parent object to mark the child for deferred deletion.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.Parent">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.Parent">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.IChild.Parent" />
         </member>
-        <member name="P:A5Soft.CARMA.Domain.DomainEntityBase`1.IsChild">
+        <member name="P:A5Soft.CARMA.Domain.DomainObject`1.IsChild">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsChild" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetParent(A5Soft.CARMA.Domain.IDomainObject)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetParent(A5Soft.CARMA.Domain.IDomainObject)">
             <summary>
             Used by BusinessListBase as a child object is created to tell the child object about its parent.
             </summary>
             <param name="parent">A reference to the parent collection object.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.A5Soft#CARMA#Domain#IChildInternal#SetParent(A5Soft.CARMA.Domain.IDomainObject)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.A5Soft#CARMA#Domain#IChildInternal#SetParent(A5Soft.CARMA.Domain.IDomainObject)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.IChildInternal.SetParent(A5Soft.CARMA.Domain.IDomainObject)" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.MarkAsChild">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkAsChild">
             <summary>
             Marks the object as being a child object.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetChildField``1(System.String,``0@,``0,System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetChildField``1(System.String,``0@,``0,System.Boolean)">
             <summary>
             Child field setter that shall be used to set child object fields (init or update)
             of the following types:
@@ -796,7 +804,7 @@
             <param name="newValue">new field value</param>
             <param name="addEventHooks">whether to hook into the child object events</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.RegisterChildValue``1(``0,System.String,System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.RegisterChildValue``1(``0,System.String,System.Boolean)">
             <summary>
             Registers a new (incl. initial) value of a child field.  
             </summary>
@@ -805,7 +813,7 @@
             <param name="fieldName">a name of the field that the child value is stored by</param>
             <param name="withEvents">whether to hook into the child object events</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.UnRegisterChildValue``1(``0,System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.UnRegisterChildValue``1(``0,System.String)">
             <summary>
             Unregisters an old value of a child field.
             Method shall be invoked before the child value is updated for those fields
@@ -815,61 +823,61 @@
             <param name="childValue">an old value of a child field (before it is updated)</param>
             <param name="fieldName">a name of the field that the child value is stored by</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.GetStatefulChildren">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.GetStatefulChildren">
             <summary>
             Gets an array of children that implements ITrackState and have their value set. 
             </summary>
             <returns></returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.AnyStatefulChildren(System.Func{A5Soft.CARMA.Domain.ITrackState,System.Boolean})">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.AnyStatefulChildren(System.Func{A5Soft.CARMA.Domain.ITrackState,System.Boolean})">
             <summary>
             Gets a value indicating that any child, that implements ITrackState, has state defined by the predicate.
             </summary>
             <param name="predicate">a child state to find</param>
             <returns>a value indicating that any child, that implements ITrackState, has state defined by the predicate.</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.AddEventHooks``1(``0,System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.AddEventHooks``1(``0,System.String)">
             <summary>
             For internal use.
             </summary>
             <param name="child">Child object.</param>
             <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnAddEventHooks``1(``0,System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnAddEventHooks``1(``0,System.String)">
             <summary>
             Hook child object events.
             </summary>
             <param name="child">Child object.</param>
             <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.RemoveEventHooks``1(``0,System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.RemoveEventHooks``1(``0,System.String)">
             <summary>
             For internal use only.
             </summary>
             <param name="child">Child object.</param>
             <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnRemoveEventHooks``1(``0,System.String)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnRemoveEventHooks``1(``0,System.String)">
             <summary>
             Unhook child object events.
             </summary>
             <param name="child">Child object.</param>
             <param name="fieldName">a name of a (private) field that manages child value</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnNotifyPropertyChangingEnabledChanged">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnNotifyPropertyChangingEnabledChanged">
             <summary>
             Enables or disables child binding support for INotifyPropertyChanging
             when this setting is changed for this instance of domain entity.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnBindingModeChanged">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnBindingModeChanged">
             <summary>
             Enables or disables winforms binding support for INotifyPropertyChanged
             when this setting is changed for this instance of domain entity.
             (one event per property group)
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnNotifyPropertyChangedEnabledChanged">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnNotifyPropertyChangedEnabledChanged">
             <summary>
             Enables or disables child binding support for INotifyPropertyChanged
             when this setting is changed for this instance of domain entity.
@@ -878,18 +886,18 @@
             that are hooked on this instance as that would likely impede internal functioning,
             e.g. loosing track of invoice items renders impossible to keep subtotals.</remarks>
         </member>
-        <member name="E:A5Soft.CARMA.Domain.DomainEntityBase`1.ChildChanged">
+        <member name="E:A5Soft.CARMA.Domain.DomainObject`1.ChildChanged">
             <summary>
             Event raised when a child object has been changed.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnChildChanged(A5Soft.CARMA.Domain.ChildChangedEventArgs)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnChildChanged(A5Soft.CARMA.Domain.ChildChangedEventArgs)">
             <summary>
             Raises the ChildChanged event, indicating that a child object has been changed.
             </summary>
             <param name="e">ChildChangedEventArgs object.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.ChildHasChanged(System.String,System.Object,A5Soft.CARMA.Domain.ChildChangedEventArgs)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.ChildHasChanged(System.String,System.Object,A5Soft.CARMA.Domain.ChildChangedEventArgs)">
             <summary>
             Bubbles up child change events. Override it to handle child changes.
             Call base at first, if you want to bubble events before your code executes and vice versa.
@@ -898,13 +906,13 @@
             <param name="sender">a (child) object that raised the event</param>
             <param name="e">change event arguments</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.OnDeserialized(System.Runtime.Serialization.StreamingContext)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.OnDeserialized(System.Runtime.Serialization.StreamingContext)">
             <summary>
             This method is called on a newly deserialized object after deserialization is complete.
             </summary>
             <param name="context">Serialization context object.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetChildPropertyValue``1(System.String,System.String,``0@,``0,System.Boolean,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetChildPropertyValue``1(System.String,System.String,``0@,``0,System.Boolean,System.Action)">
             <summary>
             Property setter that shall be used to set child object properties of the following types:
             1. BindableBase;
@@ -932,7 +940,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetLookupPropertyValue``1(System.String,``0@,``0,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetLookupPropertyValue``1(System.String,``0@,``0,System.Action)">
             <summary>
             Property setter that shall be used to set ILookup properties.
             </summary>
@@ -952,7 +960,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.String@,System.String,System.Boolean,System.Boolean,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.String@,System.String,System.Boolean,System.Boolean,System.Action)">
             <summary>
             Property setter that shall be used to set nullable decimal properties.
             </summary>
@@ -973,7 +981,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Char@,System.Char,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Char@,System.Char,System.Action)">
             <summary>
             Property setter that shall be used to set char properties.
             </summary>
@@ -992,7 +1000,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Char}@,System.Nullable{System.Char},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Char}@,System.Nullable{System.Char},System.Action)">
             <summary>
             Property setter that shall be used to set nullable char properties.
             </summary>
@@ -1011,7 +1019,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Int32@,System.Int32,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Int32@,System.Int32,System.Action)">
             <summary>
             Property setter that shall be used to set int properties.
             </summary>
@@ -1030,7 +1038,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Int32}@,System.Nullable{System.Int32},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Int32}@,System.Nullable{System.Int32},System.Action)">
             <summary>
             Property setter that shall be used to set nullable int properties.
             </summary>
@@ -1049,7 +1057,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.UInt32@,System.UInt32,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.UInt32@,System.UInt32,System.Action)">
             <summary>
             Property setter that shall be used to set uint properties.
             </summary>
@@ -1068,7 +1076,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.UInt32}@,System.Nullable{System.UInt32},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.UInt32}@,System.Nullable{System.UInt32},System.Action)">
             <summary>
             Property setter that shall be used to set nullable uint properties.
             </summary>
@@ -1087,7 +1095,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Int16@,System.Int16,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Int16@,System.Int16,System.Action)">
             <summary>
             Property setter that shall be used to set int16 properties.
             </summary>
@@ -1106,7 +1114,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Int16}@,System.Nullable{System.Int16},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Int16}@,System.Nullable{System.Int16},System.Action)">
             <summary>
             Property setter that shall be used to set nullable int16 properties.
             </summary>
@@ -1125,7 +1133,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.UInt16@,System.UInt16,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.UInt16@,System.UInt16,System.Action)">
             <summary>
             Property setter that shall be used to set ushort properties.
             </summary>
@@ -1144,7 +1152,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.UInt16}@,System.Nullable{System.UInt16},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.UInt16}@,System.Nullable{System.UInt16},System.Action)">
             <summary>
             Property setter that shall be used to set nullable ushort properties.
             </summary>
@@ -1163,7 +1171,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Byte@,System.Byte,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Byte@,System.Byte,System.Action)">
             <summary>
             Property setter that shall be used to set byte properties.
             </summary>
@@ -1182,7 +1190,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Byte}@,System.Nullable{System.Byte},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Byte}@,System.Nullable{System.Byte},System.Action)">
             <summary>
             Property setter that shall be used to set nullable byte properties.
             </summary>
@@ -1201,7 +1209,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.SByte@,System.SByte,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.SByte@,System.SByte,System.Action)">
             <summary>
             Property setter that shall be used to set sbyte properties.
             </summary>
@@ -1220,7 +1228,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.SByte}@,System.Nullable{System.SByte},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.SByte}@,System.Nullable{System.SByte},System.Action)">
             <summary>
             Property setter that shall be used to set nullable sbyte properties.
             </summary>
@@ -1239,7 +1247,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Int64@,System.Int64,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Int64@,System.Int64,System.Action)">
             <summary>
             Property setter that shall be used to set int64 properties.
             </summary>
@@ -1258,7 +1266,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Int64}@,System.Nullable{System.Int64},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Int64}@,System.Nullable{System.Int64},System.Action)">
             <summary>
             Property setter that shall be used to set nullable int64 properties.
             </summary>
@@ -1277,7 +1285,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.UInt64@,System.UInt64,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.UInt64@,System.UInt64,System.Action)">
             <summary>
             Property setter that shall be used to set ulong properties.
             </summary>
@@ -1296,7 +1304,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.UInt64}@,System.Nullable{System.UInt64},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.UInt64}@,System.Nullable{System.UInt64},System.Action)">
             <summary>
             Property setter that shall be used to set nullable ulong properties.
             </summary>
@@ -1315,7 +1323,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Decimal@,System.Decimal,System.Int32,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Decimal@,System.Decimal,System.Int32,System.Action)">
             <summary>
             Property setter that shall be used to set decimal properties.
             </summary>
@@ -1335,7 +1343,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Decimal}@,System.Nullable{System.Decimal},System.Int32,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Decimal}@,System.Nullable{System.Decimal},System.Int32,System.Action)">
             <summary>
             Property setter that shall be used to set nullable decimal properties.
             </summary>
@@ -1355,7 +1363,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Double@,System.Double,System.Int32,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Double@,System.Double,System.Int32,System.Action)">
             <summary>
             Property setter that shall be used to set double properties.
             </summary>
@@ -1375,7 +1383,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Double}@,System.Nullable{System.Double},System.Int32,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Double}@,System.Nullable{System.Double},System.Int32,System.Action)">
             <summary>
             Property setter that shall be used to set nullable double properties.
             </summary>
@@ -1395,7 +1403,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.DateTime@,System.DateTime,System.Boolean,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.DateTime@,System.DateTime,System.Boolean,System.Action)">
             <summary>
             Property setter that shall be used to set DateTime properties.
             </summary>
@@ -1415,7 +1423,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.DateTime}@,System.Nullable{System.DateTime},System.Boolean,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.DateTime}@,System.Nullable{System.DateTime},System.Boolean,System.Action)">
             <summary>
             Property setter that shall be used to set nullable DateTime properties.
             </summary>
@@ -1435,7 +1443,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Boolean@,System.Boolean,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Boolean@,System.Boolean,System.Action)">
             <summary>
             Property setter that shall be used to set bool properties.
             </summary>
@@ -1454,7 +1462,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue(System.String,System.Nullable{System.Boolean}@,System.Nullable{System.Boolean},System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Boolean}@,System.Nullable{System.Boolean},System.Action)">
             <summary>
             Property setter that shall be used to set nullable bool properties.
             </summary>
@@ -1473,7 +1481,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SetPropertyValue``1(System.String,``0@,``0,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue``1(System.String,``0@,``0,System.Action)">
             <summary>
             Property setter that shall be used to set Enum properties.
             </summary>
@@ -1492,12 +1500,12 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.DomainEntityBase`1.SuspendValidationInt`1">
+        <member name="T:A5Soft.CARMA.Domain.DomainObject`1.SuspendValidationInt`1">
             <summary>
             apply with using pattern to temporally disable validation
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntityBase`1.SuspendValidationInt`1.#ctor(`1)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SuspendValidationInt`1.#ctor(`1)">
             <summary>
             apply with using pattern to temporally disable validation
             </summary>
@@ -3128,6 +3136,36 @@
             <param name="localizedOtherPropName">a localized name of the other property that is invalid</param>
             <returns>a localized error message for current culture</returns>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase">
+            <summary>
+            A base class for custom individual rule, i.e. a rule that is designed for
+            a specific property of a domain entity.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase.VisibleToGenericEngine">
+            <summary>
+            Whether the rule should be evaluated by a generic data annotations engine
+            (that is not aware of rule severity)
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase.RequiresValidationContext">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.IPropertyValidationAttribute.GetValidationResult(System.Object,A5Soft.CARMA.Domain.Metadata.IPropertyMetadata,System.Collections.Generic.IEnumerable{A5Soft.CARMA.Domain.Metadata.IPropertyMetadata})" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase.IsValid(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.CustomRuleAttributeBase.GetValidationResult(System.Object)">
+            <summary>
+            Implement the method to do actual validation.
+            </summary>
+            <param name="instance">Domain object instance to validate.</param>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.DateSanityAttributeBase">
             <summary>
             A base class for date sanity rule, i.e. not in future and not too far in past (20 years or more).
@@ -3840,6 +3878,46 @@
             That generally means that they are created only one time per application
             and then used for whole the application life time.
             </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.StringDomainEntityIdentity">
+            <summary>
+            <see cref="T:A5Soft.CARMA.Domain.IDomainEntityIdentity"/> implementation for string primary key.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.#ctor(System.String,System.Type)">
+            <summary>
+            Creates a StringDomainEntityIdentity instance for an existing entity of type <paramref name="domainEntityType"/>
+            that has a (primary) key <paramref name="key"/>. 
+            </summary>
+            <param name="key">a (primary) key of the entity</param>
+            <param name="domainEntityType">a type of the entity</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.#ctor(System.Type)">
+            <summary>
+            Creates a StringDomainEntityIdentity instance for a new entity of type <paramref name="domainEntityType"/>. 
+            </summary>
+            <param name="domainEntityType">a type of the entity</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.Key">
+            <summary>
+            Gets a (typed) value of the underlying identity field.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.DomainEntityType">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IdentityValueType">
+            <summary>
+            Gets a type of the underlying identity field, i.e. int.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IdentityValue">
+            <summary>
+            Gets a value of the underlying identity field, i.e. boxed string.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IsNew">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
         </member>
     </members>
 </doc>

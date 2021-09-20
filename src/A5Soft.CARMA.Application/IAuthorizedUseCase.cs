@@ -12,7 +12,7 @@ namespace A5Soft.CARMA.Application
         /// Gets a current identity of the user.
         /// </summary>
         Task<ClaimsIdentity> GetIdentityAsync();
-                                         
+              
         /// <summary>
         /// Gets a value indicating whether the current user is authorized to invoke the use case.
         /// </summary>

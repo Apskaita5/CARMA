@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Domain;
 using System;
+using System.IO;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,6 +47,19 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a result of the method executed</returns>
         Task<TResult> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter, 
+            ClaimsIdentity identity, CancellationToken ct = default);
+
+        /// <summary>
+        /// Downloads file using data portal.
+        /// </summary>
+        /// <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
+        /// (should be either an interface (all the way to primitive types), a primitive type
+        /// or a json serializable POCO)</typeparam>
+        /// <param name="useCaseType">a type of the use case or its interface</param>
+        /// <param name="parameter">a criteria for the file to download</param>
+        /// <param name="identity">identity of the user invoking the method</param>
+        /// <param name="ct">cancellation token (if any)</param>
+        Task<Stream> DownloadAsync<TArg>(Type useCaseType, TArg parameter,
             ClaimsIdentity identity, CancellationToken ct = default);
 
         /// <summary>
@@ -161,6 +175,18 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// e.g. login, password reset etc.</remarks>
         Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, CancellationToken ct = default);
+
+        /// <summary>
+        /// Downloads file using data portal for an unauthenticated user.
+        /// </summary>
+        /// <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
+        /// (should be either an interface (all the way to primitive types), a primitive type
+        /// or a json serializable POCO)</typeparam>
+        /// <param name="useCaseType">a type of the use case or its interface</param>
+        /// <param name="parameter">a criteria for the file to download</param>
+        /// <param name="ct">cancellation token (if any)</param>
+        Task<Stream> DownloadUnauthenticatedAsync<TArg>(Type useCaseType, TArg parameter,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Executes (void) method of the use case specified remotely. 

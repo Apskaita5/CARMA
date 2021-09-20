@@ -48,20 +48,5 @@ namespace A5Soft.CARMA.Application.Authorization.Default
         {
             return _authorizationAttribute.IsAuthorized(UseCaseType, identity, _logger, throwOnUnauthorized);
         }
-
-        /// <inheritdoc cref="IUseCaseAuthorizer.IsAuthorized" />
-        public bool IsAuthorized<TParam>(ClaimsIdentity identity, TParam parameter, 
-            bool throwOnUnauthorized = false)
-        {
-            return _authorizationAttribute.IsAuthorized(UseCaseType, identity, parameter,
-                _logger, throwOnUnauthorized);
-        }
-
-        /// <inheritdoc cref="IUseCaseAuthorizer.AuthorizationImplementedForParam{TParam}" />
-        public bool AuthorizationImplementedForParam<TParam>()
-        {
-            return _authorizationAttribute.AuthorizationImplementedForParam<TParam>();
-        }
-
     }
 }

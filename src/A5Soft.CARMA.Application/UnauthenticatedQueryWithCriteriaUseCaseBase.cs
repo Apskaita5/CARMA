@@ -29,6 +29,15 @@ namespace A5Soft.CARMA.Application
 
 
         /// <summary>
+        /// Whether to use a default logging for method entry and exit.
+        /// Disabled by default as the use case is commonly used for authentication
+        /// while sensitive data shall not be logged.
+        /// Does not affect exception logging.
+        /// </summary>
+        protected virtual bool UseDefaultLogging { get; } = false;
+
+
+        /// <summary>
         /// Gets a query result using query criteria provided.
         /// </summary>
         /// <param name="criteria">a criteria for the query</param>
@@ -36,7 +45,7 @@ namespace A5Soft.CARMA.Application
         /// <returns>a query result</returns>
         public async Task<TResult> InvokeAsync(TCriteria criteria, CancellationToken ct = default)
         {
-            Logger.LogMethodEntry(this.GetType(), nameof(InvokeAsync), criteria);
+            if (UseDefaultLogging) Logger.LogMethodEntry(this.GetType(), nameof(InvokeAsync), criteria);
 
             TResult result;
 
@@ -55,7 +64,7 @@ namespace A5Soft.CARMA.Application
                     throw;
                 }
 
-                Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
+                if (UseDefaultLogging) Logger.LogMethodExit(this.GetType(), nameof(InvokeAsync));
 
                 return result;
             }

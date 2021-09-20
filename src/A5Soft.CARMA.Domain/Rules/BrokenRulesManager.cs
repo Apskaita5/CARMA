@@ -10,7 +10,7 @@ namespace A5Soft.CARMA.Domain.Rules
     /// </summary>
     [Serializable]
     internal sealed class BrokenRulesManager<T> : BrokenRules
-        where T: DomainEntityBase<T>
+        where T: DomainObject<T>
     {
         private readonly T _parent;
         private readonly IValidationEngine _engine;

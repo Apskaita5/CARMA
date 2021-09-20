@@ -93,30 +93,6 @@
             <param name="logger">a logger to use for authorization warnings</param>
             <returns></returns>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.Default.AuthorizationBaseAttribute.IsAuthorized``1(System.Type,System.Security.Claims.ClaimsIdentity,``0,A5Soft.CARMA.Application.ILogger,System.Boolean)">
-            <summary>
-            Returns true if the user identified by the identity is authorized to invoke use case of useCaseType
-            with the given parameter (e.g. query criteria); otherwise returns false
-            or throws a not authorized exception if specified by the parameter throwOnUnauthorized.
-            </summary>
-            <typeparam name="TParam">a type of the use case parameter to use for authorization</typeparam>
-            <param name="useCaseType">a type of the use case that is authorized</param>
-            <param name="identity">user identity</param>
-            <param name="parameter">a use case parameter to use for authorization</param>
-            <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
-            if the user is not authorized</param>
-            <param name="logger">a logger to use for authorization warnings</param>
-            <returns></returns>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.Default.AuthorizationBaseAttribute.AuthorizationImplementedForParam``1">
-            <summary>
-            Returns value indicating whether an authorization method, that depends on
-            a parameter (entity, criteria etc.) value, has been implemented for the parameter type specified.
-            </summary>
-            <typeparam name="TParam">a type of parameter that the authorization (might) depend on</typeparam>
-            <returns>True, if an authorization method for the parameter type is implemented (exists);
-            otherwise - false</returns>
-        </member>
         <member name="M:A5Soft.CARMA.Application.Authorization.Default.AuthorizationBaseAttribute.Authorize(System.Security.Claims.ClaimsIdentity,System.Type,A5Soft.CARMA.Application.ILogger,System.Boolean)">
             <summary>
             Override this method to implement actual authorization for a use case without parameters
@@ -124,20 +100,6 @@
             </summary>
             <param name="identity">user identity (guaranteed not null and authenticated)</param>
             <param name="useCaseType">a type of the use case that is authorized</param>
-            <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
-            if the user is not authorized</param>
-            <param name="logger">a logger to use for authorization warnings</param>
-            <returns>true if the user is authorized; false otherwise</returns>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.Default.AuthorizationBaseAttribute.Authorize``1(System.Security.Claims.ClaimsIdentity,System.Type,``0,A5Soft.CARMA.Application.ILogger,System.Boolean)">
-            <summary>
-            Override this method to implement actual authorization for a use case with a parameter
-            (i.e. whether the user is authorized to invoke a use case for a given parameter (command parameter, query criteria, save parameter etc.))
-            </summary>
-            <typeparam name="TParam">a type of use case parameter to use for authorization</typeparam>
-            <param name="identity">user identity (guaranteed not null and authenticated)</param>
-            <param name="useCaseType">a type of the use case that is authorized</param>
-            <param name="parameter">a use case parameter to use for authorization</param>
             <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
             if the user is not authorized</param>
             <param name="logger">a logger to use for authorization warnings</param>
@@ -169,12 +131,6 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.Authorization.Default.UseCaseAuthorizer.IsAuthorized(System.Security.Claims.ClaimsIdentity,System.Boolean)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.Authorization.IUseCaseAuthorizer.IsAuthorized(System.Security.Claims.ClaimsIdentity,System.Boolean)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.Default.UseCaseAuthorizer.IsAuthorized``1(System.Security.Claims.ClaimsIdentity,``0,System.Boolean)">
-            <inheritdoc cref="M:A5Soft.CARMA.Application.Authorization.IUseCaseAuthorizer.IsAuthorized(System.Security.Claims.ClaimsIdentity,System.Boolean)" />
-        </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.Default.UseCaseAuthorizer.AuthorizationImplementedForParam``1">
-            <inheritdoc cref="M:A5Soft.CARMA.Application.Authorization.IUseCaseAuthorizer.AuthorizationImplementedForParam``1" />
         </member>
         <member name="T:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider">
             <summary>
@@ -236,34 +192,13 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.Authorization.IUseCaseAuthorizer.IsAuthorized(System.Security.Claims.ClaimsIdentity,System.Boolean)">
             <summary>
-            Returns true if the user identified by the identity is authorized to invoke use case without parameters
+            Returns true if the user identified by the identity is authorized to invoke use case
             (i.e. whether the user is authorized to invoke a use case at least for some parameters);
             otherwise returns false or throws a not authorized exception if specified by the parameter throwOnUnauthorized. 
             </summary>
             <param name="identity">user identity</param>
             <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
             if the user is not authorized</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.IUseCaseAuthorizer.IsAuthorized``1(System.Security.Claims.ClaimsIdentity,``0,System.Boolean)">
-            <summary>
-            Returns true if the user identified by the identity is authorized to invoke use case
-            with the given parameter (e.g. query criteria); otherwise returns false
-            or throws a not authorized exception if specified by the parameter throwOnUnauthorized.
-            </summary>
-            <typeparam name="TParam">a type of the use case parameter to use for authorization</typeparam>
-            <param name="identity">user identity</param>
-            <param name="parameter">a use case parameter to use for authorization</param>
-            <param name="throwOnUnauthorized">whether to throw an application specific not authorized exception
-            if the user is not authorized</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.IUseCaseAuthorizer.AuthorizationImplementedForParam``1">
-            <summary>
-            Returns value indicating whether an authorization method, that depends on
-            a parameter (entity, criteria etc.) value, has been implemented for the parameter type specified.
-            </summary>
-            <typeparam name="TParam">a type of parameter that the authorization (might) depend on</typeparam>
-            <returns>True, if an authorization method for the parameter type is implemented (exists);
-            otherwise - false</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.AuthorizedUseCaseBase">
             <summary>
@@ -281,6 +216,12 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.AuthorizedUseCaseBase.GetIdentityAsync">
             <inheritdoc cref="M:A5Soft.CARMA.Application.IAuthorizedUseCase.GetIdentityAsync" />
+        </member>
+        <member name="M:A5Soft.CARMA.Application.AuthorizedUseCaseBase.UpdateIdentity(System.Security.Claims.ClaimsIdentity)">
+            <summary>
+            Updates a current identity of the user.
+            </summary>
+            <param name="updatedIdentity">an updated identity of the user</param>
         </member>
         <member name="M:A5Soft.CARMA.Application.AuthorizedUseCaseBase.CanInvokeAsync(System.Boolean)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.IAuthorizedUseCase.CanInvokeAsync(System.Boolean)" />
@@ -372,6 +313,50 @@
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
         </member>
+        <member name="T:A5Soft.CARMA.Application.CreateUseCaseBase`2">
+            <summary>
+            Creates a new entity based on create criteria and returns either the created entity or its id.
+            </summary>
+            <typeparam name="TCriteria">type of the create criteria (must be json serializable,
+            i.e. either a primitive or a POCO)</typeparam>
+            <typeparam name="TResult">type of the result returned (either the created entity or its id)</typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.#ctor(A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.Authorization.IAuthorizationProvider,A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.InvokeAsync(`0)">
+            <summary>
+            Executes the command using the parameter provided.
+            </summary>
+            <param name="criteria">a parameter for the command</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.ExecuteAsync(`0)">
+            <summary>
+            Implement this method to execute the command.
+            </summary>
+            <param name="criteria">a create criteria</param>
+            <remarks>At this stage user has already been authorized.
+            The parameter is NOT guaranteed to be not null (as it could be a valid option).
+            This method is always executed on server side (if data portal is configured).</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.GetMetadata">
+            <summary>
+            Gets metadata for the create criteria.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.BeforeDataPortalAsync(`0)">
+            <summary>
+            Implement this method for any actions that should be taken before remote invocation.
+            Only invoked if a remote data portal is used. 
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.AfterDataPortalAsync(`0)">
+            <summary>
+            Implement this method for any actions that should be taken after
+            a successful remote invocation. (e.g. clear local cache)
+            Only invoked if a remote data portal is used. 
+            </summary>
+        </member>
         <member name="T:A5Soft.CARMA.Application.DataPortal.ClientDataPortal">
             <summary>
             A default implementation of IClientDataPortal that enables remote method invocation
@@ -393,6 +378,9 @@
         <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.FetchAsync``2(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchAsync``2(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)" />
         </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.DownloadAsync``1(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.DownloadAsync``1(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)" />
+        </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.FetchAsync``3(System.Type,``0,``1,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchAsync``3(System.Type,``0,``1,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)" />
         </member>
@@ -410,6 +398,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.FetchUnauthenticatedAsync``4(System.Type,``0,``1,``2,System.Threading.CancellationToken)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchUnauthenticatedAsync``4(System.Type,``0,``1,``2,System.Threading.CancellationToken)" />
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.DownloadUnauthenticatedAsync``1(System.Type,``0,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.DownloadUnauthenticatedAsync``1(System.Type,``0,System.Threading.CancellationToken)" />
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.InvokeAsync(System.Type,System.Security.Claims.ClaimsIdentity)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeAsync(System.Type,System.Security.Claims.ClaimsIdentity)" />
@@ -641,6 +632,18 @@
             <param name="ct">cancellation token (if any)</param>
             <returns>a result of the method executed</returns>
         </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.DownloadAsync``1(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
+            <summary>
+            Downloads file using data portal.
+            </summary>
+            <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
+            (should be either an interface (all the way to primitive types), a primitive type
+            or a json serializable POCO)</typeparam>
+            <param name="useCaseType">a type of the use case or its interface</param>
+            <param name="parameter">a criteria for the file to download</param>
+            <param name="identity">identity of the user invoking the method</param>
+            <param name="ct">cancellation token (if any)</param>
+        </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchAsync``3(System.Type,``0,``1,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
             <summary>
             Executes method of the use case specified remotely and return the result. 
@@ -748,6 +751,17 @@
             <returns>a result of the method executed</returns>
             <remarks>Only for methods that do not require authentication and authorization,
             e.g. login, password reset etc.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.DownloadUnauthenticatedAsync``1(System.Type,``0,System.Threading.CancellationToken)">
+            <summary>
+            Downloads file using data portal for an unauthenticated user.
+            </summary>
+            <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
+            (should be either an interface (all the way to primitive types), a primitive type
+            or a json serializable POCO)</typeparam>
+            <param name="useCaseType">a type of the use case or its interface</param>
+            <param name="parameter">a criteria for the file to download</param>
+            <param name="ct">cancellation token (if any)</param>
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeAsync(System.Type,System.Security.Claims.ClaimsIdentity)">
             <summary>
@@ -876,10 +890,52 @@
             <returns>binary serialized remote invocation response</returns>
             <remarks>From the implementation point of view the underlying (serialized) types are not important.</remarks>
         </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.IDataPortalProxy.DownloadAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Calls a remote service (e.g. HTTP server) with the json serialized remote method invocation request
+            and returns response stream for file download.
+            </summary>
+            <param name="request">json serialized remote method invocation request</param>
+            <returns>response stream for file download</returns>
+            <remarks>From the implementation point of view the underlying (serialized) types are not important.</remarks>
+        </member>
         <member name="T:A5Soft.CARMA.Application.DataPortal.JObjectExtension">
             <summary>
             https://www.lighthouselogic.com/deserialize-json-to-interface-without-concrete-class/
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.JObjectExtension.ToProxy``1(Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Converts JToken value to an interface proxy of the type specified.
+            </summary>
+            <typeparam name="TInterfaceType">a type of the interface to proxy</typeparam>
+            <param name="targetObject">a JToken containing data for the interface proxy</param>
+            <returns>an interface proxy of the type specified</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.JObjectExtension.ToProxy(Newtonsoft.Json.Linq.JToken,System.Type)">
+            <summary>
+            Converts JToken value to an interface proxy of the type specified.
+            </summary>
+            <param name="targetToken">a JToken containing data for the interface proxy</param>
+            <param name="interfaceType">a type of the interface to proxy</param>
+            <returns>an interface proxy of the type specified</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.JsonExtensions.Deserialize(System.Type,System.String)">
+            <summary>
+            Deserializes value from json string. Handles Stream properties.
+            If serialized value type is an interface, value is deserialized by proxy.
+            </summary>
+            <param name="serializedValueType">a type of the value to deserialize</param>
+            <param name="serializedValue">a json string that contains the serialized value</param>
+            <returns>deserialized value of the type specified</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.JsonExtensions.Serialize``1(``0)">
+            <summary>
+            Serializes the value to a json string. Handles Stream properties.
+            </summary>
+            <typeparam name="T">a type of the value to serialize</typeparam>
+            <param name="value">a value to serialize</param>
+            <returns>json string containing data for the serialized value</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.DataPortal.LocalDataPortalProxy">
             <summary>
@@ -930,6 +986,46 @@
             Override this method to hide technical exceptions from user.
             </summary>
             <param name="actualException"></param>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1">
+            <summary>
+            A base use case for a file download.
+            </summary>
+            <typeparam name="T">a type of criteria for file (must be json serializable,
+            i.e. either a primitive, an interface or a POCO)</typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.#ctor(A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.Authorization.IAuthorizationProvider,A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.DownloadAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Downloads a file.
+            </summary>
+            <param name="criteria">a criteria for file</param>
+            <param name="ct">cancellation token (if any)</param>
+            <returns>a stream to download the file content</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.DoDownloadAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Implement this method to download the file.
+            </summary>
+            <param name="criteria">a criteria for the file to download</param>
+            <remarks>At this stage user has already been authorized
+            and the criteria param is guaranteed to be not null.
+            This method is always executed on server side (if data portal is configured).</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.BeforeDataPortalAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Implement this method for any actions that should be taken before remote invocation.
+            Only invoked if a remote data portal is used. 
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.AfterDataPortalAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Implement this method for any actions that should be taken after
+            a successful remote invocation. (e.g. clear local cache)
+            Only invoked if a remote data portal is used. 
+            </summary>
         </member>
         <member name="T:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1">
             <summary>
@@ -1040,6 +1136,9 @@
             <summary>
             Gets a name of the file.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.FileContent.Dispose">
+            <inheritdoc />
         </member>
         <member name="T:A5Soft.CARMA.Application.FileContentType">
             <summary>
@@ -1786,6 +1885,11 @@
             <param name="domainDto">business data for the domain entity to save</param>
             <returns>a domain entity that has been saved (persisted)</returns>
         </member>
+        <member name="M:A5Soft.CARMA.Application.SaveUseCaseBase`2.GetMetadata">
+            <summary>
+            Gets metadata for the entity saved.
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Application.SaveUseCaseBase`2.DoSaveAsync(`1)">
             <summary>
             Implement this method to load the business data to a new or existing domain entity,
@@ -1952,6 +2056,14 @@
         <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.#ctor(A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
             <inheritdoc />
         </member>
+        <member name="P:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.UseDefaultLogging">
+            <summary>
+            Whether to use a default logging for method entry and exit.
+            Disabled by default as the use case is commonly used for authentication
+            while sensitive data shall not be logged.
+            Does not affect exception logging.
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.InvokeAsync(`1,System.Threading.CancellationToken)">
             <summary>
             Gets a query result using query criteria provided.
@@ -2001,105 +2113,6 @@
             broken rules (if invalid).
             </summary>
             <param name="criteria">criteria to validate</param>
-            <remarks>Override this method in order to implement custom validation
-            or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
-        </member>
-        <member name="T:A5Soft.CARMA.Application.UploadFileUseCaseBase">
-            <summary>
-            A base use case for a file upload operation without options.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileUseCaseBase.#ctor(A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.Authorization.IAuthorizationProvider,A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
-            <inheritdoc />
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileUseCaseBase.UploadFileAsync(A5Soft.CARMA.Application.FileContent)">
-            <summary>
-            Uploads a file.
-            </summary>
-            <param name="file">a file to upload</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileUseCaseBase.SaveAsync(A5Soft.CARMA.Application.FileContent)">
-            <summary>
-            Implement this method to save the uploaded file.
-            If required, implement any post save actions as well, e.g. resetting cache for relevant lookups,
-            sending notifications etc.
-            </summary>
-            <param name="file">a file to save</param>
-            <remarks>At this stage user has already been authorized
-            and the file param is guaranteed to be not null.
-            This method is always executed on server side (if data portal is configured).</remarks>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileUseCaseBase.BeforeDataPortalAsync(A5Soft.CARMA.Application.FileContent)">
-            <summary>
-            Implement this method for any actions that should be taken before remote invocation.
-            Only invoked if a remote data portal is used. 
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileUseCaseBase.AfterDataPortalAsync(A5Soft.CARMA.Application.FileContent)">
-            <summary>
-            Implement this method for any actions that should be taken after
-            a successful remote invocation. (e.g. clear local cache)
-            Only invoked if a remote data portal is used. 
-            </summary>
-        </member>
-        <member name="T:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1">
-            <summary>
-            A base use case for a file upload operation with options.
-            </summary>
-            <typeparam name="TOptions">a type of options (must be json serializable,
-            i.e. either a primitive or a POCO)</typeparam>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.#ctor(A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.Authorization.IAuthorizationProvider,A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
-            <inheritdoc />
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.UploadFileAsync(A5Soft.CARMA.Application.FileContent,`0)">
-            <summary>
-            Uploads a file using the options specified.
-            </summary>
-            <param name="options">options that affect file save behaviour,
-            e.g. to associate the file with some domain entity</param>
-            <param name="file">a file to upload</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.SaveAsync(A5Soft.CARMA.Application.FileContent,`0)">
-            <summary>
-            Implement this method to save the uploaded file.
-            If required, implement any post save actions as well, e.g. resetting cache for relevant lookups,
-            sending notifications etc.
-            </summary>
-            <param name="file">a file to save</param>
-            <param name="options">options that affect file save behaviour,
-            e.g. to associate the file with some domain entity</param>
-            <remarks>At this stage user has already been authorized
-            and the file param is guaranteed to be not null.
-            The options param is NOT guaranteed to be not null (as it could be a valid option).
-            This method is always executed on server side (if data portal is configured).</remarks>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.BeforeDataPortalAsync(A5Soft.CARMA.Application.FileContent,`0)">
-            <summary>
-            Implement this method for any actions that should be taken before remote invocation.
-            Only invoked if a remote data portal is used. 
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.AfterDataPortalAsync(A5Soft.CARMA.Application.FileContent,`0)">
-            <summary>
-            Implement this method for any actions that should be taken after
-            a successful remote invocation. (e.g. clear local cache)
-            Only invoked if a remote data portal is used. 
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.GetOptionsMetadata">
-            <summary>
-            Gets metadata for the upload options.
-            Returns null if the upload options is not a class or an interface.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.UploadFileWithOptionsUseCaseBase`1.Validate(`0)">
-            <summary>
-            Validates upload options (as a POCO object) and returns a broken rules collection
-            that can be used to determine whether the options are valid and what are the
-            broken rules (if invalid).
-            </summary>
-            <param name="options">upload options to validate</param>
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
         </member>

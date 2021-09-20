@@ -49,9 +49,7 @@ namespace A5Soft.CARMA.Application
                 return;
             }
 
-            if (Authorizer.AuthorizationImplementedForParam<TParameter>())
-                Authorizer.IsAuthorized(await GetIdentityAsync(), parameter, true);
-            else await CanInvokeAsync(true);
+            await CanInvokeAsync(true);
 
             try
             {

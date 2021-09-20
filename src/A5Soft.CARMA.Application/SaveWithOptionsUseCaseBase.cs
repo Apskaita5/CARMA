@@ -73,10 +73,7 @@ namespace A5Soft.CARMA.Application
                 return result;
             }
 
-            // Cannot trust user input (domainDto), no point to take it into account for authorization
-            if (Authorizer.AuthorizationImplementedForParam<TOptions>())
-                Authorizer.IsAuthorized(await GetIdentityAsync(), options, true);
-            else await CanInvokeAsync(true);
+            await CanInvokeAsync(true);
 
             try
             {

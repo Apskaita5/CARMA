@@ -12,7 +12,7 @@ namespace A5Soft.CARMA.Domain
     /// </summary>
     /// <typeparam name="T">a type of the domain entity implementation</typeparam> 
     [Serializable]
-    public abstract class DomainEntity<T> : DomainEntityBase<T>, IDomainEntity
+    public abstract class DomainEntity<T> : DomainObject<T>, IDomainEntity
         where T : DomainEntity<T>
     {
 

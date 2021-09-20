@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Domain;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <inheritdoc cref="IDataPortalProxy.IsRemote" />
         public bool IsRemote 
             => false;
+
+        public Task<Stream> DownloadAsync(string request, CancellationToken ct = default)
+        {
+            throw new NotSupportedException("Local data portal cannot be invoked.");
+        }
 
 
         /// <inheritdoc cref="IDataPortalProxy.GetResponseAsync" />

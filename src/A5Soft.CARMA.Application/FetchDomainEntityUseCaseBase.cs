@@ -68,9 +68,7 @@ namespace A5Soft.CARMA.Application
                 return result;
             }
 
-            if (Authorizer.AuthorizationImplementedForParam<IDomainEntityIdentity>())
-                Authorizer.IsAuthorized(await GetIdentityAsync(), id, true);
-            else Authorizer.IsAuthorized(await GetIdentityAsync(), true);
+            Authorizer.IsAuthorized(await GetIdentityAsync(), true);
 
             try
             {
@@ -81,9 +79,6 @@ namespace A5Soft.CARMA.Application
                 Logger.LogError(e);
                 throw;
             }
-
-            if (Authorizer.AuthorizationImplementedForParam<T>())
-                Authorizer.IsAuthorized(await GetIdentityAsync(), result, true);
 
             Logger.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 

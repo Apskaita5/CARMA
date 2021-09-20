@@ -16,7 +16,7 @@ namespace A5Soft.CARMA.Application
     /// <remarks>Every entity is saved by passing its business only data by interface
     /// to make sure that inner state of the entity is not tampered in any way.</remarks>
     public abstract class SaveUseCaseBase<TDomObject, TDomInterface> : AuthorizedUseCaseBase
-        where TDomObject : class, ITrackState
+        where TDomObject : class, ITrackState, TDomInterface
         where TDomInterface : class, IDomainObject
     {
         /// <inheritdoc />
@@ -86,6 +86,13 @@ namespace A5Soft.CARMA.Application
 
             return result;
         }
+
+        /// <summary>
+        /// Gets metadata for the entity saved.
+        /// </summary>
+        public IEntityMetadata GetMetadata()
+            => MetadataProvider.GetEntityMetadata<TDomInterface>();
+
 
         /// <summary>
         /// Implement this method to load the business data to a new or existing domain entity,
