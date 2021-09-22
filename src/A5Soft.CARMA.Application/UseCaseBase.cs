@@ -24,7 +24,7 @@ namespace A5Soft.CARMA.Application
         protected readonly IMetadataProvider MetadataProvider;
         
         /// <summary>
-        /// metadata provider
+        /// logger
         /// </summary>
         protected readonly ILogger Logger;
 

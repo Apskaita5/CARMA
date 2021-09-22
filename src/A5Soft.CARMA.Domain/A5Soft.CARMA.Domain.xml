@@ -543,11 +543,10 @@
             Creates a new instance of the object.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.CreateNewIdentity">
+        <member name="P:A5Soft.CARMA.Domain.DomainEntity`1.Id">
             <summary>
-            Implement this method to create a new identity for the domain entity.
+            An id of the domain entity.
             </summary>
-            <returns>a new identity for the domain entity</returns>
         </member>
         <member name="P:A5Soft.CARMA.Domain.DomainEntity`1.IsNew">
             <summary>
@@ -1530,6 +1529,23 @@
             </summary>
             <typeparam name="T">a type of the object to test</typeparam>
             <param name="value">an object to test against null</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsNullOrNew(A5Soft.CARMA.Domain.IDomainEntityIdentity)">
+            <summary>
+            Returns a value indicating whether the identity is either null or a new identity
+            (see <see cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>).
+            </summary>
+            <param name="identity">the identity to check</param>
+            <returns>a value indicating whether the identity is either null or a new identity</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.EnsureValidIdentityFor``1(A5Soft.CARMA.Domain.IDomainEntityIdentity)">
+            <summary>
+            Throws an <see cref="T:System.ArgumentException"/> if the identity specified is either null 
+            or does not reference an existing entity of type T (see <see cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
+            and <see cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>).
+            </summary>
+            <typeparam name="T">a type of entity that is expected to be referenced</typeparam>
+            <param name="id">an identity to check</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.Extensions.IsNullOrWhiteSpace(System.String)">
             <summary>
@@ -2803,6 +2819,13 @@
         <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDisplayShortName``1(``0)">
             <summary>
             Gets a localized short name of an enum value. (see <see cref="P:System.ComponentModel.DataAnnotations.DisplayAttribute.ShortName"/>)
+            </summary>
+            <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDisplayDescription``1(``0)">
+            <summary>
+            Gets a localized description of an enum value. (see <see cref="P:System.ComponentModel.DataAnnotations.DisplayAttribute.Description"/>)
             </summary>
             <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
             <param name="value"></param>

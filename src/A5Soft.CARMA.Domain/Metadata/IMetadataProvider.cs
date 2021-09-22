@@ -8,7 +8,6 @@ namespace A5Soft.CARMA.Domain.Metadata
     [Service(ServiceLifetime.Singleton)]
     public interface IMetadataProvider
     {
-
         /// <summary>
         /// Gets metadata for the entity type specified.
         /// </summary>
@@ -22,6 +21,5 @@ namespace A5Soft.CARMA.Domain.Metadata
         /// <typeparam name="T">a type of the entity to get metadata for</typeparam>
         /// <returns>metadata for the entity type specified</returns>
         IEntityMetadata GetEntityMetadata<T>();
-
     }
 }

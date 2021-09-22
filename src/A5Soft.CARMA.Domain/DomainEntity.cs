@@ -15,17 +15,13 @@ namespace A5Soft.CARMA.Domain
     public abstract class DomainEntity<T> : DomainObject<T>, IDomainEntity
         where T : DomainEntity<T>
     {
-
         #region Constructors
 
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
         protected DomainEntity(IValidationEngineProvider validationEngineProvider) 
-            : base(validationEngineProvider)
-        {
-            _id = CreateNewIdentity();
-        }
+            : base(validationEngineProvider) {}
 
         /// <summary>
         /// Creates a new instance of the object.
@@ -33,29 +29,25 @@ namespace A5Soft.CARMA.Domain
         protected DomainEntity(IDomainEntityIdentity identity, IValidationEngineProvider validationEngineProvider, 
             bool allowNewIdentity = false) : base(validationEngineProvider)
         {
-            if (!allowNewIdentity && (identity?.IsNew ?? true)) throw new InvalidOperationException(
-                "Cannot set new (null) identity for an existing entity.");
-            if (identity.IsNull()) identity = CreateNewIdentity();
-            EnsureValidIdentity(identity);
-            _id = identity;
+            if (!allowNewIdentity && identity.IsNullOrNew())
+            {
+                throw new InvalidOperationException("Cannot set new (null) identity for an existing entity.");
+            }
+
+            if (!identity.IsNull()) identity.EnsureValidIdentityFor<T>();
+            
+            Id = identity;
         }
 
         #endregion
-
-        #region Identity
-
-        private IDomainEntityIdentity _id;
-
-        public IDomainEntityIdentity Id
-            => _id;
+        
+        #region Properties
 
         /// <summary>
-        /// Implement this method to create a new identity for the domain entity.
+        /// An id of the domain entity.
         /// </summary>
-        /// <returns>a new identity for the domain entity</returns>
-        protected abstract IDomainEntityIdentity CreateNewIdentity();
-
-        #endregion
+        [Browsable(true)]
+        public IDomainEntityIdentity Id { get; private set; } = null;
 
         /// <summary>
         /// Returns true if this is a new object, false if it is a pre-existing object.
@@ -70,10 +62,11 @@ namespace A5Soft.CARMA.Domain
         /// <returns>A value indicating if this object is new.</returns>
         [Browsable(false)]
         [Display(AutoGenerateField = false)]
-        [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
         public bool IsNew
-            => _id.IsNew;
+            => Id.IsNullOrNew();
+
+        #endregion
 
         /// <summary>
         /// Marks the object as being a new object. This also marks the object
@@ -85,7 +78,7 @@ namespace A5Soft.CARMA.Domain
         /// </remarks>
         protected override void MarkNew()
         {
-            _id = CreateNewIdentity();
+            Id = null;
             base.MarkNew();
         }
 
@@ -109,20 +102,9 @@ namespace A5Soft.CARMA.Domain
         /// </remarks>
         protected virtual void MarkOld(IDomainEntityIdentity identity)
         {
-            EnsureValidIdentity(identity);
-            _id = identity;
+            identity.EnsureValidIdentityFor<T>();
+            Id = identity;
             MarkClean();
         }
-
-
-        private void EnsureValidIdentity(IDomainEntityIdentity identity)
-        {
-            if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            if (identity.DomainEntityType != typeof(T)) throw new ArgumentException(
-                $"Invalid identity, expected entity type - {typeof(T).FullName}, actual type - {identity.DomainEntityType.FullName}.", 
-                nameof(identity));
-            _id = identity;
-        }
-
     }
 }

@@ -39,6 +39,35 @@ namespace A5Soft.CARMA.Domain
         }
 
         /// <summary>
+        /// Returns a value indicating whether the identity is either null or a new identity
+        /// (see <see cref="IDomainEntityIdentity.IsNew"/>).
+        /// </summary>
+        /// <param name="identity">the identity to check</param>
+        /// <returns>a value indicating whether the identity is either null or a new identity</returns>
+        public static bool IsNullOrNew(this IDomainEntityIdentity identity)
+        {
+            return ReferenceEquals(identity, null) || identity.IsNew;
+        }
+
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> if the identity specified is either null 
+        /// or does not reference an existing entity of type T (see <see cref="IDomainEntityIdentity.IsNew"/>
+        /// and <see cref="IDomainEntityIdentity.DomainEntityType"/>).
+        /// </summary>
+        /// <typeparam name="T">a type of entity that is expected to be referenced</typeparam>
+        /// <param name="id">an identity to check</param>
+        public static void EnsureValidIdentityFor<T>(this IDomainEntityIdentity id)
+        {
+            if (id.IsNullOrNew()) throw new ArgumentException(
+                $"The identity does not reference any existing domain entity.", nameof(id));
+            if (null == id.DomainEntityType) throw new InvalidOperationException(
+                $"{nameof(IDomainEntityIdentity.DomainEntityType)} property cannot be null.");
+            if (!id.DomainEntityType.IsAssignableFrom(typeof(T))) throw new ArgumentException(
+                $"Required identity for {typeof(T).FullName} while received {id.DomainEntityType.FullName}.",
+                nameof(id));
+        }
+
+        /// <summary>
         /// Returns true if the string value is null or empty or consists from whitespaces only.
         /// </summary>
         /// <param name="value">a string value to evaluate</param>

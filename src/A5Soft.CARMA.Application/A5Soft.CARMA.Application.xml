@@ -2162,7 +2162,7 @@
         </member>
         <member name="F:A5Soft.CARMA.Application.UseCaseBase.Logger">
             <summary>
-            metadata provider
+            logger
             </summary>
         </member>
     </members>

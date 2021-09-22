@@ -126,6 +126,17 @@ namespace A5Soft.CARMA.Domain.Reflection
         /// </summary>
         /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
         /// <param name="value"></param>
+        public static string GetEnumDisplayDescription<TEnum>(this TEnum value)
+        {
+            return value.GetEnumDisplayProperty(a => a.GetDescription(),
+                v => value?.ToString() ?? string.Empty);
+        }
+
+        /// <summary>
+        /// Gets a localized description of an enum value. (see <see cref="DisplayAttribute.Description"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
         public static string GetEnumDescription<TEnum>(TEnum value)
         {
             return value.GetEnumDisplayProperty(a => a.GetDescription(), v => string.Empty);
