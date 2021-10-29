@@ -39,6 +39,13 @@ namespace A5Soft.CARMA.Domain
             Id = identity;
         }
 
+        /// <summary>
+        /// Creates a copy of the domain entity.
+        /// </summary>
+        /// <param name="entityToCopy">an entity to copy</param>
+        protected DomainEntity(T entityToCopy) : base(entityToCopy)
+        { }
+
         #endregion
         
         #region Properties

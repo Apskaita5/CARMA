@@ -56,7 +56,11 @@ namespace A5Soft.CARMA.Domain
         public bool IsNew
             => !Key.IsValidKey();
 
+        /// <inheritdoc cref="IDomainEntityIdentity.IdentityStringValue"/>
+        public string IdentityStringValue => Key.IsValidKey() ? Key : string.Empty;
 
+
+        /// <inheritdoc />
         public int CompareTo(object obj)
         {
             if (obj == null) return 1;
@@ -74,5 +78,10 @@ namespace A5Soft.CARMA.Domain
             throw new ArgumentException("Object is not StringDomainEntityIdentity.");
         }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{DomainEntityType.Name}:{IdentityStringValue}";
+        }
     }
 }

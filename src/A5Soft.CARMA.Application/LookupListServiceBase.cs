@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security;
@@ -11,7 +12,7 @@ using A5Soft.CARMA.Domain;
 namespace A5Soft.CARMA.Application
 {
     /// <summary>
-    /// Base class for service that fetches lookup values (or lists of values). 
+    /// Base class for service that fetches a list of lookup values). 
     /// </summary>
     /// <typeparam name="TLookup">a type of the managed lookup value</typeparam>
     /// <remarks>Lookups (e.g. list of persons to be displayed in dropdowns) contain
@@ -23,7 +24,7 @@ namespace A5Soft.CARMA.Application
     /// which transfers authorization responsibility to them.
     /// E.g. save invoice use case shall be responsible for providing all the necessary lookups
     /// for a user in order to edit an invoice.</remarks>
-    public abstract class LookupServiceBase<TLookup> where TLookup: class
+    public abstract class LookupListServiceBase<TLookup> where TLookup : class
     {
         protected readonly ILogger _logger;
         private readonly IClientDataPortal _dataPortal;
@@ -42,10 +43,10 @@ namespace A5Soft.CARMA.Application
         protected IAuthorizationProvider AuthorizationProvider { get; }
 
 
-        protected LookupServiceBase(IAuthenticationStateProvider authenticationStateProvider, 
+        protected LookupListServiceBase(IAuthenticationStateProvider authenticationStateProvider,
             IAuthorizationProvider authorizationProvider, IClientDataPortal dataPortal, ILogger logger)
         {
-            _authenticationStateProvider = authenticationStateProvider 
+            _authenticationStateProvider = authenticationStateProvider
                 ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
             AuthorizationProvider = authorizationProvider ?? throw new ArgumentNullException(nameof(authorizationProvider));
             _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
@@ -57,13 +58,13 @@ namespace A5Soft.CARMA.Application
         /// Gets a lookup value.
         /// </summary>
         /// <param name="requesterType">a type of the use case that requests the lookup</param>
-        public async Task<TLookup> FetchAsync(Type requesterType)
+        public async Task<List<TLookup>> FetchAsync(Type requesterType)
         {
             if (null == requesterType) throw new ArgumentNullException(nameof(requesterType));
 
             _logger?.LogMethodEntry(this.GetType(), nameof(FetchAsync), requesterType);
 
-            TLookup result;
+            List<TLookup> result;
 
             if (_dataPortal.IsRemote)
             {
@@ -78,7 +79,7 @@ namespace A5Soft.CARMA.Application
                         return result;
                     }
 
-                    result = (await _dataPortal.FetchAsync<Type, TLookup>(this.GetType(), 
+                    result = (await _dataPortal.FetchAsync<Type, List<TLookup>>(this.GetType(),
                         requesterType, await GetIdentityAsync())).Result;
 
                     SetLocalCacheValue(result);
@@ -118,7 +119,7 @@ namespace A5Soft.CARMA.Application
         /// The data portal will return only lookups for the user, which will render the
         /// shared cache invalid. Data portal cannot return lookup values that are not meant for the user
         /// as it will compromise its security.</remarks>
-        protected abstract TLookup GetValueFromLocalCache();
+        protected abstract List<TLookup> GetValueFromLocalCache();
 
         /// <summary>
         /// Implement this method to add fetched lookup value to a local cache (if used/configured).
@@ -128,13 +129,13 @@ namespace A5Soft.CARMA.Application
         /// The data portal might return only lookups for the user, which will render the
         /// shared cache invalid. Data portal cannot return lookup values that are not meant for the user
         /// as it will compromise its security.</remarks>
-        protected abstract void SetLocalCacheValue(TLookup value);
+        protected abstract void SetLocalCacheValue(List<TLookup> value);
 
         /// <summary>
         /// Implement this method to fetch lookup value from a database or a server side cache.
         /// </summary>
         /// <remarks>If required, filter out the returned lookup values for the <see cref="User"/>.</remarks>
-        protected abstract Task<TLookup> DoFetchAsync();
+        protected abstract Task<List<TLookup>> DoFetchAsync();
 
 
         private async Task AuthorizeAsync(Type requesterType)
@@ -160,6 +161,5 @@ namespace A5Soft.CARMA.Application
             if (!authorizer.IsAuthorized(await GetIdentityAsync())) throw new SecurityException(
                 $"User is not authorized to invoke the requesting use case ({requesterType.FullName}).");
         }
-
     }
 }

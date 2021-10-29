@@ -62,7 +62,7 @@ namespace A5Soft.CARMA.Application.Navigation
             {
                 try
                 {
-                    result = await _dataPortal.FetchAsync<MainMenu>(this.GetType(), identity);
+                    result = (await _dataPortal.FetchAsync<MainMenu>(this.GetType(), identity)).Result;
                 }
                 catch (Exception e)
                 {

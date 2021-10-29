@@ -14,7 +14,6 @@ namespace A5Soft.CARMA.Application.DataPortal
     [Service(ServiceLifetime.Singleton)]
     public interface IClientDataPortal 
     {
-
         /// <summary>
         /// Gets a value indicating whether the data portal implementation is configured
         /// for remote invocations. All the methods of a client data portal can only be invoked
@@ -31,7 +30,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="identity">identity of the user invoking the method</param>
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a result of the method executed</returns>
-        Task<TResult> FetchAsync<TResult>(Type useCaseType, ClaimsIdentity identity, 
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TResult>(Type useCaseType, ClaimsIdentity identity, 
             CancellationToken ct = default);
 
         /// <summary>
@@ -46,7 +45,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="identity">identity of the user invoking the method</param>
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a result of the method executed</returns>
-        Task<TResult> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter, 
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter, 
             ClaimsIdentity identity, CancellationToken ct = default);
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="identity">identity of the user invoking the method</param>
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a result of the method executed</returns>
-        Task<TResult> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType, TArg1 firstParameter, 
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType, TArg1 firstParameter, 
             TArg2 secondParameter, ClaimsIdentity identity, CancellationToken ct = default);
 
         /// <summary>
@@ -101,7 +100,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="identity">identity of the user invoking the method</param>
         /// <param name="ct">cancellation token (if any)</param>
         /// <returns>a result of the method executed</returns>
-        Task<TResult> FetchAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, 
             ClaimsIdentity identity, CancellationToken ct = default);
 
@@ -114,7 +113,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>a result of the method executed</returns> 
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task<TResult> FetchUnauthenticatedAsync<TResult>(Type useCaseType, CancellationToken ct = default);
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TResult>(Type useCaseType, CancellationToken ct = default);
 
         /// <summary>
         /// Executes method of the use case specified remotely and return the result. 
@@ -129,7 +128,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>a result of the method executed</returns>
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task<TResult> FetchUnauthenticatedAsync<TArg, TResult>(Type useCaseType, 
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg, TResult>(Type useCaseType, 
             TArg parameter, CancellationToken ct = default);
 
         /// <summary>
@@ -149,7 +148,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>a result of the method executed</returns> 
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type useCaseType,
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, CancellationToken ct = default) ;
 
         /// <summary>
@@ -173,7 +172,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>a result of the method executed</returns>
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, CancellationToken ct = default);
 
         /// <summary>
@@ -189,14 +188,14 @@ namespace A5Soft.CARMA.Application.DataPortal
             CancellationToken ct = default);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <param name="identity">identity of the user invoking the method</param>
-        Task InvokeAsync(Type useCaseType, ClaimsIdentity identity);
+        Task<ClaimsIdentity> InvokeAsync(Type useCaseType, ClaimsIdentity identity);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
@@ -204,10 +203,10 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// or a json serializable POCO)</typeparam>
         /// <param name="parameter">a value of the (only) argument for the use case InvokeAsync method</param>
         /// <param name="identity">identity of the user invoking the method</param>
-        Task InvokeAsync<TArg>(Type useCaseType, TArg parameter, ClaimsIdentity identity);
+        Task<ClaimsIdentity> InvokeAsync<TArg>(Type useCaseType, TArg parameter, ClaimsIdentity identity);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -219,11 +218,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="firstParameter">a value of the first argument for the use case InvokeAsync method</param>
         /// <param name="secondParameter">a value of the second argument for the use case InvokeAsync method</param>
         /// <param name="identity">identity of the user invoking the method</param>
-        Task InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, 
+        Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, 
             TArg2 secondParameter, ClaimsIdentity identity);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -239,19 +238,19 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="secondParameter">a value of the second argument for the use case InvokeAsync method</param>
         /// <param name="thirdParameter">a value of the third argument for the use case InvokeAsync method</param>
         /// <param name="identity">identity of the user invoking the method</param>
-        Task InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
+        Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
             TArg2 secondParameter, TArg3 thirdParameter, ClaimsIdentity identity);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task InvokeUnauthenticatedAsync(Type useCaseType);
+        Task<ClaimsIdentity> InvokeUnauthenticatedAsync(Type useCaseType);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
@@ -260,10 +259,10 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="parameter">a value of the (only) argument for the use case InvokeAsync method</param>
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task InvokeUnauthenticatedAsync<TArg>(Type useCaseType, TArg parameter);
+        Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg>(Type useCaseType, TArg parameter);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -276,10 +275,10 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="secondParameter">a value of the second argument for the use case InvokeAsync method</param>
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task InvokeUnauthenticatedAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, TArg2 secondParameter);
+        Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, TArg2 secondParameter);
 
         /// <summary>
-        /// Executes (void) method of the use case specified remotely. 
+        /// Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
         /// </summary>
         /// <param name="useCaseType">a type of the use case or its interface</param>
         /// <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -296,7 +295,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <param name="thirdParameter">a value of the third argument for the use case InvokeAsync method</param>
         /// <remarks>Only for methods that do not require authentication and authorization,
         /// e.g. login, password reset etc.</remarks>
-        Task InvokeUnauthenticatedAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
+        Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
             TArg2 secondParameter, TArg3 thirdParameter);
     }
 }

@@ -57,9 +57,15 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(domainDto, options);
-                    result = await DataPortal.FetchAsync<TDomInterface, TOptions, TDomObject>(
+
+                    var dpResult = await DataPortal.FetchAsync<TDomInterface, TOptions, TDomObject>(
                         this.GetType(), domainDto, options, await GetIdentityAsync());
+
+                    result = dpResult.Result;
                     if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
+
+                    if (null != dpResult.Identity) UpdateIdentity(dpResult.Identity);
+
                     await AfterDataPortalAsync(domainDto, options, result);
                 }
                 catch (Exception e)

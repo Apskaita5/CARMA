@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
+using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
 
@@ -11,8 +12,9 @@ namespace A5Soft.CARMA.Application
     /// Creates a new entity based on create criteria and returns either the created entity or its id.
     /// </summary>
     /// <typeparam name="TCriteria">type of the create criteria (must be json serializable,
-    /// i.e. either a primitive or a POCO)</typeparam>
-    /// <typeparam name="TResult">type of the result returned (either the created entity or its id)</typeparam>
+    /// i.e. either a primitive, a POCO or an interface)</typeparam>
+    /// <typeparam name="TResult">type of the result returned (either the created entity, its id or other result);
+    /// must be serializable</typeparam>
     public abstract class CreateUseCaseBase<TCriteria, TResult> : AuthorizedUseCaseBase
     {
         /// <inheritdoc />
@@ -41,8 +43,14 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(criteria);
-                    result = await DataPortal.FetchAsync<TCriteria, TResult>(this.GetType(), 
+                    var dpResult = await DataPortal.FetchAsync<TCriteria, TResult>(this.GetType(), 
                         criteria, await GetIdentityAsync());
+
+                    result = dpResult.Result;
+                    if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
+
+                    if (null != dpResult.Identity) UpdateIdentity(dpResult.Identity);
+
                     await AfterDataPortalAsync(criteria);
                 }
                 catch (Exception e)

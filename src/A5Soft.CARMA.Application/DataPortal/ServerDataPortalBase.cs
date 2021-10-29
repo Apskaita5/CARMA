@@ -78,9 +78,13 @@ namespace A5Soft.CARMA.Application.DataPortal
 
                 var resultProp = task.GetType().GetProperty("Result");
 
+                ClaimsIdentity identity = null;
+                if (service is IAuthorizedUseCase authorizedService)
+                    identity = await authorizedService.GetIdentityAsync();
+
                 DataPortalResponse response;
-                if (null == resultProp) response = new DataPortalResponse();
-                else response = new DataPortalResponse() { Result = resultProp.GetValue(task) };
+                if (null == resultProp) response = new DataPortalResponse(identity);
+                else response = new DataPortalResponse(resultProp.GetValue(task), identity);
 
                 return BinarySerialize(response);
 

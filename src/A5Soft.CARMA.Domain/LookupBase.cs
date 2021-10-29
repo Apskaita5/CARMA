@@ -29,21 +29,22 @@
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if (!obj.IsNull() && !this.GetType().IsAssignableFrom(obj.GetType())) return false;
+            if (obj is ILookup lookup)
+            {
+                if (Id.IsNullOrNew() && lookup.Id.IsNullOrNew()) return true;
+                if (Id.IsNullOrNew() || lookup.Id.IsNullOrNew()) return false;
 
-            var typed = obj as LookupBase;
-                      
-            if ((Id?.IsNew ?? true) && (typed?.Id?.IsNew ?? true)) return true;
-            if ((Id?.IsNew ?? true) || (typed?.Id?.IsNew ?? true)) return false;
+                return Id.IsSameIdentityAs(lookup.Id);
+            }
 
-            return Id.IsSameIdentityAs(typed.Id);
+            return false;
         }
 
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            if (Id.IsNull()) return string.Empty.GetHashCode();
-            return Id.GetHashCode();
+            if (Id.IsNullOrNew()) return string.Empty.GetHashCode();
+            return Id.ToString().GetHashCode();
         }
     }
 }

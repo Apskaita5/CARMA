@@ -30,7 +30,8 @@ namespace A5Soft.CARMA.Domain
         {
             Initialize();
             this.AllowNew = true;
-            _validationEngineProvider = validationEngineProvider;
+            _validationEngineProvider = validationEngineProvider 
+                ?? throw new ArgumentNullException(nameof(validationEngineProvider));
         }
 
         /// <summary>
@@ -42,8 +43,38 @@ namespace A5Soft.CARMA.Domain
         {
             Initialize();
             this.AllowNew = true;
-            _validationEngineProvider = validationEngineProvider;
+            _validationEngineProvider = validationEngineProvider
+                ?? throw new ArgumentNullException(nameof(validationEngineProvider));
             SetParent(parent);
+        }
+
+        /// <summary>
+        /// Creates a copy of the list.
+        /// </summary>
+        /// <param name="listToCopy">a list to copy</param>
+        /// <param name="newParent">a (new) parent for the new list</param>
+        /// <param name="copyChildMethod">a method to copy children</param>
+        public DomainBindingList(DomainBindingList<TChild> listToCopy, IDomainObject newParent,
+            Func<TChild, TChild> copyChildMethod)
+        {
+            if (null == listToCopy) throw new ArgumentNullException(nameof(listToCopy));
+            if (null == copyChildMethod) throw new ArgumentNullException(nameof(copyChildMethod));
+
+            Initialize();
+
+            this.AllowNew = true;
+            _validationEngineProvider = listToCopy._validationEngineProvider;
+            SetParent(newParent);
+
+            AddRange(listToCopy.Select(c => copyChildMethod(c)), false);
+
+            this.AllowEdit = listToCopy.AllowEdit;
+            this.AllowNew = listToCopy.AllowNew;
+            this.AllowRemove = listToCopy.AllowRemove;
+            this._bindingMode = listToCopy._bindingMode;
+            this._notifyPropertyChangedEnabled = listToCopy._notifyPropertyChangedEnabled;
+            this._notifyPropertyChangingEnabled = listToCopy._notifyPropertyChangingEnabled;
+            this.ChildFactory = listToCopy.ChildFactory;
         }
 
         #endregion

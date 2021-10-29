@@ -46,8 +46,8 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(criteria, ct);
-                    result = await DataPortal.FetchAsync<TCriteria, TResult>(
-                        this.GetType(), criteria, await GetIdentityAsync(), ct);
+                    result = (await DataPortal.FetchAsync<TCriteria, TResult>(
+                        this.GetType(), criteria, await GetIdentityAsync(), ct)).Result;
                     await AfterDataPortalAsync(criteria, result, ct);
                 }
                 catch (Exception e)

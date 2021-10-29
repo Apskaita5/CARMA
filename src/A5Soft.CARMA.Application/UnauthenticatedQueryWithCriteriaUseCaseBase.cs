@@ -5,6 +5,7 @@ using A5Soft.CARMA.Domain.Rules;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Application.Authorization;
 
 namespace A5Soft.CARMA.Application
 {
@@ -18,13 +19,20 @@ namespace A5Soft.CARMA.Application
     /// i.e. either a primitive or a POCO)</typeparam>
     public abstract class UnauthenticatedQueryWithCriteriaUseCaseBase<TResult, TCriteria> : RemoteUseCaseBase
     {
+        protected readonly IAuthenticationStateProvider _authenticationStateProvider;
+
+
         /// <inheritdoc />
         protected UnauthenticatedQueryWithCriteriaUseCaseBase(IClientDataPortal dataPortal,
             IValidationEngineProvider validationProvider, IMetadataProvider metadataProvider,
-            ILogger logger) : base(dataPortal, validationProvider, metadataProvider, logger)
+            IAuthenticationStateProvider authenticationStateProvider, ILogger logger) 
+            : base(dataPortal, validationProvider, metadataProvider, logger)
         {
             if (!typeof(TResult).IsSerializable) throw new InvalidOperationException(
                 $"Query result must be (binary) serializable while type {typeof(TResult).FullName} is not.");
+
+            _authenticationStateProvider = authenticationStateProvider ??
+                throw new ArgumentNullException(nameof(authenticationStateProvider));
         }
 
 
@@ -54,8 +62,15 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(criteria, ct);
-                    result = await DataPortal.FetchUnauthenticatedAsync<TCriteria, TResult>(
+
+                    var dpResult = await DataPortal.FetchUnauthenticatedAsync<TCriteria, TResult>(
                         this.GetType(), criteria, ct);
+
+                    result = dpResult.Result;
+                    if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
+
+                    if (null != dpResult.Identity) _authenticationStateProvider.NotifyIdentityChanged(dpResult.Identity);
+
                     await AfterDataPortalAsync(criteria, result, ct);
                 }
                 catch (Exception e)

@@ -23,6 +23,11 @@ namespace A5Soft.CARMA.Domain
         object IdentityValue { get; }
 
         /// <summary>
+        /// Gets a value of the underlying identity field as a string.
+        /// </summary>
+        string IdentityStringValue { get; }
+
+        /// <summary>
         /// Returns true if the domain entity identified is a new entity, 
         /// false if it is a pre-existing entity.
         /// </summary>
@@ -36,6 +41,5 @@ namespace A5Soft.CARMA.Domain
         /// </remarks>
         /// <returns>A value indicating if the entity identified is new.</returns>
         bool IsNew { get; }
-
     }
 }

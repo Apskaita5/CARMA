@@ -55,8 +55,10 @@ namespace A5Soft.CARMA.Domain
         /// <inheritdoc cref="IDomainEntityIdentity.IsNew"/>
         public bool IsNew => !Key.HasValue;
 
+        /// <inheritdoc cref="IDomainEntityIdentity.IdentityStringValue"/>
+        public string IdentityStringValue
+            => Key.HasValue ? Key.Value.ToString("N") : string.Empty;
 
-        
 
         /// <inheritdoc />
         public int CompareTo(object obj)
@@ -98,8 +100,7 @@ namespace A5Soft.CARMA.Domain
         /// <inheritdoc />
         public override string ToString()
         {
-            if (Key.HasValue) return $"{DomainEntityType.FullName}:{Key.Value: N}";
-            return $"{DomainEntityType.FullName}:";
+            return $"{DomainEntityType.Name}:{IdentityStringValue}";
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace A5Soft.CARMA.Domain
 {
@@ -57,6 +58,10 @@ namespace A5Soft.CARMA.Domain
         public bool IsNew 
             => !Key.IsValidKey();
 
+        /// <inheritdoc cref="IDomainEntityIdentity.IdentityStringValue"/>
+        public string IdentityStringValue =>
+            Key.HasValue ? Key.Value.ToString(CultureInfo.InvariantCulture) : string.Empty;
+
 
         public int CompareTo(object obj)
         {
@@ -73,6 +78,12 @@ namespace A5Soft.CARMA.Domain
                 return Key.Value.CompareTo(otherIdentity.Key.Value);
             }
             throw new ArgumentException("Object is not IntDomainEntityIdentity.");
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{DomainEntityType.Name}:{IdentityStringValue}";
         }
     }
 }

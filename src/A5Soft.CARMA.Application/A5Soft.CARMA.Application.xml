@@ -318,8 +318,9 @@
             Creates a new entity based on create criteria and returns either the created entity or its id.
             </summary>
             <typeparam name="TCriteria">type of the create criteria (must be json serializable,
-            i.e. either a primitive or a POCO)</typeparam>
-            <typeparam name="TResult">type of the result returned (either the created entity or its id)</typeparam>
+            i.e. either a primitive, a POCO or an interface)</typeparam>
+            <typeparam name="TResult">type of the result returned (either the created entity, its id or other result);
+            must be serializable</typeparam>
         </member>
         <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.#ctor(A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.Authorization.IAuthorizationProvider,A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
             <inheritdoc />
@@ -462,6 +463,12 @@
             Gets a new <see cref="T:System.Security.Claims.Claim"/> using the serialized data. 
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.DataPortalClaim.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.DataPortalClaim.GetHashCode">
+            <inheritdoc />
+        </member>
         <member name="T:A5Soft.CARMA.Application.DataPortal.DataPortalParameter">
             <summary>
             Handles remote method parameter serialization.  
@@ -594,6 +601,40 @@
             <summary>
             Gets or sets a result of the method invocation on server (if the method is not void).
             </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.DataPortal.DataPortalResponse.IdentityClaims">
+            <summary>
+            Gets or sets a list of claims for the user who invokes the remote method.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.DataPortal.DataPortalResponse.AuthenticationType">
+            <summary>
+            Gets or sets an authentication type for the user who invokes the remote method.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.DataPortalResponse.GetUpdatedIdentity(System.Security.Claims.ClaimsIdentity)">
+            <summary>
+            Gets a user identity returned by the use case if it is different from the initial identity.
+            </summary>
+            <param name="initialIdentity">initial user identity sent by a data portal request</param>
+            <returns>a user identity returned by the use case</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.Extensions.Deserialize(System.Type,System.String)">
+            <summary>
+            Deserializes value from json string. Handles Stream properties.
+            If serialized value type is an interface, value is deserialized by proxy.
+            </summary>
+            <param name="serializedValueType">a type of the value to deserialize</param>
+            <param name="serializedValue">a json string that contains the serialized value</param>
+            <returns>deserialized value of the type specified</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.Extensions.Serialize``1(``0)">
+            <summary>
+            Serializes the value to a json string. Handles Stream properties.
+            </summary>
+            <typeparam name="T">a type of the value to serialize</typeparam>
+            <param name="value">a value to serialize</param>
+            <returns>json string containing data for the serialized value</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.DataPortal.IClientDataPortal">
             <summary>
@@ -765,14 +806,14 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeAsync(System.Type,System.Security.Claims.ClaimsIdentity)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <param name="identity">identity of the user invoking the method</param>
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeAsync``1(System.Type,``0,System.Security.Claims.ClaimsIdentity)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
@@ -783,7 +824,7 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeAsync``2(System.Type,``0,``1,System.Security.Claims.ClaimsIdentity)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -798,7 +839,7 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeAsync``3(System.Type,``0,``1,``2,System.Security.Claims.ClaimsIdentity)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -817,7 +858,7 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeUnauthenticatedAsync(System.Type)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <remarks>Only for methods that do not require authentication and authorization,
@@ -825,7 +866,7 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeUnauthenticatedAsync``1(System.Type,``0)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
@@ -837,7 +878,7 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeUnauthenticatedAsync``2(System.Type,``0,``1)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -853,7 +894,7 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.InvokeUnauthenticatedAsync``3(System.Type,``0,``1,``2)">
             <summary>
-            Executes (void) method of the use case specified remotely. 
+            Executes (void) method of the use case specified remotely and returns identity set by a remote server (if any). 
             </summary>
             <param name="useCaseType">a type of the use case or its interface</param>
             <typeparam name="TArg1">a type of the first argument for the use case InvokeAsync method
@@ -919,23 +960,6 @@
             <param name="targetToken">a JToken containing data for the interface proxy</param>
             <param name="interfaceType">a type of the interface to proxy</param>
             <returns>an interface proxy of the type specified</returns>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.DataPortal.JsonExtensions.Deserialize(System.Type,System.String)">
-            <summary>
-            Deserializes value from json string. Handles Stream properties.
-            If serialized value type is an interface, value is deserialized by proxy.
-            </summary>
-            <param name="serializedValueType">a type of the value to deserialize</param>
-            <param name="serializedValue">a json string that contains the serialized value</param>
-            <returns>deserialized value of the type specified</returns>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.DataPortal.JsonExtensions.Serialize``1(``0)">
-            <summary>
-            Serializes the value to a json string. Handles Stream properties.
-            </summary>
-            <typeparam name="T">a type of the value to serialize</typeparam>
-            <param name="value">a value to serialize</param>
-            <returns>json string containing data for the serialized value</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.DataPortal.LocalDataPortalProxy">
             <summary>
@@ -1270,6 +1294,60 @@
             <summary>
             Base interface to mark all use cases.
             </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.LookupListServiceBase`1">
+            <summary>
+            Base class for service that fetches a list of lookup values). 
+            </summary>
+            <typeparam name="TLookup">a type of the managed lookup value</typeparam>
+            <remarks>Lookups (e.g. list of persons to be displayed in dropdowns) contain
+            sensitive personal and/or business data. However there is no reasonable way
+            to manage access authorization as the need of a particular lookup
+            is defined by business entities that the user has access to.
+            I.e. if a user has write access to invoices he needs a lookup for persons.
+            Therefore we need a service that is only accessible by use cases
+            which transfers authorization responsibility to them.
+            E.g. save invoice use case shall be responsible for providing all the necessary lookups
+            for a user in order to edit an invoice.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.LookupListServiceBase`1.GetIdentityAsync">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.IAuthorizedUseCase.GetIdentityAsync" />
+        </member>
+        <member name="P:A5Soft.CARMA.Application.LookupListServiceBase`1.AuthorizationProvider">
+            <summary>
+            Gets an authorization provider.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.LookupListServiceBase`1.FetchAsync(System.Type)">
+            <summary>
+            Gets a lookup value.
+            </summary>
+            <param name="requesterType">a type of the use case that requests the lookup</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.LookupListServiceBase`1.GetValueFromLocalCache">
+            <summary>
+            Implement this method to get a requested value from a local cache (if used/configured).
+            </summary>
+            <remarks>Do not configure local cache for shared environments even if a remote data portal is used.
+            The data portal will return only lookups for the user, which will render the
+            shared cache invalid. Data portal cannot return lookup values that are not meant for the user
+            as it will compromise its security.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.LookupListServiceBase`1.SetLocalCacheValue(System.Collections.Generic.List{`0})">
+            <summary>
+            Implement this method to add fetched lookup value to a local cache (if used/configured).
+            </summary>
+            <remarks>Only invoked if a remote data portal is used.
+            Do not configure local cache for shared environments even if a remote data portal is used.
+            The data portal might return only lookups for the user, which will render the
+            shared cache invalid. Data portal cannot return lookup values that are not meant for the user
+            as it will compromise its security.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.LookupListServiceBase`1.DoFetchAsync">
+            <summary>
+            Implement this method to fetch lookup value from a database or a server side cache.
+            </summary>
+            <remarks>If required, filter out the returned lookup values for the <see cref="!:User"/>.</remarks>
         </member>
         <member name="T:A5Soft.CARMA.Application.LookupServiceBase`1">
             <summary>
@@ -2053,7 +2131,7 @@
             <typeparam name="TCriteria">a type of the query parameter (must be json serializable,
             i.e. either a primitive or a POCO)</typeparam>
         </member>
-        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.#ctor(A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.#ctor(A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.ILogger)">
             <inheritdoc />
         </member>
         <member name="P:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.UseDefaultLogging">

@@ -46,7 +46,7 @@ namespace A5Soft.CARMA.Application
                 try
                 {
                     await BeforeDataPortalAsync(ct);
-                    result = await DataPortal.FetchAsync<T>(this.GetType(), await GetIdentityAsync(), ct);
+                    result = (await DataPortal.FetchAsync<T>(this.GetType(), await GetIdentityAsync(), ct)).Result;
                     if (result is ITrackState statefulResult) 
                         statefulResult.SetValidationEngine(ValidationProvider);
                     await AfterDataPortalAsync(result, ct);

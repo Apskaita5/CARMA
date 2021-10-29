@@ -24,5 +24,6 @@
         public const string Zip = "application/zip";
         public const string GZip = "application/gzip";
         public const string Binary = "application/octet-stream";
+        public const string Adoc = "application/signed-exchange";
     }
 }

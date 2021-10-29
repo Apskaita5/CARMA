@@ -157,15 +157,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// </summary>
         public ClaimsIdentity GetIdentity()
         {
-            if (AuthenticationType.IsNullOrWhiteSpace()) return new ClaimsIdentity();
+            if (AuthenticationType.IsNullOrWhiteSpace() || null == IdentityClaims || IdentityClaims.Count < 1) 
+                return new ClaimsIdentity();
 
-            if (null != IdentityClaims && IdentityClaims.Count > 0)
-            {
-                return new ClaimsIdentity(IdentityClaims
-                    .Select(p => p.ToClaim()), AuthenticationType);
-            }
-
-            return new ClaimsIdentity();
+            return new ClaimsIdentity(IdentityClaims
+                .Select(p => p.ToClaim()), AuthenticationType);
         }
 
         /// <summary>

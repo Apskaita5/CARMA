@@ -29,8 +29,22 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected DomainObject(IValidationEngineProvider validationEngineProvider)
         {
+            if (validationEngineProvider.IsNull()) throw new ArgumentNullException(nameof(validationEngineProvider));
+
             Initialize();
             _brokenRules = new BrokenRulesManager<T>((T)this, validationEngineProvider);
+        }
+
+        /// <summary>
+        /// Creates a copy of the domain object.
+        /// </summary>
+        /// <param name="objectToCopy">a domain object to copy</param>
+        protected DomainObject(T objectToCopy)
+        {
+            if (objectToCopy.IsNull()) throw new ArgumentNullException(nameof(objectToCopy));
+
+            Initialize();
+            _brokenRules = objectToCopy._brokenRules.GetCopy((T)this);
         }
 
         #endregion
@@ -44,7 +58,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected virtual void Initialize()
         { /* allows subclass to initialize events before any other activity occurs */ }
-
+               
         #endregion
         
         #region IsDeleted, IsDirty, IsValid, IsSavable, ContainsNewData, HasWarnings, BrokenRules

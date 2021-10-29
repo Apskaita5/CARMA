@@ -65,7 +65,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return new DataPortalParameter()
             {
                 ParameterType = typeof(T),
-                SerializedValue = JsonExtensions.Serialize(forValue)
+                SerializedValue = Extensions.Serialize(forValue)
             };
         }
 

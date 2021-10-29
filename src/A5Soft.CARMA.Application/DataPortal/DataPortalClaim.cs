@@ -46,6 +46,19 @@ namespace A5Soft.CARMA.Application.DataPortal
         public string OriginalIssuer { get; set; }
 
 
+        public static bool operator ==(DataPortalClaim a, DataPortalClaim b)
+        {
+            if (object.ReferenceEquals(null, a) && object.ReferenceEquals(null, b)) return true;
+            if (object.ReferenceEquals(null, a) || object.ReferenceEquals(null, b)) return false;
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(DataPortalClaim a, DataPortalClaim b)
+        {
+            return !(a == b);
+        }
+
+
         /// <summary>
         /// Gets a new <see cref="Claim"/> using the serialized data. 
         /// </summary>
@@ -54,5 +67,24 @@ namespace A5Soft.CARMA.Application.DataPortal
             return new Claim(ClaimType, ClaimValue, ClaimValueType, Issuer, OriginalIssuer);
         }
 
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            if (obj is DataPortalClaim claim)
+            {
+                return this.ToComparableString() == claim.ToComparableString();
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return this.ToComparableString().GetHashCode();
+        }
+
+        private string ToComparableString() 
+            => $"{ClaimType}:{ClaimValue}:{ClaimValueType}:{Issuer}:{OriginalIssuer}";
     }
 }

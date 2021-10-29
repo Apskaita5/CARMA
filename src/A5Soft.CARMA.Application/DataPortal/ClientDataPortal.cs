@@ -35,7 +35,7 @@ namespace A5Soft.CARMA.Application.DataPortal
 
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TResult}" />
-        public async Task<TResult> FetchAsync<TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TResult>(Type useCaseType, 
             ClaimsIdentity identity, CancellationToken ct = default) 
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
@@ -43,11 +43,11 @@ namespace A5Soft.CARMA.Application.DataPortal
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(useCaseType, identity), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg, TResult}" />
-        public async Task<TResult> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter, 
             ClaimsIdentity identity, CancellationToken ct = default) 
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
@@ -55,7 +55,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest<TArg>(useCaseType, parameter, identity), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }
 
         /// <inheritdoc cref="IClientDataPortal.DownloadAsync{TArg}" />
@@ -72,7 +72,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1, TArg2, TResult}" />
-        public async Task<TResult> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType,
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity, 
             CancellationToken ct = default)
         {
@@ -82,11 +82,11 @@ namespace A5Soft.CARMA.Application.DataPortal
                 DataPortalRequest.NewDataPortalRequest(useCaseType, 
                     firstParameter, secondParameter, identity), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1,TArg2,TArg3,TResult}" />
-        public async Task<TResult> FetchAsync<TArg1, TArg2, TArg3, TResult>(
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TArg3, TResult>(
             Type useCaseType, TArg1 firstParameter, TArg2 secondParameter, 
             TArg3 thirdParameter, ClaimsIdentity identity, CancellationToken ct = default)
         {
@@ -96,48 +96,48 @@ namespace A5Soft.CARMA.Application.DataPortal
                 DataPortalRequest.NewDataPortalRequest(useCaseType, 
                     firstParameter, secondParameter, thirdParameter, identity), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TResult}" />
-        public async Task<TResult> FetchUnauthenticatedAsync<TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TResult>(Type useCaseType, 
             CancellationToken ct = default)
         {
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(useCaseType), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(null));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg, TResult}" />
-        public async Task<TResult> FetchUnauthenticatedAsync<TArg, TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg, TResult>(Type useCaseType, 
             TArg parameter, CancellationToken ct = default)
         {
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(useCaseType, parameter), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(null));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg1, TArg2, TResult}" />
-        public async Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type useCaseType, 
             TArg1 firstParameter, TArg2 secondParameter, CancellationToken ct = default)
         {
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(useCaseType, firstParameter, secondParameter), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(null));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg1,TArg2,TArg3,TResult}" />
-        public async Task<TResult> FetchUnauthenticatedAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, CancellationToken ct = default)
         {
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(useCaseType, firstParameter, 
                     secondParameter, thirdParameter), ct);
 
-            return (TResult)result.Result;
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(null));
         }
 
         /// <inheritdoc cref="IClientDataPortal.DownloadUnauthenticatedAsync{TArg}" />
@@ -153,70 +153,76 @@ namespace A5Soft.CARMA.Application.DataPortal
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync" />
-        public Task InvokeAsync(Type useCaseType, ClaimsIdentity identity)
+        public Task<ClaimsIdentity> InvokeAsync(Type useCaseType, ClaimsIdentity identity)
         {
-            return InvokeAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
-                identity));
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                identity), identity);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg}" />
-        public async Task InvokeAsync<TArg>(Type useCaseType, TArg parameter, ClaimsIdentity identity)
+        public async Task<ClaimsIdentity> InvokeAsync<TArg>(Type useCaseType, TArg parameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
             
-            _ = await InvokeAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
-                parameter, identity));
+            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                parameter, identity), identity);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2}" />
-        public async Task InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, 
+        public async Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, 
             TArg2 secondParameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
             
-            _ = await InvokeAsync(DataPortalRequest.NewDataPortalRequest(
-                    useCaseType, firstParameter, secondParameter, identity));
+            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(
+                    useCaseType, firstParameter, secondParameter, identity), identity);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3}" />
-        public async Task InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
+        public async Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
             TArg2 secondParameter, TArg3 thirdParameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
             
-            _ = await InvokeAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
-                firstParameter, secondParameter, thirdParameter, identity));
+            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                firstParameter, secondParameter, thirdParameter, identity), identity);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync" />
-        public Task InvokeUnauthenticatedAsync(Type useCaseType)
+        public Task<ClaimsIdentity> InvokeUnauthenticatedAsync(Type useCaseType)
         {
-            return InvokeAsync(DataPortalRequest.NewDataPortalRequest(useCaseType));
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType), null);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg}" />
-        public Task InvokeUnauthenticatedAsync<TArg>(Type useCaseType, TArg parameter)
+        public Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg>(Type useCaseType, TArg parameter)
         {
-            return InvokeAsync(DataPortalRequest.NewDataPortalRequest<TArg>(
-                useCaseType, parameter));
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest<TArg>(
+                useCaseType, parameter), null);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg1, TArg2}" />
-        public Task InvokeUnauthenticatedAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, TArg2 secondParameter)
+        public Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, TArg2 secondParameter)
         {
-            return InvokeAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
-                firstParameter, secondParameter));
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                firstParameter, secondParameter), null);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg1, TArg2, TArg3}" />
-        public Task InvokeUnauthenticatedAsync<TArg1, TArg2, TArg3>(
+        public Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg1, TArg2, TArg3>(
             Type useCaseType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
-            return InvokeAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
-                firstParameter, secondParameter, thirdParameter));
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                firstParameter, secondParameter, thirdParameter), null);
         }
 
 
+        private async Task<ClaimsIdentity> InvokeVoidAsync(DataPortalRequest request,
+            ClaimsIdentity initialIdentity, CancellationToken ct = default)
+        {
+            var result = await InvokeAsync(request, ct);
+            return result.GetUpdatedIdentity(initialIdentity);
+        }
 
         private async Task<DataPortalResponse> InvokeAsync(DataPortalRequest request, 
             CancellationToken ct = default)
@@ -242,6 +248,5 @@ namespace A5Soft.CARMA.Application.DataPortal
                 return (T)formatter.Deserialize(ms);
             }
         }
-        
     }
 }

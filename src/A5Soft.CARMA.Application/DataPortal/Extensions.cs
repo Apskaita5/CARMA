@@ -1,16 +1,15 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design.Serialization;
 using System.IO;
-using System.Text;
-using A5Soft.CARMA.Domain;
+using System.Linq;
+using System.Security.Claims;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
-    public static class JsonExtensions
+    public static class Extensions
     {
         private static readonly JsonSerializerSettings DataPortalSerializationSettings 
             = new JsonSerializerSettings() { ContractResolver = new CustomResolver() };
@@ -49,6 +48,36 @@ namespace A5Soft.CARMA.Application.DataPortal
             return JsonConvert.SerializeObject(value, DataPortalSerializationSettings);
         }
 
+        internal static bool IsSameIdentity(this ClaimsIdentity identity, ClaimsIdentity identityToCompare)
+        {
+            if (null == identity && null == identityToCompare) return true;
+            if (null == identity || null == identityToCompare) return false;
+
+            if (identity.IsAuthenticated != identityToCompare.IsAuthenticated) return false;
+
+            if (!identity.IsAuthenticated) return true;
+
+            if (identity.AuthenticationType != identityToCompare.AuthenticationType) return false;
+
+            var identityClaims = identity.Claims.Select(c => c.ToComparableString()).ToList();
+            var identityToCompareClaims = identity.Claims.Select(c => c.ToComparableString()).ToList();
+
+            if (identityClaims.Count != identityToCompareClaims.Count) return false;
+
+            identityClaims.Sort();
+            identityToCompareClaims.Sort();
+
+            for (int i = 0; i < identityClaims.Count; i++)
+            {
+                if (identityClaims[i] != identityToCompareClaims[i]) return false;
+            }
+
+            return true;
+        }
+
+
+        private static string ToComparableString(this Claim claim) 
+            => $"{claim.Type}:{claim.Value}:{claim.ValueType}:{claim.Issuer}:{claim.OriginalIssuer}";
 
         private class CustomResolver : DefaultContractResolver
         {
@@ -94,6 +123,5 @@ namespace A5Soft.CARMA.Application.DataPortal
                 }
             }
         }
-
     }
 }

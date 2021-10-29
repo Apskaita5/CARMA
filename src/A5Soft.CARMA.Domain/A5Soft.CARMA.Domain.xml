@@ -289,6 +289,14 @@
             <param name="parent">a parent of the list</param>
             <param name="validationEngineProvider">Validation engine to use for child items.</param>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.#ctor(A5Soft.CARMA.Domain.DomainBindingList{`0},A5Soft.CARMA.Domain.IDomainObject,System.Func{`0,`0})">
+            <summary>
+            Creates a copy of the list.
+            </summary>
+            <param name="listToCopy">a list to copy</param>
+            <param name="newParent">a (new) parent for the new list</param>
+            <param name="copyChildMethod">a method to copy children</param>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.Initialize">
             <summary>
             Override this method to set up event handlers so user
@@ -543,6 +551,12 @@
             Creates a new instance of the object.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.#ctor(`0)">
+            <summary>
+            Creates a copy of the domain entity.
+            </summary>
+            <param name="entityToCopy">an entity to copy</param>
+        </member>
         <member name="P:A5Soft.CARMA.Domain.DomainEntity`1.Id">
             <summary>
             An id of the domain entity.
@@ -603,6 +617,12 @@
             <summary>
             Creates a new instance of the object.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.#ctor(`0)">
+            <summary>
+            Creates a copy of the domain object.
+            </summary>
+            <param name="objectToCopy">a domain object to copy</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainObject`1.Initialize">
             <summary>
@@ -1660,6 +1680,9 @@
         <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IsNew">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
         </member>
+        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IdentityStringValue">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue"/>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.CompareTo(System.Object)">
             <inheritdoc />
         </member>
@@ -1763,6 +1786,11 @@
             Gets a value of the underlying identity field (primary key: int, long, string, guid etc.).
             </summary>
         </member>
+        <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue">
+            <summary>
+            Gets a value of the underlying identity field as a string.
+            </summary>
+        </member>
         <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew">
             <summary>
             Returns true if the domain entity identified is a new entity, 
@@ -1846,6 +1874,12 @@
         </member>
         <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IsNew">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IdentityStringValue">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.IntDomainEntityIdentity.ToString">
+            <inheritdoc />
         </member>
         <member name="T:A5Soft.CARMA.Domain.ITrackState">
             <summary>
@@ -3941,6 +3975,15 @@
         </member>
         <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IsNew">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IdentityStringValue">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.CompareTo(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.ToString">
+            <inheritdoc />
         </member>
     </members>
 </doc>

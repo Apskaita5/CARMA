@@ -23,6 +23,12 @@ namespace A5Soft.CARMA.Domain.Rules
                 ?? DefaultValidationEngineProvider.GetDefaultValidationEngine<T>();
         }
 
+        private BrokenRulesManager(T forNewParent, IValidationEngine validationEngine)
+        {
+            _parent = forNewParent ?? throw new ArgumentNullException(nameof(forNewParent));
+            _engine = validationEngine;
+        }
+
 
         public IEntityMetadata Metadata => _engine.EntityMetadata;
 
@@ -48,6 +54,11 @@ namespace A5Soft.CARMA.Domain.Rules
             _brokenRules.Clear();
             _brokenRules.AddRange(_engine.GetAllBrokenRules(_parent));
             ResetCount();
+        }
+
+        public BrokenRulesManager<T> GetCopy(T forNewParent)
+        {
+             return new BrokenRulesManager<T>(forNewParent, _engine);
         }
 
 
