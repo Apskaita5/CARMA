@@ -1060,7 +1060,7 @@
         <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.#ctor(A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider,A5Soft.CARMA.Application.Authorization.IAuthorizationProvider,A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
             <inheritdoc />
         </member>
-        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.FetchAsync(A5Soft.CARMA.Domain.IDomainEntityIdentity,System.Threading.CancellationToken)">
+        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.FetchAsync(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},System.Threading.CancellationToken)">
             <summary>
             Gets a domain entity by its identity.
             </summary>
@@ -1068,7 +1068,7 @@
             <param name="ct">cancellation token (if any)</param>
             <returns>a domain entity</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.DoFetchAsync(A5Soft.CARMA.Domain.IDomainEntityIdentity,System.Threading.CancellationToken)">
+        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.DoFetchAsync(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},System.Threading.CancellationToken)">
             <summary>
             Implement this method to fetch a domain entity instance.
             </summary>
@@ -1078,13 +1078,13 @@
             and the id param is guaranteed to be not null.
             This method is always executed on server side (if data portal is configured).</remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.BeforeDataPortalAsync(A5Soft.CARMA.Domain.IDomainEntityIdentity,System.Threading.CancellationToken)">
+        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.BeforeDataPortalAsync(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},System.Threading.CancellationToken)">
             <summary>
             Implement this method for any actions that should be taken before remote invocation.
             Only invoked if a remote data portal is used. 
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.AfterDataPortalAsync(A5Soft.CARMA.Domain.IDomainEntityIdentity,`0,System.Threading.CancellationToken)">
+        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.AfterDataPortalAsync(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},`0,System.Threading.CancellationToken)">
             <summary>
             Implement this method for any actions that should be taken after
             a successful remote invocation. (e.g. clear local cache)

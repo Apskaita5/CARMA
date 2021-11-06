@@ -6,12 +6,12 @@
     /// Lookup must have some unique identity value (primary key) that
     /// references an entity within the application database graph.
     /// </summary>
-    public interface ILookup : IDomainObject
+    public interface ILookup<T> : IDomainObject
     {
         /// <summary>
         /// Gets an identity object that uniquely identifies the domain entity instance
         /// within the application database graph that is referenced by the lookup.
         /// </summary>
-        IDomainEntityIdentity Id { get; }
+        DomainEntityIdentity<T> Id { get; }
     }
 }

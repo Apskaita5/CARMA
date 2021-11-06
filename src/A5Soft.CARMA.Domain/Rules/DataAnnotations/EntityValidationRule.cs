@@ -31,7 +31,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
             // because if it could be validated yet has no IsNew prop,
             // than it's a singleton domain object which is never new 
-            var isNew = (instance as IDomainEntity)?.IsNew ?? false;
+            var isNew = (instance as IPersisted)?.IsNew ?? false;
 
             var context = new ValidationContext(instance)
             {

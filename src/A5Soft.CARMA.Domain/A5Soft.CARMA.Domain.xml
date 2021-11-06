@@ -546,7 +546,7 @@
             Creates a new instance of the object.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.#ctor(A5Soft.CARMA.Domain.IDomainEntityIdentity,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,System.Boolean)">
+        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.#ctor(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,System.Boolean)">
             <summary>
             Creates a new instance of the object.
             </summary>
@@ -585,7 +585,7 @@
             implementation after executing your new code.
             </remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.MarkOld(A5Soft.CARMA.Domain.IDomainEntityIdentity)">
+        <member name="M:A5Soft.CARMA.Domain.DomainEntity`1.MarkOld(A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
             <summary>
             Marks the object as being an old (not new) object. This also
             marks the object as being unchanged (not dirty).
@@ -604,6 +604,32 @@
             implementation after executing your new code.
             </para>
             </remarks>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1">
+            <summary>
+            Represents domain entity instance's unique identity value within the domain entity graph.
+            </summary>
+            <typeparam name="T">a type of the domain entity that is identified</typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>.
+            </summary>
+            <param name="key">a (primary) key that identifies the domain entity instance</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.DomainEntityIdentity`1.Key">
+            <summary>
+            A (primary) key that identifies the domain entity instance.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.ToString">
+            <inheritdoc />
         </member>
         <member name="T:A5Soft.CARMA.Domain.DomainObject`1">
             <summary>
@@ -959,7 +985,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetLookupPropertyValue``1(System.String,``0@,``0,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetLookupPropertyValue``2(System.String,``0@,``0,System.Action)">
             <summary>
             Property setter that shall be used to set ILookup properties.
             </summary>
@@ -1550,19 +1576,17 @@
             <typeparam name="T">a type of the object to test</typeparam>
             <param name="value">an object to test against null</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsNullOrNew(A5Soft.CARMA.Domain.IDomainEntityIdentity)">
+        <member name="M:A5Soft.CARMA.Domain.Extensions.ReferenceEqualsTo(A5Soft.CARMA.Domain.IDomainEntityReference,A5Soft.CARMA.Domain.IDomainEntityReference)">
             <summary>
-            Returns a value indicating whether the identity is either null or a new identity
-            (see <see cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>).
+            Returns a value indicating whether the reference is to the same domain entity.
             </summary>
-            <param name="identity">the identity to check</param>
-            <returns>a value indicating whether the identity is either null or a new identity</returns>
+            <param name="reference"></param>
+            <param name="referenceToCompare"></param>
+            <returns>a value indicating whether the reference is to the same domain entity</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.EnsureValidIdentityFor``1(A5Soft.CARMA.Domain.IDomainEntityIdentity)">
+        <member name="M:A5Soft.CARMA.Domain.Extensions.EnsureValidIdentityFor``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
             <summary>
-            Throws an <see cref="T:System.ArgumentException"/> if the identity specified is either null 
-            or does not reference an existing entity of type T (see <see cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
-            and <see cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>).
+            Throws an <see cref="T:System.ArgumentException"/> if the identity specified is null.
             </summary>
             <typeparam name="T">a type of entity that is expected to be referenced</typeparam>
             <param name="id">an identity to check</param>
@@ -1582,55 +1606,6 @@
             <param name="key">key to find</param>
             <returns>a dictionary value by key or null, if no such key in the dictionary</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsSameIdentityAs(A5Soft.CARMA.Domain.IDomainEntityIdentity,A5Soft.CARMA.Domain.IDomainEntityIdentity)">
-            <summary>
-            Gets a value indicating whether the identity references the same entity.
-            </summary>
-            <param name="firstIdentity"></param>
-            <param name="identity">the identity to check</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.String)">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Int32)">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Nullable{System.Int32})">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Int64)">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Nullable{System.Int64})">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Guid)">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Extensions.IsValidKey(System.Nullable{System.Guid})">
-            <summary>
-            Gets a value indicating whether the value is a (potentially) valid primary key.
-            </summary>
-            <param name="value"></param>
-        </member>
         <member name="M:A5Soft.CARMA.Domain.Extensions.ValidatePoco``1(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,``0)">
             <summary>
             Validates a POCO value. Returns an empty collection if the value to validate is
@@ -1639,61 +1614,6 @@
             <typeparam name="T">a type of the value to validate</typeparam>
             <param name="validationEngine"></param>
             <param name="valueToValidate">value to validate</param>
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.GuidDomainEntityIdentity">
-            <summary>
-            <see cref="T:A5Soft.CARMA.Domain.IDomainEntityIdentity"/> implementation for Guid primary key.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.#ctor(System.Guid,System.Type)">
-            <summary>
-            Creates an GuidDomainEntityIdentity instance for an existing entity of type <paramref name="domainEntityType"/>
-            that has a (primary) key <paramref name="key"/>. 
-            </summary>
-            <param name="key">a (primary) key of the entity</param>
-            <param name="domainEntityType">a type of the entity</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.#ctor(System.Type)">
-            <summary>
-            Creates an IntDomainEntityIdentity instance for a new entity of type <paramref name="domainEntityType"/>. 
-            </summary>
-            <param name="domainEntityType">a type of the entity</param>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.Key">
-            <summary>
-            Gets a (typed) value of the underlying identity field (nullable for new entities).
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.DomainEntityType">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IdentityValueType">
-            <summary>
-            Gets a type of the underlying identity field, i.e. Guid.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IdentityValue">
-            <summary>
-            Gets a value of the underlying identity field, i.e. boxed Guid? (nullable for new entities).
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IsNew">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.IdentityStringValue">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue"/>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.CompareTo(System.Object)">
-            <inheritdoc />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.Equals(System.Object)">
-            <inheritdoc />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.GetHashCode">
-            <inheritdoc />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.GuidDomainEntityIdentity.ToString">
-            <inheritdoc />
         </member>
         <member name="T:A5Soft.CARMA.Domain.IBindable">
             <summary>
@@ -1738,7 +1658,7 @@
             <param name="parent">a parent of the list (if any)</param>
             <param name="validationEngineProvider">a validation engine provider for DI</param>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.IDomainEntity">
+        <member name="T:A5Soft.CARMA.Domain.IDomainEntity`1">
             <summary>
             This is the core interface implemented by all domain entity classes.
             Domain entity must have some unique identity value (primary key) that
@@ -1746,72 +1666,34 @@
             or indicates that the entity is new, not yet added to the application database graph.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntity.Id">
+        <member name="P:A5Soft.CARMA.Domain.IDomainEntity`1.Id">
             <summary>
             Gets an identity object that uniquely identifies the domain entity instance
             within the application database graph or indicates that the entity is new,
             not yet added to the application database graph.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntity.IsNew">
+        <member name="T:A5Soft.CARMA.Domain.IDomainEntityReference">
             <summary>
-            Returns true if this is a new object, false if it is a pre-existing object.
-            </summary>
-            <remarks>
-            An object is considered to be new if its primary identifying (key) value 
-            doesn't correspond to data in the database. In other words, 
-            if the data values in this particular object have not yet been saved to the database
-            the object is considered to be new. Likewise, if the object's data has been deleted from the database
-            then the object is considered to be new.
-            </remarks>
-            <returns>A value indicating if this object is new.</returns>
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.IDomainEntityIdentity">
-            <summary>
-            Represents domain entity instance's unique identity value within the domain entity graph.
+            Allows to compare references to domain entities. 
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType">
+        <member name="P:A5Soft.CARMA.Domain.IDomainEntityReference.DomainEntityType">
             <summary>
-            Gets a type of the domain entity that is identified.
+            A type of the domain entity referenced.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityValueType">
+        <member name="P:A5Soft.CARMA.Domain.IDomainEntityReference.DomainEntityKey">
             <summary>
-            Gets a type of the underlying identity field (primary key: int, long, string, guid etc.).
+            A (primary) key of the domain entity referenced.
             </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityValue">
-            <summary>
-            Gets a value of the underlying identity field (primary key: int, long, string, guid etc.).
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue">
-            <summary>
-            Gets a value of the underlying identity field as a string.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew">
-            <summary>
-            Returns true if the domain entity identified is a new entity, 
-            false if it is a pre-existing entity.
-            </summary>
-            <remarks>
-            An object is considered to be new if its primary identifying (key) value 
-            doesn't correspond to data in the database. In other words, 
-            if the data values in this particular
-            object have not yet been saved to the database the object is considered to
-            be new. Likewise, if the object's data has been deleted from the database
-            then the object is considered to be new.
-            </remarks>
-            <returns>A value indicating if the entity identified is new.</returns>
         </member>
         <member name="T:A5Soft.CARMA.Domain.IDomainObject">
             <summary>
             This is the core interface implemented by all domain base classes.
             </summary>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.ILookup">
+        <member name="T:A5Soft.CARMA.Domain.ILookup`1">
             <summary>
             This is the core interface implemented by all lookup classes, i.e. rich references,
             e.g. PersonInfo instead of PersonId.
@@ -1819,7 +1701,7 @@
             references an entity within the application database graph.
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.ILookup.Id">
+        <member name="P:A5Soft.CARMA.Domain.ILookup`1.Id">
             <summary>
             Gets an identity object that uniquely identifies the domain entity instance
             within the application database graph that is referenced by the lookup.
@@ -1835,51 +1717,24 @@
             Event indicating that a child object has changed.
             </summary>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.IntDomainEntityIdentity">
+        <member name="T:A5Soft.CARMA.Domain.IPersisted">
             <summary>
-            <see cref="T:A5Soft.CARMA.Domain.IDomainEntityIdentity"/> implementation for int primary key.
+            Describes domain objects that are persisted,
+            i.e. could be either new (not yet persisted) or old (not new, already persisted).
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.IntDomainEntityIdentity.#ctor(System.Int32,System.Type)">
+        <member name="P:A5Soft.CARMA.Domain.IPersisted.IsNew">
             <summary>
-            Creates an IntDomainEntityIdentity instance for an existing entity of type <paramref name="domainEntityType"/>
-            that has a (primary) key <paramref name="key"/>. 
+            Returns true if this is a new object, false if it is a pre-existing object.
             </summary>
-            <param name="key">a (primary) key of the entity</param>
-            <param name="domainEntityType">a type of the entity</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.IntDomainEntityIdentity.#ctor(System.Type)">
-            <summary>
-            Creates an IntDomainEntityIdentity instance for a new entity of type <paramref name="domainEntityType"/>. 
-            </summary>
-            <param name="domainEntityType">a type of the entity</param>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.Key">
-            <summary>
-            Gets a (typed) value of the underlying identity field (nullable for new entities).
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.DomainEntityType">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IdentityValueType">
-            <summary>
-            Gets a type of the underlying identity field, i.e. int.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IdentityValue">
-            <summary>
-            Gets a value of the underlying identity field, i.e. boxed int? (nullable for new entities).
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IsNew">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.IntDomainEntityIdentity.IdentityStringValue">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue"/>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.IntDomainEntityIdentity.ToString">
-            <inheritdoc />
+            <remarks>
+            An object is considered to be new if its primary identifying (key) value 
+            doesn't correspond to data in the database. In other words, 
+            if the data values in this particular object have not yet been saved to the database
+            the object is considered to be new. Likewise, if the object's data has been deleted from the database
+            then the object is considered to be new.
+            </remarks>
+            <returns>A value indicating if this object is new.</returns>
         </member>
         <member name="T:A5Soft.CARMA.Domain.ITrackState">
             <summary>
@@ -2081,20 +1936,20 @@
             <param name="useInstanceDescription">whether to use instance description instead of
             an entity class description (for internal use only)</param>
         </member>
-        <member name="T:A5Soft.CARMA.Domain.LookupBase">
+        <member name="T:A5Soft.CARMA.Domain.LookupBase`1">
             <summary>
             A base class for lookups (implements equality overloads).
             </summary>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.LookupBase.Id">
+        <member name="P:A5Soft.CARMA.Domain.LookupBase`1.Id">
             <summary>
             An id of the referenced entity.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.LookupBase.Equals(System.Object)">
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.Equals(System.Object)">
             <inheritdoc />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.LookupBase.GetHashCode">
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.GetHashCode">
             <inheritdoc />
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.AccountingRound(System.Double,System.Int32)">
@@ -2813,6 +2668,48 @@
             </summary>
             <param name="instance">the entity instance to get a property value for</param>
             <returns>a property value for the entity instance</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.String)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Int32)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Nullable{System.Int32})">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Int64)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Nullable{System.Int64})">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Guid)">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Nullable{System.Guid})">
+            <summary>
+            Gets a value indicating whether the value is a (potentially) valid primary key.
+            </summary>
+            <param name="value"></param>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Reflection.Extensions">
             <summary>
@@ -3935,55 +3832,6 @@
             That generally means that they are created only one time per application
             and then used for whole the application life time.
             </summary>
-        </member>
-        <member name="T:A5Soft.CARMA.Domain.StringDomainEntityIdentity">
-            <summary>
-            <see cref="T:A5Soft.CARMA.Domain.IDomainEntityIdentity"/> implementation for string primary key.
-            </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.#ctor(System.String,System.Type)">
-            <summary>
-            Creates a StringDomainEntityIdentity instance for an existing entity of type <paramref name="domainEntityType"/>
-            that has a (primary) key <paramref name="key"/>. 
-            </summary>
-            <param name="key">a (primary) key of the entity</param>
-            <param name="domainEntityType">a type of the entity</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.#ctor(System.Type)">
-            <summary>
-            Creates a StringDomainEntityIdentity instance for a new entity of type <paramref name="domainEntityType"/>. 
-            </summary>
-            <param name="domainEntityType">a type of the entity</param>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.Key">
-            <summary>
-            Gets a (typed) value of the underlying identity field.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.DomainEntityType">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.DomainEntityType"/>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IdentityValueType">
-            <summary>
-            Gets a type of the underlying identity field, i.e. int.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IdentityValue">
-            <summary>
-            Gets a value of the underlying identity field, i.e. boxed string.
-            </summary>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IsNew">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IsNew"/>
-        </member>
-        <member name="P:A5Soft.CARMA.Domain.StringDomainEntityIdentity.IdentityStringValue">
-            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityIdentity.IdentityStringValue"/>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.CompareTo(System.Object)">
-            <inheritdoc />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.StringDomainEntityIdentity.ToString">
-            <inheritdoc />
         </member>
     </members>
 </doc>

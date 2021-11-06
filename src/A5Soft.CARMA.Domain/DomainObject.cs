@@ -369,7 +369,7 @@ namespace A5Soft.CARMA.Domain
             {
                 // because if it has state (is editable) yet has no identity,
                 // than it's a singleton domain entity, i.e. always old
-                var isNew = (this as IDomainEntity)?.IsNew ?? false;
+                var isNew = (this as IDomainEntity<T>)?.IsNew ?? false;
                 description = isNew
                     ? RulesManager.Metadata.GetDisplayNameForNew()
                     : RulesManager.Metadata.GetDisplayNameForOld();
@@ -1049,13 +1049,13 @@ namespace A5Soft.CARMA.Domain
         /// 5. Invokes post processing action or, if it's null, raises PropertyHasChanged
         /// (i.e. checks rules and raises binding event).</remarks>
         /// <returns>true if the property has been changed, otherwise false</returns>
-        protected bool SetLookupPropertyValue<TValue>(string propertyName, ref TValue oldValue, 
+        protected bool SetLookupPropertyValue<TValue, TRefValue>(string propertyName, ref TValue oldValue, 
             TValue newValue, Action postProcessing = null)
-            where TValue : ILookup
+            where TValue : ILookup<TRefValue>
         {
             if (propertyName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propertyName));
 
-            if ((ILookup)oldValue != (ILookup)newValue)
+            if ((ILookup<TRefValue>)oldValue != (ILookup<TRefValue>)newValue)
             {
                 if (!CanWriteProperty(propertyName))
                 {

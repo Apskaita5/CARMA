@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using A5Soft.CARMA.Domain.Math;
+using A5Soft.CARMA.Domain.Orm;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -124,7 +125,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
                 if (value is int intVal) return intVal.IsValidKey();
                 if (value is long longVal) return longVal.IsValidKey();
                 if (value is Guid guidVal) return guidVal.IsValidKey();
-                if (value is IDomainEntityIdentity identity) return !identity.IsNew;
                 throw new NotSupportedException(
                     $"Reference key type {value.GetType().FullName} is not supported by RequiredAttribute.");
             }
@@ -165,14 +165,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             else if (value is IList list)
             {
                 return (list.Count > 0);
-            }
-            else if (value is IDomainEntityIdentity identity)
-            {
-                return !identity.IsNew;
-            }
-            else if (value is ILookup lookup)
-            {
-                return (null != lookup.Id && !lookup.Id.IsNew);
             }
 
             return true;

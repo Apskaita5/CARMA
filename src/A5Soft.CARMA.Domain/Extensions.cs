@@ -11,7 +11,6 @@ namespace A5Soft.CARMA.Domain
     /// </summary>
     public static class Extensions
     {
-
         /// <summary>
         /// Returns a string split by camel case convention, e.g. TotalAmount -> Total Amount
         /// </summary>
@@ -39,34 +38,35 @@ namespace A5Soft.CARMA.Domain
         }
 
         /// <summary>
-        /// Returns a value indicating whether the identity is either null or a new identity
-        /// (see <see cref="IDomainEntityIdentity.IsNew"/>).
+        /// Returns a value indicating whether the reference is to the same domain entity.
         /// </summary>
-        /// <param name="identity">the identity to check</param>
-        /// <returns>a value indicating whether the identity is either null or a new identity</returns>
-        public static bool IsNullOrNew(this IDomainEntityIdentity identity)
+        /// <param name="reference"></param>
+        /// <param name="referenceToCompare"></param>
+        /// <returns>a value indicating whether the reference is to the same domain entity</returns>
+        public static bool ReferenceEqualsTo(this IDomainEntityReference reference, 
+            IDomainEntityReference referenceToCompare)
         {
-            return ReferenceEquals(identity, null) || identity.IsNew;
+            if (ReferenceEquals(reference, null) && object.ReferenceEquals(referenceToCompare, null))
+                return true;
+            if (ReferenceEquals(reference, null) || object.ReferenceEquals(referenceToCompare, null))
+                return false;
+
+            return (referenceToCompare.DomainEntityType == reference.DomainEntityType
+                && referenceToCompare.DomainEntityKey.Equals(reference.DomainEntityKey, 
+                    StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
-        /// Throws an <see cref="ArgumentException"/> if the identity specified is either null 
-        /// or does not reference an existing entity of type T (see <see cref="IDomainEntityIdentity.IsNew"/>
-        /// and <see cref="IDomainEntityIdentity.DomainEntityType"/>).
+        /// Throws an <see cref="ArgumentException"/> if the identity specified is null.
         /// </summary>
         /// <typeparam name="T">a type of entity that is expected to be referenced</typeparam>
         /// <param name="id">an identity to check</param>
-        public static void EnsureValidIdentityFor<T>(this IDomainEntityIdentity id)
+        public static void EnsureValidIdentityFor<T>(this DomainEntityIdentity<T> id)
         {
-            if (id.IsNullOrNew()) throw new ArgumentException(
+            if (null == id) throw new ArgumentException(
                 $"The identity does not reference any existing domain entity.", nameof(id));
-            if (null == id.DomainEntityType) throw new InvalidOperationException(
-                $"{nameof(IDomainEntityIdentity.DomainEntityType)} property cannot be null.");
-            if (!id.DomainEntityType.IsAssignableFrom(typeof(T))) throw new ArgumentException(
-                $"Required identity for {typeof(T).FullName} while received {id.DomainEntityType.FullName}.",
-                nameof(id));
         }
-
+          
         /// <summary>
         /// Returns true if the string value is null or empty or consists from whitespaces only.
         /// </summary>
@@ -90,88 +90,6 @@ namespace A5Soft.CARMA.Domain
         }
 
         /// <summary>
-        /// Gets a value indicating whether the identity references the same entity.
-        /// </summary>
-        /// <param name="firstIdentity"></param>
-        /// <param name="identity">the identity to check</param>
-        public static bool IsSameIdentityAs(this IDomainEntityIdentity firstIdentity, IDomainEntityIdentity identity)
-        {
-            if (null == firstIdentity && null == identity) return true;
-            if (null == firstIdentity || null == identity) return false;
-
-            if (firstIdentity.DomainEntityType != identity.DomainEntityType) return false;
-
-            if (firstIdentity.IsNew != identity.IsNew) return false;
-
-            if (firstIdentity.IsNew) return true;
-
-            return firstIdentity.CompareTo(identity) == 0;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this string value)
-        {
-            return !value.IsNullOrWhiteSpace();
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this int value)
-        {
-            return value > 0;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this int? value)
-        {
-            return value.HasValue && value.Value > 0;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this long value)
-        {
-            return value > 0;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this long? value)
-        {
-            return value.HasValue && value.Value > 0;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this Guid value)
-        {
-            return value != Guid.Empty;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the value is a (potentially) valid primary key.
-        /// </summary>
-        /// <param name="value"></param>
-        public static bool IsValidKey(this Guid? value)
-        {
-            return value.HasValue && value.Value != Guid.Empty;
-        }
-
-        /// <summary>
         /// Validates a POCO value. Returns an empty collection if the value to validate is
         /// null or not a class or an interface.
         /// </summary>
@@ -187,14 +105,12 @@ namespace A5Soft.CARMA.Domain
 
             var pocoType = typeof(T);
             if (!pocoType.IsInterface && !pocoType.IsClass) return new BrokenRulesCollection();
-            if (pocoType == typeof(string) || typeof(ILookup).IsAssignableFrom(pocoType)) 
-                return new BrokenRulesCollection();
+            if (pocoType == typeof(string)) return new BrokenRulesCollection();
 
             var result = validationEngine.GetValidationEngine(pocoType)
                 .GetAllBrokenRules(valueToValidate);
 
             return new BrokenRulesCollection(result);
         }
-
     }
 }

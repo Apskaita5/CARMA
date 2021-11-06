@@ -649,11 +649,11 @@ namespace A5Soft.CARMA.Domain
         /// <param name="childrenByInterface">children data from an untrusted source</param>
         /// <param name="mergeChild">method to merge untrusted data into a child item</param>
         public virtual void Merge<TIChild>(IList<TIChild> childrenByInterface, Action<TChild, TIChild> mergeChild)
-            where TIChild : IDomainEntity
+            where TIChild : IDomainEntity<TChild>
         {
             if (null == childrenByInterface) throw new ArgumentNullException(nameof(childrenByInterface));
             if (null == mergeChild) throw new ArgumentNullException(nameof(mergeChild));
-            if (!typeof(IDomainEntity).IsAssignableFrom(typeof(TChild))) throw new InvalidOperationException(
+            if (!typeof(IDomainEntity<TChild>).IsAssignableFrom(typeof(TChild))) throw new InvalidOperationException(
                 $"Can only merge domain object lists for children that implement IDomainEntity while {typeof(TChild).FullName} does not.");
 
             bool found;
@@ -664,7 +664,7 @@ namespace A5Soft.CARMA.Domain
 
                 foreach (var iChild in childrenByInterface)
                 {
-                    if (((IDomainEntity)this[i]).Id == iChild.Id)
+                    if (((IDomainEntity<TChild>)this[i]).Id == iChild.Id)
                     {
                         mergeChild(this[i], iChild);
                         found = true;
@@ -683,7 +683,7 @@ namespace A5Soft.CARMA.Domain
                 foreach (var iChild in childrenByInterface)
                 {
                     found = false;
-                    foreach (IDomainEntity child in this)
+                    foreach (IDomainEntity<TChild> child in this)
                     {
                         if (child.Id == iChild.Id)
                         {

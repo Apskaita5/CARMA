@@ -129,15 +129,9 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
                     return decimalValue.AccountingRound(SignificantDigits) == decimalOtherValue.AccountingRound(SignificantDigits);
                 }
             }
-            if (value is IDomainEntityIdentity identity)
+            if (value is IDomainEntityReference reference)
             {
-                return identity.IsSameIdentityAs(otherValue as IDomainEntityIdentity);
-            }
-            if (value is ILookup lookup)
-            {
-                if (null == lookup.Id && null == (otherValue as ILookup)?.Id) return true;
-                if (null == lookup.Id || null == (otherValue as ILookup)?.Id) return false;
-                return (otherValue as ILookup).Id.IsSameIdentityAs(lookup.Id);
+                return reference.ReferenceEqualsTo(otherValue as IDomainEntityReference);
             }
 
             return value == otherValue;

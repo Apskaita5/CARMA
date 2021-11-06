@@ -12,7 +12,7 @@ namespace A5Soft.CARMA.Domain
     /// </summary>
     /// <typeparam name="T">a type of the domain entity implementation</typeparam> 
     [Serializable]
-    public abstract class DomainEntity<T> : DomainObject<T>, IDomainEntity
+    public abstract class DomainEntity<T> : DomainObject<T>, IDomainEntity<T>
         where T : DomainEntity<T>
     {
         #region Constructors
@@ -26,10 +26,10 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
-        protected DomainEntity(IDomainEntityIdentity identity, IValidationEngineProvider validationEngineProvider, 
+        protected DomainEntity(DomainEntityIdentity<T> identity, IValidationEngineProvider validationEngineProvider, 
             bool allowNewIdentity = false) : base(validationEngineProvider)
         {
-            if (!allowNewIdentity && identity.IsNullOrNew())
+            if (!allowNewIdentity && null == identity)
             {
                 throw new InvalidOperationException("Cannot set new (null) identity for an existing entity.");
             }
@@ -54,7 +54,7 @@ namespace A5Soft.CARMA.Domain
         /// An id of the domain entity.
         /// </summary>
         [Browsable(true)]
-        public IDomainEntityIdentity Id { get; private set; } = null;
+        public DomainEntityIdentity<T> Id { get; private set; } = null;
 
         /// <summary>
         /// Returns true if this is a new object, false if it is a pre-existing object.
@@ -71,7 +71,7 @@ namespace A5Soft.CARMA.Domain
         [Display(AutoGenerateField = false)]
         [IgnorePropertyMetadata]
         public bool IsNew
-            => Id.IsNullOrNew();
+            => null == Id;
 
         #endregion
 
@@ -107,7 +107,7 @@ namespace A5Soft.CARMA.Domain
         /// implementation after executing your new code.
         /// </para>
         /// </remarks>
-        protected virtual void MarkOld(IDomainEntityIdentity identity)
+        protected virtual void MarkOld(DomainEntityIdentity<T> identity)
         {
             identity.EnsureValidIdentityFor<T>();
             Id = identity;
