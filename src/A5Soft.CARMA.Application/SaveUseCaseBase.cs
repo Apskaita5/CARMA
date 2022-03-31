@@ -60,7 +60,7 @@ namespace A5Soft.CARMA.Application
                     result = dpResult.Result;
                     if (result is ITrackState stateful) stateful.SetValidationEngine(ValidationProvider);
 
-                    if (null != dpResult.Identity) UpdateIdentity(dpResult.Identity);
+                    if (null != dpResult.Identity) await UpdateIdentityAsync(dpResult.Identity);
                     
                     await AfterDataPortalAsync(domainDto, result);
                 }

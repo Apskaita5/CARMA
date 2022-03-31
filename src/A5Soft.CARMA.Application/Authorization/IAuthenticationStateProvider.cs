@@ -20,7 +20,7 @@ namespace A5Soft.CARMA.Application.Authorization
         /// Raises the <see cref="IdentityChanged"/> event.
         /// </summary>
         /// <param name="updatedIdentity">An updated <see cref="ClaimsIdentity"/>.</param>
-        void NotifyIdentityChanged(ClaimsIdentity updatedIdentity);
+        Task NotifyIdentityChangedAsync(ClaimsIdentity updatedIdentity);
 
         /// <summary>
         /// An event that provides notification when the <see cref="ClaimsIdentity"/>

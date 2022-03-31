@@ -33,9 +33,9 @@ namespace A5Soft.CARMA.Application.Authorization
 
             return _authenticationStateTask ?? Task.FromResult(new ClaimsIdentity());
         }
-          
-        /// <inheritdoc cref="IAuthenticationStateProvider.NotifyIdentityChanged"/>
-        public void NotifyIdentityChanged(ClaimsIdentity updatedIdentity)
+
+        /// <inheritdoc cref="IAuthenticationStateProvider.NotifyIdentityChangedAsync"/>
+        public Task NotifyIdentityChangedAsync(ClaimsIdentity updatedIdentity)
         {
             if (null == updatedIdentity) throw new ArgumentNullException(nameof(updatedIdentity));
             _authenticationStateTask = Task.FromResult(updatedIdentity);
@@ -45,6 +45,8 @@ namespace A5Soft.CARMA.Application.Authorization
             _loopCancellationTokenSource?.Cancel();
             _loopCancellationTokenSource = new CancellationTokenSource();
             _ = RevalidationLoop(_authenticationStateTask, _loopCancellationTokenSource.Token);
+
+            return Task.CompletedTask;
         }
 
 
@@ -98,7 +100,7 @@ namespace A5Soft.CARMA.Application.Authorization
 
                         if (!isValid)
                         {
-                            NotifyIdentityChanged(new ClaimsIdentity());
+                            await NotifyIdentityChangedAsync(new ClaimsIdentity());
                             break;
                         }
                     }
@@ -106,7 +108,7 @@ namespace A5Soft.CARMA.Application.Authorization
             }
             catch (Exception ex)
             {
-                NotifyIdentityChanged(new ClaimsIdentity()); 
+                await NotifyIdentityChangedAsync(new ClaimsIdentity()); 
             }
         }
 

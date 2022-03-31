@@ -44,11 +44,11 @@ namespace A5Soft.CARMA.Application
         /// Updates a current identity of the user.
         /// </summary>
         /// <param name="updatedIdentity">an updated identity of the user</param>
-        protected void UpdateIdentity(ClaimsIdentity updatedIdentity)
+        protected async Task UpdateIdentityAsync(ClaimsIdentity updatedIdentity)
         {
             if (null == updatedIdentity) throw new ArgumentNullException(nameof(updatedIdentity));
 
-            _authenticationStateProvider.NotifyIdentityChanged(updatedIdentity);
+            await _authenticationStateProvider.NotifyIdentityChangedAsync(updatedIdentity);
         }
 
         /// <inheritdoc cref="IAuthorizedUseCase.CanInvokeAsync" />

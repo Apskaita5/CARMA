@@ -43,8 +43,8 @@
         <member name="M:A5Soft.CARMA.Application.Authorization.AuthenticationStateProviderBase.GetIdentityAsync">
             <inheritdoc cref="M:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider.GetIdentityAsync"/>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.AuthenticationStateProviderBase.NotifyIdentityChanged(System.Security.Claims.ClaimsIdentity)">
-            <inheritdoc cref="M:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider.NotifyIdentityChanged(System.Security.Claims.ClaimsIdentity)"/>
+        <member name="M:A5Soft.CARMA.Application.Authorization.AuthenticationStateProviderBase.NotifyIdentityChangedAsync(System.Security.Claims.ClaimsIdentity)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider.NotifyIdentityChangedAsync(System.Security.Claims.ClaimsIdentity)"/>
         </member>
         <member name="P:A5Soft.CARMA.Application.Authorization.AuthenticationStateProviderBase.RevalidationInterval">
             <summary>
@@ -143,7 +143,7 @@
             </summary>
             <returns>A task that, when resolved, gives a <see cref="T:System.Security.Claims.ClaimsIdentity"/> for the current user.</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider.NotifyIdentityChanged(System.Security.Claims.ClaimsIdentity)">
+        <member name="M:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider.NotifyIdentityChangedAsync(System.Security.Claims.ClaimsIdentity)">
             <summary>
             Raises the <see cref="E:A5Soft.CARMA.Application.Authorization.IAuthenticationStateProvider.IdentityChanged"/> event.
             </summary>
@@ -217,7 +217,7 @@
         <member name="M:A5Soft.CARMA.Application.AuthorizedUseCaseBase.GetIdentityAsync">
             <inheritdoc cref="M:A5Soft.CARMA.Application.IAuthorizedUseCase.GetIdentityAsync" />
         </member>
-        <member name="M:A5Soft.CARMA.Application.AuthorizedUseCaseBase.UpdateIdentity(System.Security.Claims.ClaimsIdentity)">
+        <member name="M:A5Soft.CARMA.Application.AuthorizedUseCaseBase.UpdateIdentityAsync(System.Security.Claims.ClaimsIdentity)">
             <summary>
             Updates a current identity of the user.
             </summary>
