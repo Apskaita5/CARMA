@@ -17,7 +17,6 @@ namespace A5Soft.CARMA.Domain.Metadata
     /// (does not require specific actions except for invoking constructor).</remarks>
     public interface IEntityMetadata
     {
-
         /// <summary>
         /// Gets a type of the entity described.
         /// </summary>
@@ -73,6 +72,5 @@ namespace A5Soft.CARMA.Domain.Metadata
         /// Gets an URI for help file and topic for the entity.
         /// </summary>
         string GetHelpUri();
-
     }
 }

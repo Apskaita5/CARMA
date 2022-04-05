@@ -259,6 +259,9 @@
             Only invoked if a remote data portal is used. 
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Application.CommandUseCaseBase.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1">
             <summary>
             A base use case for a command operation (that executes a command using the parameters provided without a result).
@@ -296,6 +299,9 @@
             a successful remote invocation. (e.g. clear local cache)
             Only invoked if a remote data portal is used. 
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
         <member name="M:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1.GetParameterMetadata">
             <summary>
@@ -344,6 +350,9 @@
             <summary>
             Gets metadata for the create criteria.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
         <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.BeforeDataPortalAsync(`0)">
             <summary>
@@ -1050,6 +1059,9 @@
             a successful remote invocation. (e.g. clear local cache)
             Only invoked if a remote data portal is used. 
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1">
             <summary>
@@ -1996,6 +2008,9 @@
             Only invoked if a remote data portal is used. 
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Application.SaveUseCaseBase`2.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.SaveWithOptionsUseCaseBase`3">
             <summary>
             A base use case for domain entity save operation (insert a new entity or update an existing one)
@@ -2066,6 +2081,9 @@
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
         </member>
+        <member name="M:A5Soft.CARMA.Application.SaveWithOptionsUseCaseBase`3.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.UnauthenticatedCommandWithParameterUseCaseBase`1">
             <summary>
             A base use case for an unauthenticated command operation (that executes a command
@@ -2120,6 +2138,9 @@
             <param name="parameter">parameter to validate</param>
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedCommandWithParameterUseCaseBase`1.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2">
             <summary>
@@ -2193,6 +2214,9 @@
             <param name="criteria">criteria to validate</param>
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.UseCaseAttribute">
             <summary>

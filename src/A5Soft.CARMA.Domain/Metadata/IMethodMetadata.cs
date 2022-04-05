@@ -10,7 +10,6 @@ namespace A5Soft.CARMA.Domain.Metadata
     /// desktop and web apps.</remarks>
     public interface IMethodMetadata
     {
-
         /// <summary>
         /// Gets the type of the entity that the method belongs to.
         /// </summary>
@@ -27,6 +26,5 @@ namespace A5Soft.CARMA.Domain.Metadata
         /// </summary>
         /// <returns>a localized value that is used for display in the UI</returns>
         string GetDisplayName();
-
     }
 }

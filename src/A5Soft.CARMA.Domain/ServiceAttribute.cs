@@ -8,7 +8,6 @@ namespace A5Soft.CARMA.Domain
     [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
     public class ServiceAttribute : Attribute
     {
-
         /// <summary>
         /// Default constructor for ServiceAttribute.
         /// </summary>
@@ -18,11 +17,9 @@ namespace A5Soft.CARMA.Domain
             Lifetime = lifetime;
         }
 
-
         /// <summary>
         /// Gets a lifetime of the use case within a IoC container. Default is Transient.
         /// </summary>
         public ServiceLifetime Lifetime { get; }
-
     }
 }

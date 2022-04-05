@@ -43,10 +43,10 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         }
 
         /// <inheritdoc cref="IPropertyValidationAttribute.GetValidationResult" />
-        public BrokenRule GetValidationResult(object instance, IPropertyMetadata propInfo,
+        public virtual BrokenRule GetValidationResult(object instance, IPropertyMetadata propInfo,
             IEnumerable<Metadata.IPropertyMetadata> relatedProps)
         {
-            if (IsValidInternal(propInfo.GetValue(instance) as string)) return null;
+            if (IsValidInternal(propInfo.GetValue(instance)?.ToString())) return null;
 
             return new BrokenRule(this.GetType().FullName, propInfo.Name,
                 GetLocalizedErrorMessageFor(propInfo.GetDisplayName()), Severity);
@@ -76,7 +76,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         private bool IsValidInternal(string value)
         {
-            return (value?.Trim().Length ?? 0) == MaximumLength;
+            if (value.IsNullOrWhiteSpace()) return true;
+            return value.Trim().Length == MaximumLength;
         }
 
     }

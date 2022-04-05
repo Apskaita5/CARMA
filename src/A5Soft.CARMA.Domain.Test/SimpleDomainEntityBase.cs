@@ -12,9 +12,7 @@ namespace A5Soft.CARMA.Domain.Test
 
         #endregion
 
-
         #region Properties
-
         
         public string GroupName
         {
@@ -39,13 +37,9 @@ namespace A5Soft.CARMA.Domain.Test
         #endregion
 
         /// <inheritdoc />
-        public SimpleDomainEntityBase(IValidationEngineProvider validationEngineProvider) : base(validationEngineProvider)
+        public SimpleDomainEntityBase(IValidationEngineProvider validationEngineProvider) 
+            : base(validationEngineProvider)
         {
         }
-
-
-
-        
-
     }
 }

@@ -100,5 +100,12 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         protected virtual Task AfterDataPortalAsync(T criteria, CancellationToken ct)
             => Task.CompletedTask;
+
+
+        /// <inheritdoc cref="IUseCaseMetadata.GetButtonTitle"/>
+        public string GetButtonTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetButtonTitle();
+        }
     }
 }

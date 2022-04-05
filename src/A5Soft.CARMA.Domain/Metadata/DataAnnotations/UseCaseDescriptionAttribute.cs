@@ -4,26 +4,25 @@ using System.Diagnostics.CodeAnalysis;
 namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
 {
     /// <summary>
-    /// Allows to decorate a class with localizable values that could be used
-    /// for entity (edit) form captions, headers and menu items for create a new instance action
+    /// Allows to decorate a use case class (or interface) with localizable values that could be used
+    /// for button title, confirmation question, success message
     /// as well as help uri for the respective help file/resource topic.
     /// Can use it as is by setting ResourceType value in the attribute decorator
     /// or inherit this class and set ResourceType in the constructor.
     /// </summary>
     /// <remarks>Inherited class is obviously a different entity,
-    /// therefore this attribute can only be used either on concrete (final) business entity (class)
-    /// or on business entity interface used for business metadata
-    /// (that inherits <see cref="IDomainObject"/>).</remarks>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, 
+    /// therefore this attribute can only be used either on concrete (final)
+    /// use case (class) or on use case interface (used for business metadata).</remarks>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface,
         AllowMultiple = false, Inherited = false)]
-    public class ClassDescriptionAttribute : Attribute
+    public class UseCaseDescriptionAttribute : Attribute
     {
         #region Member Fields
 
         private Type _resourceType;
-        private readonly LocalizableString _nameForNew = new LocalizableString(nameof(NameForNew));
-        private readonly LocalizableString _nameForOld = new LocalizableString(nameof(NameForOld));
-        private readonly LocalizableString _nameForCreateNew = new LocalizableString(nameof(NameForCreateNew));
+        private readonly LocalizableString _buttonTitle = new LocalizableString(nameof(ButtonTitle));
+        private readonly LocalizableString _confirmationQuestion = new LocalizableString(nameof(ConfirmationQuestion));
+        private readonly LocalizableString _successMessage = new LocalizableString(nameof(SuccessMessage));
         private readonly LocalizableString _helpUri = new LocalizableString(nameof(HelpUri));
 
         #endregion
@@ -31,18 +30,18 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         #region All Constructors
 
         /// <summary>
-        /// Default constructor for DisplayAttribute.  All associated string properties and methods will return <c>null</c>.
+        /// Default constructor.  All associated string properties and methods will return <c>null</c>.
         /// </summary>
-        public ClassDescriptionAttribute() { }
+        public UseCaseDescriptionAttribute() { }
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// Gets or sets the NameForNew attribute property, which may be a resource key string.
+        /// Gets or sets the ButtonTitle attribute property, which may be a resource key string.
         /// <para>
-        /// Consumers must use the <see cref="GetNameForNew"/> method to retrieve the UI display string.
+        /// Consumers must use the <see cref="GetButtonTitle"/> method to retrieve the UI display string.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -50,97 +49,96 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
         /// name for display.
         /// <para>
-        /// The <see cref="GetNameForNew"/> method will return either the literal, non-localized
+        /// The <see cref="GetButtonTitle"/> method will return either the literal, non-localized
         /// string or the localized string when <see cref="ResourceType"/> has been specified.
         /// </para>
         /// </remarks>
         /// <value>
-        /// NameForNew is generally used as a caption or header for an UI form bound to the member
-        /// bearing this attribute.  A <c>null</c> or empty string is legal, and consumers must allow for that.
-        /// </value>
-        [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
-        public string NameForNew
-        {
-            get
-            {
-                return this._nameForNew.Value;
-            }
-            set
-            {
-                if (this._nameForNew.Value != value)
-                {
-                    this._nameForNew.Value = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the NameForOld attribute property, which may be a resource key string.
-        /// <para>
-        /// Consumers must use the <see cref="GetNameForOld"/> method to retrieve the UI display string.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// The property contains either the literal, non-localized string or the resource key
-        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
-        /// description for display.
-        /// <para>
-        /// The <see cref="GetNameForOld"/> method will return either the literal, non-localized
-        /// string or the localized string when <see cref="ResourceType"/> has been specified.
-        /// </para>
-        /// </remarks>
-        /// <value>
-        /// NameForOld is generally used as a caption or header for an UI form bound to the member
-        /// bearing this attribute.  A <c>null</c> or empty string is legal, and consumers must allow for that.
-        /// </value>
-        [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
-        public string NameForOld
-        {
-            get
-            {
-                return this._nameForOld.Value;
-            }
-            set
-            {
-                if (this._nameForOld.Value != value)
-                {
-                    this._nameForOld.Value = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the NameForCreateNew attribute property, which may be a resource key string.
-        /// <para>
-        /// Consumers must use the <see cref="GetNameForCreateNew"/> method to retrieve the UI display string.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// The property contains either the literal, non-localized string or the resource key
-        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
-        /// description for display.
-        /// <para>
-        /// The <see cref="GetNameForCreateNew"/> method will return either the literal, non-localized
-        /// string or the localized string when <see cref="ResourceType"/> has been specified.
-        /// </para>
-        /// </remarks>
-        /// <value>
-        /// NameForCreateNew is generally used as a text for a menu item or a button (tooltip)
-        /// that create a new instance of the class bearing this attribute.
+        /// ButtonTitle is generally used as a title or tooltip for an UI button that invokes the use case.
         /// A <c>null</c> or empty string is legal, and consumers must allow for that.
         /// </value>
         [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
-        public string NameForCreateNew
+        public string ButtonTitle
         {
             get
             {
-                return this._nameForCreateNew.Value;
+                return this._buttonTitle.Value;
             }
             set
             {
-                if (this._nameForCreateNew.Value != value)
+                if (this._buttonTitle.Value != value)
                 {
-                    this._nameForCreateNew.Value = value;
+                    this._buttonTitle.Value = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the ConfirmationQuestion attribute property, which may be a resource key string.
+        /// <para>
+        /// Consumers must use the <see cref="GetConfirmationQuestion"/> method to retrieve the UI display string.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The property contains either the literal, non-localized string or the resource key
+        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
+        /// description for display.
+        /// <para>
+        /// The <see cref="GetConfirmationQuestion"/> method will return either the literal, non-localized
+        /// string or the localized string when <see cref="ResourceType"/> has been specified.
+        /// </para>
+        /// </remarks>
+        /// <value>
+        /// ConfirmationQuestion is generally used as a text for an UI conform dialog form.
+        /// A <c>null</c> or empty string is legal, and consumers must allow for that.
+        /// </value>
+        [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
+        public string ConfirmationQuestion
+        {
+            get
+            {
+                return this._confirmationQuestion.Value;
+            }
+            set
+            {
+                if (this._confirmationQuestion.Value != value)
+                {
+                    this._confirmationQuestion.Value = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the SuccessMessage attribute property, which may be a resource key string.
+        /// <para>
+        /// Consumers must use the <see cref="GetSuccessMessage"/> method to retrieve the UI display string.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The property contains either the literal, non-localized string or the resource key
+        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
+        /// description for display.
+        /// <para>
+        /// The <see cref="GetSuccessMessage"/> method will return either the literal, non-localized
+        /// string or the localized string when <see cref="ResourceType"/> has been specified.
+        /// </para>
+        /// </remarks>
+        /// <value>
+        /// SuccessMessage is generally used as a text for a success notification in UI.
+        /// A <c>null</c> or empty string is legal, and consumers must allow for that.
+        /// </value>
+        [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
+        public string SuccessMessage
+        {
+            get
+            {
+                return this._successMessage.Value;
+            }
+            set
+            {
+                if (this._successMessage.Value != value)
+                {
+                    this._successMessage.Value = value;
                 }
             }
         }
@@ -179,10 +177,10 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
 
         /// <summary>
         /// Gets or sets the <see cref="System.Type"/> that contains the resources for 
-        /// <see cref="NameForNew"/>,, <see cref="NameForOld"/> and <see cref="NameForCreateNew"/>.
+        /// <see cref="ButtonTitle"/>,, <see cref="ConfirmationQuestion"/> and <see cref="SuccessMessage"/>.
         /// Using <see cref="ResourceType"/> along with these Key properties, allows
-        /// the <see cref="GetNameForNew"/>, <see cref="GetNameForOld"/>
-        /// and <see cref="GetNameForCreateNew"/> methods to return localized values.
+        /// the <see cref="GetButtonTitle"/>, <see cref="GetConfirmationQuestion"/>
+        /// and <see cref="GetSuccessMessage"/> methods to return localized values.
         /// </summary>
         public Type ResourceType
         {
@@ -196,30 +194,30 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
                 {
                     this._resourceType = value;
 
-                    this._nameForNew.ResourceType = value;
-                    this._nameForOld.ResourceType = value;
-                    this._nameForCreateNew.ResourceType = value;
+                    this._buttonTitle.ResourceType = value;
+                    this._confirmationQuestion.ResourceType = value;
+                    this._successMessage.ResourceType = value;
                 }
             }
         }
-                   
+
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Gets the UI display string for NameForNew.
+        /// Gets the UI display string for ButtonTitle.
         /// <para>
-        /// This can be either a literal, non-localized string provided to <see cref="NameForNew"/>
+        /// This can be either a literal, non-localized string provided to <see cref="ButtonTitle"/>
         /// or the localized string found when <see cref="ResourceType"/> has been specified
-        /// and <see cref="NameForNew"/> represents a resource key within that resource type.
+        /// and <see cref="ButtonTitle"/> represents a resource key within that resource type.
         /// </para>
         /// </summary>
         /// <returns>
         /// When <see cref="ResourceType"/> has not been specified, the value of
-        /// <see cref="NameForNew"/> will be returned.
+        /// <see cref="ButtonTitle"/> will be returned.
         /// <para>
-        /// When <see cref="ResourceType"/> has been specified and <see cref="NameForNew"/>
+        /// When <see cref="ResourceType"/> has been specified and <see cref="ButtonTitle"/>
         /// represents a resource key within that resource type, then the localized value will be returned.
         /// </para>
         /// <para>
@@ -228,56 +226,56 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// </para>
         /// </returns>
         /// <exception cref="System.InvalidOperationException">
-        /// After setting both the <see cref="ResourceType"/> property and the <see cref="NameForNew"/>
-        /// property, but a public static property with a name matching the <see cref="NameForNew"/>
+        /// After setting both the <see cref="ResourceType"/> property and the <see cref="ButtonTitle"/>
+        /// property, but a public static property with a name matching the <see cref="ButtonTitle"/>
         /// value couldn't be found  on the <see cref="ResourceType"/>.
         /// </exception>
         [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "This method does work using a property of the same name")]
-        public string GetNameForNew()
+        public string GetButtonTitle()
         {
-            return this._nameForNew.GetLocalizableValue();
+            return this._buttonTitle.GetLocalizableValue();
         }
 
         /// <summary>
-        /// Gets the UI display string for NameForOld.
+        /// Gets the UI display string for ConfirmationQuestion.
         /// <para>
-        /// This can be either a literal, non-localized string provided to <see cref="NameForOld"/>
+        /// This can be either a literal, non-localized string provided to <see cref="ConfirmationQuestion"/>
         /// or the localized string found when <see cref="ResourceType"/> has been specified
-        /// and <see cref="NameForOld"/> represents a resource key within that resource type.
+        /// and <see cref="ConfirmationQuestion"/> represents a resource key within that resource type.
         /// </para>
         /// </summary>
         /// <returns>
         /// When <see cref="ResourceType"/> has not been specified, the value of
-        /// <see cref="NameForOld"/> will be returned.
+        /// <see cref="ConfirmationQuestion"/> will be returned.
         /// <para>
         /// When <see cref="ResourceType"/> has been specified and <see cref="NameForOld"/>
         /// represents a resource key within that resource type, then the localized value will be returned.
         /// </para>
         /// </returns>
         /// <exception cref="System.InvalidOperationException">
-        /// After setting both the <see cref="ResourceType"/> property and the <see cref="NameForOld"/>
-        /// property, but a public static property with a name matching the <see cref="NameForOld"/>
+        /// After setting both the <see cref="ResourceType"/> property and the <see cref="ConfirmationQuestion"/>
+        /// property, but a public static property with a name matching the <see cref="ConfirmationQuestion"/>
         /// value couldn't be found on the <see cref="ResourceType"/>.
         /// </exception>
         [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "This method does work using a property of the same name")]
-        public string GetNameForOld()
+        public string GetConfirmationQuestion()
         {
-            return this._nameForOld.GetLocalizableValue();
+            return this._confirmationQuestion.GetLocalizableValue();
         }
 
         /// <summary>
-        /// Gets the UI display string for NameForCreateNew.
+        /// Gets the UI display string for SuccessMessage.
         /// <para>
-        /// This can be either a literal, non-localized string provided to <see cref="NameForCreateNew"/>
+        /// This can be either a literal, non-localized string provided to <see cref="SuccessMessage"/>
         /// or the localized string found when <see cref="ResourceType"/> has been specified
-        /// and <see cref="NameForCreateNew"/> represents a resource key within that resource type.
+        /// and <see cref="SuccessMessage"/> represents a resource key within that resource type.
         /// </para>
         /// </summary>
         /// <returns>
         /// When <see cref="ResourceType"/> has not been specified, the value of
-        /// <see cref="NameForCreateNew"/> will be returned.
+        /// <see cref="SuccessMessage"/> will be returned.
         /// <para>
-        /// When <see cref="ResourceType"/> has been specified and <see cref="NameForCreateNew"/>
+        /// When <see cref="ResourceType"/> has been specified and <see cref="SuccessMessage"/>
         /// represents a resource key within that resource type, then the localized value will be returned.
         /// </para>
         /// <para>
@@ -286,14 +284,14 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// </para>
         /// </returns>
         /// <exception cref="System.InvalidOperationException">
-        /// After setting both the <see cref="ResourceType"/> property and the <see cref="NameForCreateNew"/>
-        /// property, but a public static property with a name matching the <see cref="NameForCreateNew"/>
+        /// After setting both the <see cref="ResourceType"/> property and the <see cref="SuccessMessage"/>
+        /// property, but a public static property with a name matching the <see cref="SuccessMessage"/>
         /// value couldn't be found on the <see cref="ResourceType"/>.
         /// </exception>
         [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "This method does work using a property of the same name")]
-        public string GetNameForCreateNew()
+        public string GetSuccessMessage()
         {
-            return this._nameForCreateNew.GetLocalizableValue();
+            return this._successMessage.GetLocalizableValue();
         }
 
         /// <summary>
@@ -328,6 +326,5 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         }
 
         #endregion
-
     }
 }

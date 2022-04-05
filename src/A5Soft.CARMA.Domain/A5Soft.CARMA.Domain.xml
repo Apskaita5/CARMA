@@ -2040,7 +2040,7 @@
             <summary>
             Gets or sets the NameForNew attribute property, which may be a resource key string.
             <para>
-            Consumers must use the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForNew"/> method to retrieve the UI display string.
+            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForNew"/> method to retrieve the UI display string.
             </para>
             </summary>
             <remarks>
@@ -2048,7 +2048,7 @@
             to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> to configure a localized
             name for display.
             <para>
-            The <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForNew"/> method will return either the literal, non-localized
+            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForNew"/> method will return either the literal, non-localized
             string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> has been specified.
             </para>
             </remarks>
@@ -2241,6 +2241,12 @@
         </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.DefaultMetadataProvider.GetEntityMetadata``1">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IMetadataProvider.GetEntityMetadata(System.Type)" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.DefaultMetadataProvider.GetUseCaseMetadata(System.Type)">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IMetadataProvider.GetUseCaseMetadata(System.Type)" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.DefaultMetadataProvider.GetUseCaseMetadata``1">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IMetadataProvider.GetUseCaseMetadata(System.Type)" />
         </member>
         <member name="T:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata">
             <summary>
@@ -2466,6 +2472,237 @@
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.PropertyMetadata.GetValue(System.Object)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IPropertyMetadata.GetValue(System.Object)" />
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute">
+            <summary>
+            Allows to decorate a use case class (or interface) with localizable values that could be used
+            for button title, confirmation question, success message
+            as well as help uri for the respective help file/resource topic.
+            Can use it as is by setting ResourceType value in the attribute decorator
+            or inherit this class and set ResourceType in the constructor.
+            </summary>
+            <remarks>Inherited class is obviously a different entity,
+            therefore this attribute can only be used either on concrete (final)
+            use case (class) or on use case interface (used for business metadata).</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.#ctor">
+            <summary>
+            Default constructor.  All associated string properties and methods will return <c>null</c>.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle">
+            <summary>
+            Gets or sets the ButtonTitle attribute property, which may be a resource key string.
+            <para>
+            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetButtonTitle"/> method to retrieve the UI display string.
+            </para>
+            </summary>
+            <remarks>
+            The property contains either the literal, non-localized string or the resource key
+            to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> to configure a localized
+            name for display.
+            <para>
+            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetButtonTitle"/> method will return either the literal, non-localized
+            string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified.
+            </para>
+            </remarks>
+            <value>
+            ButtonTitle is generally used as a title or tooltip for an UI button that invokes the use case.
+            A <c>null</c> or empty string is legal, and consumers must allow for that.
+            </value>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion">
+            <summary>
+            Gets or sets the ConfirmationQuestion attribute property, which may be a resource key string.
+            <para>
+            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetConfirmationQuestion"/> method to retrieve the UI display string.
+            </para>
+            </summary>
+            <remarks>
+            The property contains either the literal, non-localized string or the resource key
+            to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> to configure a localized
+            description for display.
+            <para>
+            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetConfirmationQuestion"/> method will return either the literal, non-localized
+            string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified.
+            </para>
+            </remarks>
+            <value>
+            ConfirmationQuestion is generally used as a text for an UI conform dialog form.
+            A <c>null</c> or empty string is legal, and consumers must allow for that.
+            </value>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage">
+            <summary>
+            Gets or sets the SuccessMessage attribute property, which may be a resource key string.
+            <para>
+            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetSuccessMessage"/> method to retrieve the UI display string.
+            </para>
+            </summary>
+            <remarks>
+            The property contains either the literal, non-localized string or the resource key
+            to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> to configure a localized
+            description for display.
+            <para>
+            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetSuccessMessage"/> method will return either the literal, non-localized
+            string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified.
+            </para>
+            </remarks>
+            <value>
+            SuccessMessage is generally used as a text for a success notification in UI.
+            A <c>null</c> or empty string is legal, and consumers must allow for that.
+            </value>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri">
+            <summary>
+            Gets or sets the HelpUri attribute property, which may be a resource key string.
+            <para>
+            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetHelpUri"/> method to retrieve
+            the URI to help file/resource topic.
+            </para>
+            </summary>
+            <remarks>
+            The property contains either the literal, non-localized string or the resource key
+            to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> to configure a localized
+            description for display.
+            <para>
+            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetHelpUri"/> method will return either the literal, non-localized
+            string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType">
+            <summary>
+            Gets or sets the <see cref="T:System.Type"/> that contains the resources for 
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/>,, <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion"/> and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/>.
+            Using <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> along with these Key properties, allows
+            the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetButtonTitle"/>, <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetConfirmationQuestion"/>
+            and <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetSuccessMessage"/> methods to return localized values.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetButtonTitle">
+            <summary>
+            Gets the UI display string for ButtonTitle.
+            <para>
+            This can be either a literal, non-localized string provided to <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/>
+            or the localized string found when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified
+            and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/> represents a resource key within that resource type.
+            </para>
+            </summary>
+            <returns>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has not been specified, the value of
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/> will be returned.
+            <para>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/>
+            represents a resource key within that resource type, then the localized value will be returned.
+            </para>
+            <para>
+            Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
+            consumer to want to fall back onto the property name.
+            </para>
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/>
+            property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ButtonTitle"/>
+            value couldn't be found  on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/>.
+            </exception>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetConfirmationQuestion">
+            <summary>
+            Gets the UI display string for ConfirmationQuestion.
+            <para>
+            This can be either a literal, non-localized string provided to <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion"/>
+            or the localized string found when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified
+            and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion"/> represents a resource key within that resource type.
+            </para>
+            </summary>
+            <returns>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has not been specified, the value of
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion"/> will be returned.
+            <para>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified and <see cref="!:NameForOld"/>
+            represents a resource key within that resource type, then the localized value will be returned.
+            </para>
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion"/>
+            property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion"/>
+            value couldn't be found on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/>.
+            </exception>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetSuccessMessage">
+            <summary>
+            Gets the UI display string for SuccessMessage.
+            <para>
+            This can be either a literal, non-localized string provided to <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/>
+            or the localized string found when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified
+            and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/> represents a resource key within that resource type.
+            </para>
+            </summary>
+            <returns>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has not been specified, the value of
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/> will be returned.
+            <para>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/>
+            represents a resource key within that resource type, then the localized value will be returned.
+            </para>
+            <para>
+            Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
+            consumer to want to fall back onto the property name.
+            </para>
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/>
+            property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.SuccessMessage"/>
+            value couldn't be found on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/>.
+            </exception>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetHelpUri">
+            <summary>
+            Gets a (localized) help URI for respective help file/resource topic about the entity.
+            <para>
+            This can be either a literal, non-localized string provided to <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri"/>
+            or the localized string found when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified
+            and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri"/> represents a resource key within that resource type.
+            </para>
+            </summary>
+            <returns>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has not been specified, the value of
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri"/> will be returned.
+            <para>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri"/>
+            represents a resource key within that resource type, then the localized value will be returned.
+            </para>
+            <para>
+            Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
+            consumer to want to fall back onto the property name.
+            </para>
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri"/>
+            property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.HelpUri"/>
+            value couldn't be found  on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/>.
+            </exception>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata">
+            <summary>
+             a metadata description for use case (type) using DataAnnotations attributes
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.UseCaseType">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.UseCaseType" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetButtonTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetConfirmationQuestion">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetConfirmationQuestion" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetHelpUri">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetHelpUri" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetSuccessMessage">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetSuccessMessage" />
+        </member>
         <member name="T:A5Soft.CARMA.Domain.Metadata.IEntityMetadata">
             <summary>
             Common interface for entity (class) metadata localization provider.
@@ -2553,6 +2790,20 @@
             </summary>
             <typeparam name="T">a type of the entity to get metadata for</typeparam>
             <returns>metadata for the entity type specified</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IMetadataProvider.GetUseCaseMetadata(System.Type)">
+            <summary>
+            Gets metadata for the use case type specified.
+            </summary>
+            <param name="useCaseType">a type of the use case to get metadata for</param>
+            <returns>metadata for the use case type specified</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IMetadataProvider.GetUseCaseMetadata``1">
+            <summary>
+            Gets metadata for the use case type specified.
+            </summary>
+            <typeparam name="T">a type of the use case to get metadata for</typeparam>
+            <returns>metadata for the use case type specified</returns>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Metadata.IMethodMetadata">
             <summary>
@@ -2668,6 +2919,45 @@
             </summary>
             <param name="instance">the entity instance to get a property value for</param>
             <returns>a property value for the entity instance</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata">
+            <summary>
+            Common interface for use case (class or interface) metadata localization provider.
+            </summary>
+            <remarks>Use case (method) could be commonly described in the respective buttons
+            (as button title or tooltip for action icons).
+            Use case (method) is also commonly associated with a conformation question and/or 
+            success message.</remarks>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.UseCaseType">
+            <summary>
+            Gets the type of the use case that the metadata is for.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle">
+            <summary>
+            Gets a localized value that is used for display a button title (or a tooltip for action icons) 
+            for the use case in the UI.
+            </summary>
+            <returns>a localized value that is used for display in the UI</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetConfirmationQuestion">
+            <summary>
+            Gets a localized value that is used to display a confirm dialog (before the use case is invoked).
+            </summary>
+            <returns>a localized value that is used to display a confirm dialog (before the use case is invoked)</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetSuccessMessage">
+            <summary>
+            Gets a localized value that is used to display a success message
+            (to be shown after the use case is successfuly invoked).
+            </summary>
+            <returns>a localized value that is used to display a success message</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetHelpUri">
+            <summary>
+            Gets an URI for help file and topic for the use case.
+            </summary>
         </member>
         <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.String)">
             <summary>

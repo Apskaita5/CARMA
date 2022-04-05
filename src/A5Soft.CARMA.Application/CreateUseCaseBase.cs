@@ -97,6 +97,12 @@ namespace A5Soft.CARMA.Application
         public IEntityMetadata GetMetadata()
             => MetadataProvider.GetEntityMetadata<TCriteria>();
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetButtonTitle"/>
+        public string GetButtonTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetButtonTitle();
+        }
+
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.
@@ -112,6 +118,5 @@ namespace A5Soft.CARMA.Application
         /// </summary>
         protected virtual Task AfterDataPortalAsync(TCriteria criteria)
             => Task.CompletedTask;
-
     }
 }

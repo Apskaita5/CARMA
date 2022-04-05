@@ -90,6 +90,12 @@ namespace A5Soft.CARMA.Application
             => Task.CompletedTask;
 
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetButtonTitle"/>
+        public string GetButtonTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetButtonTitle();
+        }
+
         /// <summary>
         /// Gets metadata for the command parameter.
         /// Returns null if the parameter is not a class or an interface.
@@ -114,6 +120,5 @@ namespace A5Soft.CARMA.Application
         {
             return ValidationProvider.ValidatePoco(parameter);
         }
-
     }
 }
