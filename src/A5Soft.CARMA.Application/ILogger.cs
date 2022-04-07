@@ -41,6 +41,13 @@ namespace A5Soft.CARMA.Application
         void LogWarning(string message, params object[] args);
 
         /// <summary>
+        /// Logs an application event that could be of general interest, e.g. user loggen in.
+        /// </summary>
+        /// <param name="message">an event description to log</param>
+        /// <param name="args">any data that needs to be logged along the event description</param>
+        void LogInfo(string message, params object[] args);
+
+        /// <summary>
         /// Logs an application exception (typically business logic related),
         /// that could be safely handled either by the application or by the user,
         /// yet could be useful for debugging. 
@@ -90,5 +97,12 @@ namespace A5Soft.CARMA.Application
         /// <param name="args">any data that needs to be logged along the event description</param>
         void LogSecurityIssue(string message, params object[] args);
 
+        /// <summary>
+        /// Begins a logical operation scope.
+        /// </summary>
+        /// <typeparam name="TState">Begins a logical operation scope.</typeparam>
+        /// <param name="state">The identifier for the scope.</param>
+        /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
+        IDisposable BeginScope<TState>(TState state);
     }
 }

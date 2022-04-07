@@ -1234,6 +1234,13 @@
             <param name="message">an event description to log</param>
             <param name="args">any data that needs to be logged along the event description</param>
         </member>
+        <member name="M:A5Soft.CARMA.Application.ILogger.LogInfo(System.String,System.Object[])">
+            <summary>
+            Logs an application event that could be of general interest, e.g. user loggen in.
+            </summary>
+            <param name="message">an event description to log</param>
+            <param name="args">any data that needs to be logged along the event description</param>
+        </member>
         <member name="M:A5Soft.CARMA.Application.ILogger.LogDebug(System.Exception,System.Object[])">
             <summary>
             Logs an application exception (typically business logic related),
@@ -1283,6 +1290,14 @@
             </summary>
             <param name="message">a security related event description to log</param>
             <param name="args">any data that needs to be logged along the event description</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ILogger.BeginScope``1(``0)">
+            <summary>
+            Begins a logical operation scope.
+            </summary>
+            <typeparam name="TState">Begins a logical operation scope.</typeparam>
+            <param name="state">The identifier for the scope.</param>
+            <returns>A disposable object that ends the logical operation scope on dispose.</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.IoC">
             <summary>
