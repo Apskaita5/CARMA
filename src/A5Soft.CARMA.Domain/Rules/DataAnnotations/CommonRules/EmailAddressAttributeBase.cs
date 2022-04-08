@@ -77,7 +77,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         private bool IsValidInternal(string value)
         {
-            if (value.IsNullOrWhiteSpace()) return false;
+            if (value.IsNullOrWhiteSpace()) return true;
 
             if (AllowMultipleAddresses)
             {
