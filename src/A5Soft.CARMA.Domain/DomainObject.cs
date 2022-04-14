@@ -67,6 +67,7 @@ namespace A5Soft.CARMA.Domain
         private bool _isDeleted;
         private bool _containsNewData;
         private bool _isDirty = true;
+        private static readonly string[] _noLockedProperties = new string[] { };
         
         [NonSerialized]
         private BrokenRulesManager<T> _brokenRules;
@@ -352,8 +353,8 @@ namespace A5Soft.CARMA.Domain
         [Display(AutoGenerateField = false)]
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
-        public virtual string[] LockedProperties 
-            => new string[] { };
+        public virtual string[] LockedProperties
+            => _noLockedProperties;
 
 
         /// <inheritdoc cref="ITrackState.GetBrokenRulesTree" />
@@ -2282,6 +2283,5 @@ namespace A5Soft.CARMA.Domain
                 Dispose(disposing: true);
             }
         }
-
     }
 }
