@@ -2186,7 +2186,7 @@ namespace A5Soft.CARMA.Domain
         /// 5. Invokes post processing action or, if it's null, raises PropertyHasChanged
         /// (i.e. checks rules and raises binding event).</remarks>
         /// <returns>true if the property has been changed, otherwise false</returns>
-        protected bool SetPropertyValue<TEnum>(string propertyName, ref TEnum oldValue, TEnum newValue,
+        protected bool SetEnumPropertyValue<TEnum>(string propertyName, ref TEnum oldValue, TEnum newValue,
             Action postProcessing = null) 
             where TEnum : struct, IConvertible
         {

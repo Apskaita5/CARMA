@@ -1526,7 +1526,7 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue``1(System.String,``0@,``0,System.Action)">
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetEnumPropertyValue``1(System.String,``0@,``0,System.Action)">
             <summary>
             Property setter that shall be used to set Enum properties.
             </summary>
