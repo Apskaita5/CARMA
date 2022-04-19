@@ -40,7 +40,7 @@ namespace A5Soft.CARMA.Domain
             return !(first == second);
         }
 
-        public static implicit operator string(DomainEntityIdentity<T> value) => value.Key;
+        public static implicit operator string(DomainEntityIdentity<T> value) => value?.Key;
 
         public static implicit operator DomainEntityIdentity<T>(string value)
         {
