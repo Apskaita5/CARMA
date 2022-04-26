@@ -34,6 +34,15 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
             return value.IsNullOrWhiteSpace() ? UseCaseType.Name.SplitCamelCase() : value;
         }
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle" />
+        public string GetMenuTitle()
+        {
+            if (_displayAttribute.IsNull()) return UseCaseType.Name.SplitCamelCase();
+
+            var value = _displayAttribute.GetMenuTitle();
+            return value.IsNullOrWhiteSpace() ? UseCaseType.Name.SplitCamelCase() : value;
+        }
+
         /// <inheritdoc cref="IUseCaseMetadata.GetConfirmationQuestion" />
         public string GetConfirmationQuestion()
         {

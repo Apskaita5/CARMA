@@ -262,6 +262,9 @@
         <member name="M:A5Soft.CARMA.Application.CommandUseCaseBase.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
+        <member name="M:A5Soft.CARMA.Application.CommandUseCaseBase.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1">
             <summary>
             A base use case for a command operation (that executes a command using the parameters provided without a result).
@@ -302,6 +305,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="M:A5Soft.CARMA.Application.CommandWithParameterUseCaseBase`1.GetParameterMetadata">
             <summary>
@@ -353,6 +359,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="M:A5Soft.CARMA.Application.CreateUseCaseBase`2.BeforeDataPortalAsync(`0)">
             <summary>
@@ -1063,6 +1072,9 @@
         <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
+        <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1">
             <summary>
             A base use case for a domain entity fetch operation (that gets a domain entity by its identity).
@@ -1108,6 +1120,9 @@
             Gets metadata for the entity fetched.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.FetchDomainSingletonUseCaseBase`1">
             <summary>
             A base use case for a domain singleton fetch operation
@@ -1151,6 +1166,9 @@
             <summary>
             Gets metadata for the entity fetched.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.FetchDomainSingletonUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.FileContent">
             <summary>
@@ -1445,6 +1463,11 @@
             Gets an authorization service.
             </summary>
         </member>
+        <member name="P:A5Soft.CARMA.Application.Navigation.FetchMainMenuUseCaseBase.MetadataProvider">
+            <summary>
+            Gets a metadata provider service.
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Application.Navigation.FetchMainMenuUseCaseBase.FetchAsync">
             <summary>
             Fetches a main menu for the current user. 
@@ -1472,26 +1495,21 @@
             Plugins may wish to change how the base menu behaves,
             e.g. to create a new invoice using plugin use case instead of the base one.</remarks>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MainMenu.AddMainMenuTopGroup(System.String,System.String,System.String,System.Type,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MainMenu.AddMainMenuTopGroup(System.String,System.String,System.Type,System.String)">
             <summary>
             Adds a top menu group.
             </summary>
             <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
             <param name="displayName">a resource key string for <see cref="!:MenuItem.DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:MenuItem.Description"/></param>
             <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
             for <see cref="!:MenuItem.DisplayName"/> and <see cref="!:MenuItem.Description"/></param>
             <param name="icon">Icon of the menu item if exists.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MainMenu.AddMainMenuTopItem(System.String,System.String,System.String,System.Type,System.Type,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MainMenu.AddMainMenuTopItem(A5Soft.CARMA.Domain.Metadata.IMetadataProvider,System.Type,System.String)">
             <summary>
             Adds a top leaf menu item.
             </summary>
-            <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-            <param name="displayName">a resource key string for <see cref="!:MenuItem.DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:MenuItem.Description"/></param>
-            <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
-            for <see cref="!:MenuItem.DisplayName"/> and <see cref="!:MenuItem.Description"/></param>
+            <param name="metadataProvider">a metadata provider for use case localized descriptions</param>
             <param name="icon">Icon of the menu item if exists.</param>
             <param name="useCaseType">A type of the (main) use case that handles action
             associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
@@ -1513,37 +1531,31 @@
             overload to create a separator menu item
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.#ctor(System.String,System.String,System.String,System.Type,System.Type,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.#ctor(A5Soft.CARMA.Domain.Metadata.IMetadataProvider,System.Type,System.String)">
             <summary>
             overload for common leaf menu item
             </summary>
-            <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-            <param name="displayName">a resource key string for <see cref="!:DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:Description"/></param>
-            <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
-            for <see cref="!:DisplayName"/> and <see cref="!:Description"/></param>
+            <param name="metadataProvider">a metadata provider for use case localized description</param>
             <param name="icon">Icon of the menu item if exists.</param>
             <param name="useCaseType">A type of the (main) use case that handles action
             associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.#ctor(System.String,System.String,System.String,System.Type,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.#ctor(System.String,System.String,System.Type,System.String)">
             <summary>
             overload for group menu item
             </summary>
             <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-            <param name="displayName">a resource key string for <see cref="!:DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:Description"/></param>
+            <param name="displayName">a resource key string for <see cref="M:A5Soft.CARMA.Application.Navigation.MenuItem.GetDisplayName"/></param>
             <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
-            for <see cref="!:DisplayName"/> and <see cref="!:Description"/></param>
+            for <see cref="M:A5Soft.CARMA.Application.Navigation.MenuItem.GetDisplayName"/></param>
             <param name="icon">Icon of the menu item if exists.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.#ctor(System.String,System.String,System.String,System.Type,System.Action{A5Soft.CARMA.Application.Navigation.MenuItem},System.Object,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.#ctor(System.String,System.String,System.Type,System.Action{A5Soft.CARMA.Application.Navigation.MenuItem},System.Object,System.String)">
             <summary>
             overload for GUI app defined leaf menu item
             </summary>
             <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
             <param name="displayName">a resource key string for <see cref="!:DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:Description"/></param>
             <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
             for <see cref="!:DisplayName"/> and <see cref="!:Description"/></param>
             <param name="icon">Icon of the menu item if exists.</param>
@@ -1561,7 +1573,7 @@
             Gets the <see cref="T:System.Type"/> that contains the resources for <see cref="!:DisplayName"/>
             and <see cref="!:Description"/>.
             Using <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/> along with these Key properties, allows the <see cref="M:A5Soft.CARMA.Application.Navigation.MenuItem.GetDisplayName"/>
-            and <see cref="M:A5Soft.CARMA.Application.Navigation.MenuItem.GetDescription"/> methods to return localized values.
+            and <see cref="!:GetDescription"/> methods to return localized values.
             </summary>
         </member>
         <member name="P:A5Soft.CARMA.Application.Navigation.MenuItem.Icon">
@@ -1624,29 +1636,6 @@
             on the <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/>.
             </exception>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.GetDescription">
-            <summary>
-            Gets the UI display string for Description.
-            <para>
-            This can be either a literal, non-localized string provided to <see cref="!:Description"/> or the
-            localized string found when <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/> has been specified and <see cref="!:Description"/>
-            represents a resource key within that resource type.
-            </para>
-            </summary>
-            <returns>
-            When <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/> has not been specified, the value of
-            <see cref="!:Description"/> will be returned.
-            <para>
-            When <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/> has been specified and <see cref="!:Description"/>
-            represents a resource key within that resource type, then the localized value will be returned.
-            </para>
-            </returns>
-            <exception cref="T:System.InvalidOperationException">
-            After setting both the <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/> property and the <see cref="!:Description"/> property,
-            but a public static property with a name matching the <see cref="!:Description"/> value couldn't be found
-            on the <see cref="P:A5Soft.CARMA.Application.Navigation.MenuItem.ResourceType"/>.
-            </exception>
-        </member>
         <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.InvokeOnClick">
             <summary>
             Invokes on click action for the menu item.
@@ -1669,18 +1658,17 @@
             Adds a menu group separator to child items.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.AddMenuGroup(System.String,System.String,System.String,System.Type,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.AddMenuGroup(System.String,System.String,System.Type,System.String)">
             <summary>
             Adds a menu group to child items.
             </summary>
             <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
             <param name="displayName">a resource key string for <see cref="!:DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:Description"/></param>
             <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
             for <see cref="!:DisplayName"/> and <see cref="!:Description"/></param>
             <param name="icon">Icon of the menu item if exists.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.AddLeaf(System.String,System.String,System.String,System.Type,System.Type,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.AddLeaf(A5Soft.CARMA.Domain.Metadata.IMetadataProvider,System.Type,System.String)">
             <summary>
             Adds a leaf menu item to child items.
             </summary>
@@ -1693,15 +1681,14 @@
             <param name="useCaseType">A type of the (main) use case that handles action
             associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
         </member>
-        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.AddGuiAppDefinedLeaf(System.String,System.String,System.String,System.Type,System.Action{A5Soft.CARMA.Application.Navigation.MenuItem},System.Object,System.String)">
+        <member name="M:A5Soft.CARMA.Application.Navigation.MenuItem.AddGuiAppDefinedLeaf(System.String,System.String,System.Type,System.Action{A5Soft.CARMA.Application.Navigation.MenuItem},System.Object,System.String)">
             <summary>
             Adds a GUI app defined leaf menu item (e.g. app settings that are specific to winforms app).
             </summary>
             <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
             <param name="displayName">a resource key string for <see cref="!:DisplayName"/></param>
-            <param name="description">a resource key string for <see cref="!:Description"/></param>
             <param name="resourceType"><see cref="T:System.Type"/> that contains the resources
-            for <see cref="!:DisplayName"/> and <see cref="!:Description"/></param>
+            for <see cref="!:DisplayName"/></param>
             <param name="icon">Icon of the menu item if exists.</param>
             <param name="onClick">an action that shall be executed when a user clicks the menu item</param>
             <param name="tag">an arbitrary object associated with the menu item.
@@ -1769,6 +1756,9 @@
             Gets metadata for the entity fetched.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Application.QueryListUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.QueryListWithCriteriaUseCaseBase`2">
             <summary>
             A base use case for a query operation that gets a list of query results.
@@ -1822,6 +1812,9 @@
             Returns null if the criteria is not a class or an interface.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Application.QueryListWithCriteriaUseCaseBase`2.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="M:A5Soft.CARMA.Application.QueryListWithCriteriaUseCaseBase`2.Validate(`1)">
             <summary>
             Validates a criteria (as a POCO object) and returns a broken rules collection
@@ -1874,6 +1867,9 @@
             <summary>
             Gets metadata for the entity fetched.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.QueryUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.QueryWithCriteriaUseCaseBase`2">
             <summary>
@@ -1937,6 +1933,9 @@
             <param name="criteria">criteria to validate</param>
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.QueryWithCriteriaUseCaseBase`2.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.RemoteMethodAttribute">
             <summary>
@@ -2026,6 +2025,9 @@
         <member name="M:A5Soft.CARMA.Application.SaveUseCaseBase`2.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
+        <member name="M:A5Soft.CARMA.Application.SaveUseCaseBase`2.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.SaveWithOptionsUseCaseBase`3">
             <summary>
             A base use case for domain entity save operation (insert a new entity or update an existing one)
@@ -2099,6 +2101,9 @@
         <member name="M:A5Soft.CARMA.Application.SaveWithOptionsUseCaseBase`3.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
         </member>
+        <member name="M:A5Soft.CARMA.Application.SaveWithOptionsUseCaseBase`3.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
         <member name="T:A5Soft.CARMA.Application.UnauthenticatedCommandWithParameterUseCaseBase`1">
             <summary>
             A base use case for an unauthenticated command operation (that executes a command
@@ -2156,6 +2161,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.UnauthenticatedCommandWithParameterUseCaseBase`1.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedCommandWithParameterUseCaseBase`1.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2">
             <summary>
@@ -2232,6 +2240,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.UseCaseAttribute">
             <summary>

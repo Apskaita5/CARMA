@@ -21,6 +21,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
 
         private Type _resourceType;
         private readonly LocalizableString _buttonTitle = new LocalizableString(nameof(ButtonTitle));
+        private readonly LocalizableString _menuTitle = new LocalizableString(nameof(MenuTitle));
         private readonly LocalizableString _confirmationQuestion = new LocalizableString(nameof(ConfirmationQuestion));
         private readonly LocalizableString _successMessage = new LocalizableString(nameof(SuccessMessage));
         private readonly LocalizableString _helpUri = new LocalizableString(nameof(HelpUri));
@@ -69,6 +70,41 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
                 if (this._buttonTitle.Value != value)
                 {
                     this._buttonTitle.Value = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the MenuTitle attribute property, which may be a resource key string.
+        /// <para>
+        /// Consumers must use the <see cref="GetMenuTitle"/> method to retrieve the UI display string.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The property contains either the literal, non-localized string or the resource key
+        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
+        /// name for display.
+        /// <para>
+        /// The <see cref="GetMenuTitle"/> method will return either the literal, non-localized
+        /// string or the localized string when <see cref="ResourceType"/> has been specified.
+        /// </para>
+        /// </remarks>
+        /// <value>
+        /// MenuTitle is generally used as a title for an UI (context or main) menu that invokes the use case.
+        /// A <c>null</c> or empty string is legal, and consumers must allow for that.
+        /// </value>
+        [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
+        public string MenuTitle
+        {
+            get
+            {
+                return this._menuTitle.Value;
+            }
+            set
+            {
+                if (this._menuTitle.Value != value)
+                {
+                    this._menuTitle.Value = value;
                 }
             }
         }
@@ -195,6 +231,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
                     this._resourceType = value;
 
                     this._buttonTitle.ResourceType = value;
+                    this._menuTitle.ResourceType = value;
                     this._confirmationQuestion.ResourceType = value;
                     this._successMessage.ResourceType = value;
                 }
@@ -234,6 +271,37 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         public string GetButtonTitle()
         {
             return this._buttonTitle.GetLocalizableValue();
+        }
+
+        /// <summary>
+        /// Gets the UI display string for MenuTitle.
+        /// <para>
+        /// This can be either a literal, non-localized string provided to <see cref="MenuTitle"/>
+        /// or the localized string found when <see cref="ResourceType"/> has been specified
+        /// and <see cref="MenuTitle"/> represents a resource key within that resource type.
+        /// </para>
+        /// </summary>
+        /// <returns>
+        /// When <see cref="ResourceType"/> has not been specified, the value of
+        /// <see cref="MenuTitle"/> will be returned.
+        /// <para>
+        /// When <see cref="ResourceType"/> has been specified and <see cref="MenuTitle"/>
+        /// represents a resource key within that resource type, then the localized value will be returned.
+        /// </para>
+        /// <para>
+        /// Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
+        /// consumer to want to fall back onto the property name.
+        /// </para>
+        /// </returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// After setting both the <see cref="ResourceType"/> property and the <see cref="MenuTitle"/>
+        /// property, but a public static property with a name matching the <see cref="MenuTitle"/>
+        /// value couldn't be found  on the <see cref="ResourceType"/>.
+        /// </exception>
+        [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "This method does work using a property of the same name")]
+        public string GetMenuTitle()
+        {
+            return this._menuTitle.GetLocalizableValue();
         }
 
         /// <summary>

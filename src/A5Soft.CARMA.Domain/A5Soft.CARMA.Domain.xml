@@ -2078,28 +2078,6 @@
             bearing this attribute.  A <c>null</c> or empty string is legal, and consumers must allow for that.
             </value>
         </member>
-        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew">
-            <summary>
-            Gets or sets the NameForCreateNew attribute property, which may be a resource key string.
-            <para>
-            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForCreateNew"/> method to retrieve the UI display string.
-            </para>
-            </summary>
-            <remarks>
-            The property contains either the literal, non-localized string or the resource key
-            to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> to configure a localized
-            description for display.
-            <para>
-            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForCreateNew"/> method will return either the literal, non-localized
-            string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> has been specified.
-            </para>
-            </remarks>
-            <value>
-            NameForCreateNew is generally used as a text for a menu item or a button (tooltip)
-            that create a new instance of the class bearing this attribute.
-            A <c>null</c> or empty string is legal, and consumers must allow for that.
-            </value>
-        </member>
         <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.HelpUri">
             <summary>
             Gets or sets the HelpUri attribute property, which may be a resource key string.
@@ -2121,10 +2099,10 @@
         <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType">
             <summary>
             Gets or sets the <see cref="T:System.Type"/> that contains the resources for 
-            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForNew"/>,, <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForOld"/> and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/>.
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForNew"/>,, <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForOld"/> and <see cref="!:NameForCreateNew"/>.
             Using <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> along with these Key properties, allows
             the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForNew"/>, <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForOld"/>
-            and <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForCreateNew"/> methods to return localized values.
+            and <see cref="!:GetNameForCreateNew"/> methods to return localized values.
             </summary>
         </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForNew">
@@ -2174,33 +2152,6 @@
             <exception cref="T:System.InvalidOperationException">
             After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForOld"/>
             property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForOld"/>
-            value couldn't be found on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/>.
-            </exception>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.GetNameForCreateNew">
-            <summary>
-            Gets the UI display string for NameForCreateNew.
-            <para>
-            This can be either a literal, non-localized string provided to <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/>
-            or the localized string found when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> has been specified
-            and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/> represents a resource key within that resource type.
-            </para>
-            </summary>
-            <returns>
-            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> has not been specified, the value of
-            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/> will be returned.
-            <para>
-            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> has been specified and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/>
-            represents a resource key within that resource type, then the localized value will be returned.
-            </para>
-            <para>
-            Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
-            consumer to want to fall back onto the property name.
-            </para>
-            </returns>
-            <exception cref="T:System.InvalidOperationException">
-            After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/>
-            property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.NameForCreateNew"/>
             value couldn't be found on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.ClassDescriptionAttribute.ResourceType"/>.
             </exception>
         </member>
@@ -2273,9 +2224,6 @@
         </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata.GetDisplayNameForOld">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetDisplayNameForOld" />
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata.GetDisplayNameForCreateNew">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetDisplayNameForCreateNew" />
         </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.EntityMetadata.GetHelpUri">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetHelpUri" />
@@ -2510,6 +2458,27 @@
             A <c>null</c> or empty string is legal, and consumers must allow for that.
             </value>
         </member>
+        <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle">
+            <summary>
+            Gets or sets the MenuTitle attribute property, which may be a resource key string.
+            <para>
+            Consumers must use the <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetMenuTitle"/> method to retrieve the UI display string.
+            </para>
+            </summary>
+            <remarks>
+            The property contains either the literal, non-localized string or the resource key
+            to be used in conjunction with <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> to configure a localized
+            name for display.
+            <para>
+            The <see cref="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetMenuTitle"/> method will return either the literal, non-localized
+            string or the localized string when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified.
+            </para>
+            </remarks>
+            <value>
+            MenuTitle is generally used as a title for an UI (context or main) menu that invokes the use case.
+            A <c>null</c> or empty string is legal, and consumers must allow for that.
+            </value>
+        </member>
         <member name="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ConfirmationQuestion">
             <summary>
             Gets or sets the ConfirmationQuestion attribute property, which may be a resource key string.
@@ -2606,6 +2575,33 @@
             value couldn't be found  on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/>.
             </exception>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetMenuTitle">
+            <summary>
+            Gets the UI display string for MenuTitle.
+            <para>
+            This can be either a literal, non-localized string provided to <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle"/>
+            or the localized string found when <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified
+            and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle"/> represents a resource key within that resource type.
+            </para>
+            </summary>
+            <returns>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has not been specified, the value of
+            <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle"/> will be returned.
+            <para>
+            When <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> has been specified and <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle"/>
+            represents a resource key within that resource type, then the localized value will be returned.
+            </para>
+            <para>
+            Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
+            consumer to want to fall back onto the property name.
+            </para>
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            After setting both the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/> property and the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle"/>
+            property, but a public static property with a name matching the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.MenuTitle"/>
+            value couldn't be found  on the <see cref="P:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.ResourceType"/>.
+            </exception>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseDescriptionAttribute.GetConfirmationQuestion">
             <summary>
             Gets the UI display string for ConfirmationQuestion.
@@ -2694,6 +2690,9 @@
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetButtonTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetButtonTitle" />
         </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetMenuTitle">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle" />
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Metadata.DataAnnotations.UseCaseMetadata.GetConfirmationQuestion">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetConfirmationQuestion" />
         </member>
@@ -2757,13 +2756,6 @@
             <summary>
             Gets a localized value that is used to display a description in the UI
             for an old entity instance (typically used as a form caption/header).
-            </summary>
-            <returns>a localized value that is used for display in the UI</returns>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.Metadata.IEntityMetadata.GetDisplayNameForCreateNew">
-            <summary>
-            Gets a localized value that is used to display a description in the UI
-            for a menu item or button (tooltip) that create a new instance of the entity.
             </summary>
             <returns>a localized value that is used for display in the UI</returns>
         </member>
@@ -2938,6 +2930,12 @@
             <summary>
             Gets a localized value that is used for display a button title (or a tooltip for action icons) 
             for the use case in the UI.
+            </summary>
+            <returns>a localized value that is used for display in the UI</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle">
+            <summary>
+            Gets a localized value that is used for display a (main or context) menu title for the use case in the UI.
             </summary>
             <returns>a localized value that is used for display in the UI</returns>
         </member>

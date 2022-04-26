@@ -24,6 +24,12 @@ namespace A5Soft.CARMA.Domain.Metadata
         string GetButtonTitle();
 
         /// <summary>
+        /// Gets a localized value that is used for display a (main or context) menu title for the use case in the UI.
+        /// </summary>
+        /// <returns>a localized value that is used for display in the UI</returns>
+        string GetMenuTitle();
+
+        /// <summary>
         /// Gets a localized value that is used to display a confirm dialog (before the use case is invoked).
         /// </summary>
         /// <returns>a localized value that is used to display a confirm dialog (before the use case is invoked)</returns>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 
 namespace A5Soft.CARMA.Application.Navigation
@@ -13,8 +14,8 @@ namespace A5Soft.CARMA.Application.Navigation
     {
         #region Member Fields
 
+        private IUseCaseMetadata _metadata;
         private readonly LocalizableString _displayName = new LocalizableString("Name");
-        private readonly LocalizableString _description = new LocalizableString("Description");
         [NonSerialized]
         private Action<MenuItem> _onClick;
         [NonSerialized]
@@ -41,60 +42,47 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// overload for common leaf menu item
         /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="Description"/></param>
-        /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
+        /// <param name="metadataProvider">a metadata provider for use case localized description</param>
         /// <param name="icon">Icon of the menu item if exists.</param>
         /// <param name="useCaseType">A type of the (main) use case that handles action
         /// associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
-        private MenuItem(string name, string displayName, string description, Type resourceType,
-            Type useCaseType, string icon = "")
+        private MenuItem(IMetadataProvider metadataProvider, Type useCaseType, string icon = "")
         {
-            if (displayName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(displayName));
-
-            Name = name ?? string.Empty;
-            ResourceType = resourceType ?? throw new ArgumentNullException(nameof(resourceType));
-            _displayName.Value = displayName;
-            _description.Value = description ?? string.Empty;
-            _displayName.ResourceType = resourceType;
-            _description.ResourceType = resourceType;
-
+            Name = useCaseType.FullName;
+            UseCaseType = useCaseType ?? throw new ArgumentNullException(nameof(useCaseType));
+            _metadata = metadataProvider.GetUseCaseMetadata(useCaseType) ?? throw new InvalidOperationException(
+                $"No metadata for use case type {useCaseType.FullName}.");
             Icon = icon ?? string.Empty;
+
             IsEnabled = true;
             UseCaseType = useCaseType ?? throw new ArgumentNullException(nameof(useCaseType));
             Items = null;
-            ItemType = MenuItemType.UseCase; 
+            ItemType = MenuItemType.UseCase;
         }
 
         /// <summary>
         /// overload for group menu item
         /// </summary>
         /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="Description"/></param>
+        /// <param name="displayName">a resource key string for <see cref="GetDisplayName"/></param>
         /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
+        /// for <see cref="GetDisplayName"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
-        private MenuItem(string name, string displayName, string description, Type resourceType,
-            string icon = "")
+        private MenuItem(string name, string displayName, Type resourceType, string icon = "")
         {
             if (name.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(name));
             if (displayName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(displayName));
 
             Name = name;
             ResourceType = resourceType ?? throw new ArgumentNullException(nameof(resourceType));
-            _displayName.Value = displayName;
-            _description.Value = description ?? string.Empty;
+            _displayName.Value = displayName;            
             _displayName.ResourceType = resourceType;
-            _description.ResourceType = resourceType;
 
             Icon = icon ?? string.Empty;
             IsEnabled = true;
             UseCaseType = null;
             Items = new List<MenuItem>();
-            ItemType = MenuItemType.Submenu; 
+            ItemType = MenuItemType.Submenu;
         }
 
         /// <summary>
@@ -102,14 +90,13 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
         /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="Description"/></param>
         /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
         /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
         /// <param name="onClick">an action that shall be executed when a user clicks the menu item</param>
         /// <param name="tag">an arbitrary object associated with the menu item.
         /// E.g. company info for login selector</param>
-        private MenuItem(string name, string displayName, string description, Type resourceType,
+        private MenuItem(string name, string displayName, Type resourceType,
             Action<MenuItem> onClick, object tag = null, string icon = "")
         {
             if (displayName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(displayName));
@@ -117,9 +104,7 @@ namespace A5Soft.CARMA.Application.Navigation
             Name = name;
             ResourceType = resourceType;
             _displayName.Value = displayName;
-            _description.Value = description ?? string.Empty;
             _displayName.ResourceType = resourceType;
-            _description.ResourceType = resourceType;
 
             Icon = icon ?? string.Empty;
             IsEnabled = true;
@@ -190,16 +175,16 @@ namespace A5Soft.CARMA.Application.Navigation
 
         #region Factory Methods
 
-        internal static MenuItem CreateMainMenuTopGroup(string name, string displayName, string description,
+        internal static MenuItem CreateMainMenuTopGroup(string name, string displayName,
             Type resourceType, string icon = "")
         {
-            return new MenuItem(name, displayName, description, resourceType, icon);
+            return new MenuItem(name, displayName, resourceType, icon);
         }
 
-        internal static MenuItem CreateMainMenuTopItem(string name, string displayName,
-            string description, Type resourceType, Type useCaseType, string icon = "")
+        internal static MenuItem CreateMainMenuTopItem(IMetadataProvider metadataProvider,
+            Type useCaseType, string icon = "")
         {
-            return new MenuItem(name, displayName, description, resourceType, useCaseType, icon);
+            return new MenuItem(metadataProvider, useCaseType, icon);
         }
 
         #endregion
@@ -229,33 +214,8 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </exception>
         public virtual string GetDisplayName()
         {
+            if (null != _metadata) return _metadata.GetMenuTitle();
             return this._displayName.GetLocalizableValue();
-        }
-
-        /// <summary>
-        /// Gets the UI display string for Description.
-        /// <para>
-        /// This can be either a literal, non-localized string provided to <see cref="Description"/> or the
-        /// localized string found when <see cref="ResourceType"/> has been specified and <see cref="Description"/>
-        /// represents a resource key within that resource type.
-        /// </para>
-        /// </summary>
-        /// <returns>
-        /// When <see cref="ResourceType"/> has not been specified, the value of
-        /// <see cref="Description"/> will be returned.
-        /// <para>
-        /// When <see cref="ResourceType"/> has been specified and <see cref="Description"/>
-        /// represents a resource key within that resource type, then the localized value will be returned.
-        /// </para>
-        /// </returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// After setting both the <see cref="ResourceType"/> property and the <see cref="Description"/> property,
-        /// but a public static property with a name matching the <see cref="Description"/> value couldn't be found
-        /// on the <see cref="ResourceType"/>.
-        /// </exception>
-        public virtual string GetDescription()
-        {
-            return this._description.GetLocalizableValue();
         }
 
         /// <summary>
@@ -306,11 +266,10 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
         /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="Description"/></param>
         /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
         /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
-        public MenuItem AddMenuGroup(string name, string displayName, string description, Type resourceType,
+        public MenuItem AddMenuGroup(string name, string displayName, Type resourceType,
             string icon = "")
         {
             if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
@@ -318,7 +277,7 @@ namespace A5Soft.CARMA.Application.Navigation
 
             if (null == Items) Items = new List<MenuItem>();
 
-            var result = new MenuItem(name, displayName, description, resourceType, icon);
+            var result = new MenuItem(name, displayName, resourceType, icon);
 
             Items.Add(result);
 
@@ -336,15 +295,14 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <param name="icon">Icon of the menu item if exists.</param>
         /// <param name="useCaseType">A type of the (main) use case that handles action
         /// associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
-        public void AddLeaf(string name, string displayName, string description, Type resourceType,
-            Type useCaseType, string icon = "")
+        public void AddLeaf(IMetadataProvider metadataProvider, Type useCaseType, string icon = "")
         {
             if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
 
             if (null == Items) Items = new List<MenuItem>();
 
-            Items.Add(new MenuItem(name, displayName, description, resourceType, useCaseType, icon));
+            Items.Add(new MenuItem(metadataProvider, useCaseType, icon));
         }
 
         /// <summary>
@@ -352,22 +310,21 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
         /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="Description"/></param>
         /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
+        /// for <see cref="DisplayName"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
         /// <param name="onClick">an action that shall be executed when a user clicks the menu item</param>
         /// <param name="tag">an arbitrary object associated with the menu item.
         /// E.g. company info for login selector</param>
-        public void AddGuiAppDefinedLeaf(string name, string displayName, string description, 
-            Type resourceType, Action<MenuItem> onClick, object tag = null, string icon = "")
+        public void AddGuiAppDefinedLeaf(string name, string displayName, Type resourceType,
+            Action<MenuItem> onClick, object tag = null, string icon = "")
         {
             if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
                 $"Menu item {Name} is not a menu group.");
 
             if (null == Items) Items = new List<MenuItem>();
 
-            Items.Add(new MenuItem(name, displayName, description, resourceType, onClick, tag, icon));
+            Items.Add(new MenuItem(name, displayName, resourceType, onClick, tag, icon));
 
             IsEnabled = true;
         }
@@ -443,7 +400,6 @@ namespace A5Soft.CARMA.Application.Navigation
                     $"Plugin menu item {Name} has null resource type (plugins shall provide localized values).");
                 if (null == _displayName.Value) throw new InvalidOperationException(
                     $"Plugin menu item {Name} has null display name (plugins shall provide localized values).");
-
             }
             else if (ItemType == MenuItemType.Submenu)
             {
@@ -460,7 +416,6 @@ namespace A5Soft.CARMA.Application.Navigation
                     item.ValidatePluginMenuItem();
                 }
             }
-
         }
 
         internal void ReplaceUseCase(Type baseUseCaseInterfaceType, Type pluginUseCaseInterfaceType)
@@ -496,6 +451,5 @@ namespace A5Soft.CARMA.Application.Navigation
         }
 
         #endregion
-
     }
 }

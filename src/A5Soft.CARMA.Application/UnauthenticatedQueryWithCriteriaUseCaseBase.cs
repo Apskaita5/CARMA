@@ -169,5 +169,11 @@ namespace A5Soft.CARMA.Application
         {
             return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetButtonTitle();
         }
+
+        /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle"/>
+        public string GetMenuTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetMenuTitle();
+        }
     }
 }

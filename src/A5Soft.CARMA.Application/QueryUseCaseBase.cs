@@ -103,5 +103,10 @@ namespace A5Soft.CARMA.Application
         public IEntityMetadata GetMetadata()
             => MetadataProvider.GetEntityMetadata<TResult>();
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle"/>
+        public string GetMenuTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetMenuTitle();
+        }
     }
 }

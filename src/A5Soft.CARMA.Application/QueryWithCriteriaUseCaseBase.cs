@@ -135,5 +135,10 @@ namespace A5Soft.CARMA.Application
             return ValidationProvider.ValidatePoco(criteria);
         }
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle"/>
+        public string GetMenuTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetMenuTitle();
+        }
     }
 }

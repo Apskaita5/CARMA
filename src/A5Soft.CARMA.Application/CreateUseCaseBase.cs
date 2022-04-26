@@ -103,6 +103,11 @@ namespace A5Soft.CARMA.Application
             return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetButtonTitle();
         }
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle"/>
+        public string GetMenuTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetMenuTitle();
+        }
 
         /// <summary>
         /// Implement this method for any actions that should be taken before remote invocation.

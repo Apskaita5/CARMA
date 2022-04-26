@@ -23,7 +23,6 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         private Type _resourceType;
         private readonly LocalizableString _nameForNew = new LocalizableString(nameof(NameForNew));
         private readonly LocalizableString _nameForOld = new LocalizableString(nameof(NameForOld));
-        private readonly LocalizableString _nameForCreateNew = new LocalizableString(nameof(NameForCreateNew));
         private readonly LocalizableString _helpUri = new LocalizableString(nameof(HelpUri));
 
         #endregion
@@ -108,43 +107,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
                 }
             }
         }
-
-        /// <summary>
-        /// Gets or sets the NameForCreateNew attribute property, which may be a resource key string.
-        /// <para>
-        /// Consumers must use the <see cref="GetNameForCreateNew"/> method to retrieve the UI display string.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// The property contains either the literal, non-localized string or the resource key
-        /// to be used in conjunction with <see cref="ResourceType"/> to configure a localized
-        /// description for display.
-        /// <para>
-        /// The <see cref="GetNameForCreateNew"/> method will return either the literal, non-localized
-        /// string or the localized string when <see cref="ResourceType"/> has been specified.
-        /// </para>
-        /// </remarks>
-        /// <value>
-        /// NameForCreateNew is generally used as a text for a menu item or a button (tooltip)
-        /// that create a new instance of the class bearing this attribute.
-        /// A <c>null</c> or empty string is legal, and consumers must allow for that.
-        /// </value>
-        [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods", Justification = "The property and method are a matched pair")]
-        public string NameForCreateNew
-        {
-            get
-            {
-                return this._nameForCreateNew.Value;
-            }
-            set
-            {
-                if (this._nameForCreateNew.Value != value)
-                {
-                    this._nameForCreateNew.Value = value;
-                }
-            }
-        }
-
+                                                 
         /// <summary>
         /// Gets or sets the HelpUri attribute property, which may be a resource key string.
         /// <para>
@@ -198,7 +161,6 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
 
                     this._nameForNew.ResourceType = value;
                     this._nameForOld.ResourceType = value;
-                    this._nameForCreateNew.ResourceType = value;
                 }
             }
         }
@@ -266,37 +228,6 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         }
 
         /// <summary>
-        /// Gets the UI display string for NameForCreateNew.
-        /// <para>
-        /// This can be either a literal, non-localized string provided to <see cref="NameForCreateNew"/>
-        /// or the localized string found when <see cref="ResourceType"/> has been specified
-        /// and <see cref="NameForCreateNew"/> represents a resource key within that resource type.
-        /// </para>
-        /// </summary>
-        /// <returns>
-        /// When <see cref="ResourceType"/> has not been specified, the value of
-        /// <see cref="NameForCreateNew"/> will be returned.
-        /// <para>
-        /// When <see cref="ResourceType"/> has been specified and <see cref="NameForCreateNew"/>
-        /// represents a resource key within that resource type, then the localized value will be returned.
-        /// </para>
-        /// <para>
-        /// Can return <c>null</c> and will not fall back onto other values, as it's more likely for the
-        /// consumer to want to fall back onto the property name.
-        /// </para>
-        /// </returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// After setting both the <see cref="ResourceType"/> property and the <see cref="NameForCreateNew"/>
-        /// property, but a public static property with a name matching the <see cref="NameForCreateNew"/>
-        /// value couldn't be found on the <see cref="ResourceType"/>.
-        /// </exception>
-        [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "This method does work using a property of the same name")]
-        public string GetNameForCreateNew()
-        {
-            return this._nameForCreateNew.GetLocalizableValue();
-        }
-
-        /// <summary>
         /// Gets a (localized) help URI for respective help file/resource topic about the entity.
         /// <para>
         /// This can be either a literal, non-localized string provided to <see cref="HelpUri"/>
@@ -328,6 +259,5 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         }
 
         #endregion
-
     }
 }

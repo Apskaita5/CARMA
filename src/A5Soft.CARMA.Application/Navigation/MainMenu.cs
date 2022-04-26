@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Application.Navigation
 {
@@ -18,14 +19,12 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
         /// <param name="displayName">a resource key string for <see cref="MenuItem.DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="MenuItem.Description"/></param>
         /// <param name="resourceType"><see cref="Type"/> that contains the resources
         /// for <see cref="MenuItem.DisplayName"/> and <see cref="MenuItem.Description"/></param>
         /// <param name="icon">Icon of the menu item if exists.</param>
-        public MenuItem AddMainMenuTopGroup(string name, string displayName, string description,
-            Type resourceType, string icon = "")
+        public MenuItem AddMainMenuTopGroup(string name, string displayName, Type resourceType, string icon = "")
         {
-            var result = MenuItem.CreateMainMenuTopGroup(name, displayName, description, resourceType, icon);
+            var result = MenuItem.CreateMainMenuTopGroup(name, displayName, resourceType, icon);
             TopItems.Add(result);
             return result;
         }
@@ -33,19 +32,13 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Adds a top leaf menu item.
         /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="MenuItem.DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="MenuItem.Description"/></param>
-        /// <param name="resourceType"><see cref="Type"/> that contains the resources
-        /// for <see cref="MenuItem.DisplayName"/> and <see cref="MenuItem.Description"/></param>
+        /// <param name="metadataProvider">a metadata provider for use case localized descriptions</param>
         /// <param name="icon">Icon of the menu item if exists.</param>
         /// <param name="useCaseType">A type of the (main) use case that handles action
         /// associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
-        public void AddMainMenuTopItem(string name, string displayName,
-            string description, Type resourceType, Type useCaseType, string icon = "")
+        public void AddMainMenuTopItem(IMetadataProvider metadataProvider, Type useCaseType, string icon = "")
         {
-            TopItems.Add(MenuItem.CreateMainMenuTopItem(name, displayName, description, 
-                resourceType, useCaseType, icon));
+            TopItems.Add(MenuItem.CreateMainMenuTopItem(metadataProvider, useCaseType, icon));
         }
 
         /// <summary>
@@ -100,6 +93,5 @@ namespace A5Soft.CARMA.Application.Navigation
                 }
             }
         }
-
     }
 }

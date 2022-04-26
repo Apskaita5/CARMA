@@ -124,6 +124,12 @@ namespace A5Soft.CARMA.Application
             return MetadataProvider.GetEntityMetadata(criteriaType);
         }
 
+        /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle"/>
+        public string GetMenuTitle()
+        {
+            return MetadataProvider.GetUseCaseMetadata(this.GetType()).GetMenuTitle();
+        }
+
         /// <summary>
         /// Validates a criteria (as a POCO object) and returns a broken rules collection
         /// that can be used to determine whether the criteria is valid and what are the

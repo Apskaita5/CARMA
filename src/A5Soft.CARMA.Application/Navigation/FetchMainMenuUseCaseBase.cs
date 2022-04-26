@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Application.Navigation
 {
@@ -15,17 +16,19 @@ namespace A5Soft.CARMA.Application.Navigation
     public abstract class FetchMainMenuUseCaseBase : IUseCase
     {
         private readonly IAuthenticationStateProvider _authenticationStateProvider;
-        private readonly IClientDataPortal _dataPortal;
+        private readonly IClientDataPortal _dataPortal;        
         protected readonly ILogger _logger;
 
         protected FetchMainMenuUseCaseBase(IAuthenticationStateProvider authenticationStateProvider, 
-            IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider, ILogger logger)
+            IClientDataPortal dataPortal, IAuthorizationProvider authorizationProvider,
+            IMetadataProvider metadataProvider, ILogger logger)
         {
             _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
             _authenticationStateProvider = authenticationStateProvider 
                 ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
             AuthorizationProvider = authorizationProvider 
                 ?? throw new ArgumentNullException(nameof(authorizationProvider));
+            MetadataProvider = metadataProvider ?? throw new ArgumentNullException(nameof(metadataProvider));
             _logger = logger;
         }
 
@@ -42,6 +45,11 @@ namespace A5Soft.CARMA.Application.Navigation
         /// Gets an authorization service.
         /// </summary>
         protected IAuthorizationProvider AuthorizationProvider { get; }
+
+        /// <summary>
+        /// Gets a metadata provider service.
+        /// </summary>
+        protected IMetadataProvider MetadataProvider { get; }
 
 
         /// <summary>

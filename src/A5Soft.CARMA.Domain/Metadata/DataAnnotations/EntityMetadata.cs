@@ -115,15 +115,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
             var value = _displayAttribute.GetNameForOld();
             return value.IsNullOrWhiteSpace() ? EntityType.Name.SplitCamelCase() : value;
         }
-
-        /// <inheritdoc cref="IEntityMetadata.GetDisplayNameForCreateNew" />
-        public string GetDisplayNameForCreateNew()
-        {
-            if (_displayAttribute.IsNull()) return string.Empty;
-
-            return _displayAttribute.GetNameForCreateNew() ?? string.Empty;
-        }
-
+                                      
         /// <inheritdoc cref="IEntityMetadata.GetHelpUri" />
         public string GetHelpUri()
         {

@@ -62,13 +62,6 @@ namespace A5Soft.CARMA.Domain.Metadata
         string GetDisplayNameForOld();
 
         /// <summary>
-        /// Gets a localized value that is used to display a description in the UI
-        /// for a menu item or button (tooltip) that create a new instance of the entity.
-        /// </summary>
-        /// <returns>a localized value that is used for display in the UI</returns>
-        string GetDisplayNameForCreateNew();
-
-        /// <summary>
         /// Gets an URI for help file and topic for the entity.
         /// </summary>
         string GetHelpUri();
