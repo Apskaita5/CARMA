@@ -683,12 +683,15 @@ namespace A5Soft.CARMA.Domain
                 foreach (var iChild in childrenByInterface)
                 {
                     found = false;
-                    foreach (IDomainEntity<TChild> child in this)
+                    if (!iChild.IsNew)
                     {
-                        if (child.Id == iChild.Id)
+                        foreach (IDomainEntity<TChild> child in this)
                         {
-                           found = true;
-                           break;
+                            if (child.Id == iChild.Id)
+                            {
+                                found = true;
+                                break;
+                            }
                         }
                     }
 
