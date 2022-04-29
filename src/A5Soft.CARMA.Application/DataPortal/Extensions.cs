@@ -9,7 +9,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
-    public static class Extensions
+    internal static class Extensions
     {
         private static readonly JsonSerializerSettings DataPortalSerializationSettings 
             = new JsonSerializerSettings() { ContractResolver = new CustomResolver() };

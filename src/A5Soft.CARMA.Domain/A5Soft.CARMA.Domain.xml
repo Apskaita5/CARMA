@@ -1595,7 +1595,7 @@
             <summary>
             Returns true if the string value is null or empty or consists from whitespaces only.
             </summary>
-            <param name="value">a string value to evaluate</param>
+            <param name="value">a string value to evaluate</param> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Extensions.ValueOrDefault``1(System.Collections.Generic.IDictionary{System.String,``0},System.String)">
             <summary>
@@ -1604,7 +1604,7 @@
             <typeparam name="T">type of dictionary values</typeparam>
             <param name="dictionary">dictionary to search</param>
             <param name="key">key to find</param>
-            <returns>a dictionary value by key or null, if no such key in the dictionary</returns>
+            <returns>a dictionary value by key or null, if no such key in the dictionary</returns> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Extensions.ValidatePoco``1(A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,``0)">
             <summary>
@@ -1952,6 +1952,11 @@
         <member name="M:A5Soft.CARMA.Domain.LookupBase`1.GetHashCode">
             <inheritdoc />
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Math.Extensions">
+            <summary>
+            Accounting specific math methods.
+            </summary>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.AccountingRound(System.Double,System.Int32)">
             <summary>
             Returns a double value rounded using accounting algorithm.
@@ -1970,14 +1975,14 @@
             <param name="digits">the rounding order</param>
             <exception cref="T:System.ArgumentOutOfRangeException">Round order should be between 0 and 15.</exception>
             <remarks>Equivalent to Decimal.Round(value, digits, MidpointRounding.AwayFromZero).
-            Used for consistent rounding behaviour.</remarks>
+            Used for consistent rounding behaviour.</remarks>   
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.EqualsTo(System.Double,System.Double)">
             <summary>
             Compares double values for equality using double.Epsilon.
             </summary>
             <param name="value">the first value to compare</param>
-            <param name="valueToCompare">the second value to compare</param>
+            <param name="valueToCompare">the second value to compare</param> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.EqualsTo(System.Double,System.Double,System.Double)">
             <summary>
@@ -1985,7 +1990,7 @@
             </summary>
             <param name="value">the first value to compare</param>
             <param name="valueToCompare">the second value to compare</param>
-            <param name="epsilon">the max value diff to ignore</param>
+            <param name="epsilon">the max value diff to ignore</param> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.EqualsTo(System.Double,System.Double,System.Int32)">
             <summary>
@@ -1993,7 +1998,7 @@
             </summary>
             <param name="value">the first value to compare</param>
             <param name="valueToCompare">the second value to compare</param>
-            <param name="roundOrder">the round order applicable</param>
+            <param name="roundOrder">the round order applicable</param> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.GreaterThan(System.Double,System.Double)">
             <summary>
@@ -2008,7 +2013,7 @@
             </summary>
             <param name="value">the first value to compare</param>
             <param name="valueToCompare">the second value to compare</param>
-            <param name="epsilon">the max value diff to ignore</param>
+            <param name="epsilon">the max value diff to ignore</param> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Math.Extensions.GreaterThan(System.Double,System.Double,System.Int32)">
             <summary>
@@ -2957,6 +2962,88 @@
             Gets an URI for help file and topic for the use case.
             </summary>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Orm.Extensions">
+            <summary>
+            Methods for maping <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> and database key values.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.ToIdentity``1(System.Nullable{System.Int32})">
+            <summary>
+            Converts the primitive key value to <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> for the key value</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.ToIdentity``1(System.Nullable{System.Int64})">
+            <summary>
+            Converts the primitive key value to <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> for the key value</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.ToIdentity``1(System.Nullable{System.Guid})">
+            <summary>
+            Converts the primitive key value to <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> for the key value</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.ToIdentity``1(System.Guid)">
+            <summary>
+            Converts the primitive key value to <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> for the key value</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.ToIdentity``1(System.String)">
+            <summary>
+            Converts the primitive key value to <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> for the key value</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.AsInteger``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> to a primitive key value used by a database.
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a primitive key value for a database</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.AsNullableInteger``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> to a primitive key value used by a database.
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a primitive key value for a database</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.AsLong``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> to a primitive key value used by a database.
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a primitive key value for a database</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.AsNullableLong``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> to a primitive key value used by a database.
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a primitive key value for a database</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.AsGuid``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> to a primitive key value used by a database.
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a primitive key value for a database</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.AsNullableGuid``1(A5Soft.CARMA.Domain.DomainEntityIdentity{``0})">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/> to a primitive key value used by a database.
+            </summary>
+            <typeparam name="T">a type of the <see cref="T:A5Soft.CARMA.Domain.DomainEntity`1"/> that the key is meant to identify</typeparam>
+            <returns>a primitive key value for a database</returns>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.String)">
             <summary>
             Gets a value indicating whether the value is a (potentially) valid primary key.
@@ -2991,13 +3078,13 @@
             <summary>
             Gets a value indicating whether the value is a (potentially) valid primary key.
             </summary>
-            <param name="value"></param>
+            <param name="value"></param> 
         </member>
         <member name="M:A5Soft.CARMA.Domain.Orm.Extensions.IsValidKey(System.Nullable{System.Guid})">
             <summary>
             Gets a value indicating whether the value is a (potentially) valid primary key.
             </summary>
-            <param name="value"></param>
+            <param name="value"></param> 
         </member>
         <member name="T:A5Soft.CARMA.Domain.Reflection.Extensions">
             <summary>

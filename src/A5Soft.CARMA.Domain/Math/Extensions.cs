@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace A5Soft.CARMA.Domain.Math
 {
+    /// <summary>
+    /// Accounting specific math methods.
+    /// </summary>
     public static class Extensions
     {
-
         private static readonly double doubleRoundLimit = 1e16d;
-
         private const int maxRoundingDigits = 15;
 
         // This table is required for the Round function which can specify the number of digits to round to
@@ -24,6 +26,8 @@ namespace A5Soft.CARMA.Domain.Math
         /// <exception cref="ArgumentOutOfRangeException">Round order should be between 0 and 20.</exception>
         /// <remarks>Implements custom AwayFromZero rounding for double values.
         /// Used for consistent rounding behaviour.</remarks>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static double AccountingRound(this double value, int digits)
         {
             if (digits < 0 || digits > maxRoundingDigits)
@@ -54,7 +58,9 @@ namespace A5Soft.CARMA.Domain.Math
         /// <param name="digits">the rounding order</param>
         /// <exception cref="ArgumentOutOfRangeException">Round order should be between 0 and 15.</exception>
         /// <remarks>Equivalent to Decimal.Round(value, digits, MidpointRounding.AwayFromZero).
-        /// Used for consistent rounding behaviour.</remarks>
+        /// Used for consistent rounding behaviour.</remarks>   
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static decimal AccountingRound(this decimal value, int digits)
         {
             if (digits < 0 || digits > 15)
@@ -68,7 +74,9 @@ namespace A5Soft.CARMA.Domain.Math
         /// Compares double values for equality using double.Epsilon.
         /// </summary>
         /// <param name="value">the first value to compare</param>
-        /// <param name="valueToCompare">the second value to compare</param>
+        /// <param name="valueToCompare">the second value to compare</param> 
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool EqualsTo(this double value, double valueToCompare)
         {
             return !((System.Math.Abs(value - valueToCompare) > double.Epsilon));
@@ -79,7 +87,9 @@ namespace A5Soft.CARMA.Domain.Math
         /// </summary>
         /// <param name="value">the first value to compare</param>
         /// <param name="valueToCompare">the second value to compare</param>
-        /// <param name="epsilon">the max value diff to ignore</param>
+        /// <param name="epsilon">the max value diff to ignore</param> 
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool EqualsTo(this double value, double valueToCompare, double epsilon)
         {
             return !((System.Math.Abs(value - valueToCompare) > epsilon));
@@ -90,7 +100,9 @@ namespace A5Soft.CARMA.Domain.Math
         /// </summary>
         /// <param name="value">the first value to compare</param>
         /// <param name="valueToCompare">the second value to compare</param>
-        /// <param name="roundOrder">the round order applicable</param>
+        /// <param name="roundOrder">the round order applicable</param> 
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool EqualsTo(this double value, double valueToCompare, int roundOrder)
         {
             return !((System.Math.Abs(value - valueToCompare) > 
@@ -102,6 +114,8 @@ namespace A5Soft.CARMA.Domain.Math
         /// </summary>
         /// <param name="value">the first value to compare</param>
         /// <param name="valueToCompare">the second value to compare</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool GreaterThan(this double value, double valueToCompare)
         {
             return ((value - valueToCompare) > double.Epsilon);
@@ -112,7 +126,9 @@ namespace A5Soft.CARMA.Domain.Math
         /// </summary>
         /// <param name="value">the first value to compare</param>
         /// <param name="valueToCompare">the second value to compare</param>
-        /// <param name="epsilon">the max value diff to ignore</param>
+        /// <param name="epsilon">the max value diff to ignore</param> 
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool GreaterThan(this double value, double valueToCompare, double epsilon)
         {
             return ((value - valueToCompare) > epsilon);
@@ -124,10 +140,11 @@ namespace A5Soft.CARMA.Domain.Math
         /// <param name="value">the first value to compare</param>
         /// <param name="valueToCompare">the second value to compare</param>
         /// <param name="roundOrder">the round order applicable</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool GreaterThan(this double value, double valueToCompare, int roundOrder)
         {
             return ((value - valueToCompare) > (1.0 / System.Math.Pow(10.0, roundOrder + 1)));
         }
-
     }
 }

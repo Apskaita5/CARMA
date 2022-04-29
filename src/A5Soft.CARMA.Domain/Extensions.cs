@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using A5Soft.CARMA.Domain.Rules;
@@ -32,6 +33,8 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         /// <typeparam name="T">a type of the object to test</typeparam>
         /// <param name="value">an object to test against null</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool IsNull<T>(this T value) where T : class
         {
             return ReferenceEquals(value, null) || DBNull.Value == value;
@@ -43,6 +46,8 @@ namespace A5Soft.CARMA.Domain
         /// <param name="reference"></param>
         /// <param name="referenceToCompare"></param>
         /// <returns>a value indicating whether the reference is to the same domain entity</returns>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool ReferenceEqualsTo(this IDomainEntityReference reference, 
             IDomainEntityReference referenceToCompare)
         {
@@ -61,31 +66,37 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         /// <typeparam name="T">a type of entity that is expected to be referenced</typeparam>
         /// <param name="id">an identity to check</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static void EnsureValidIdentityFor<T>(this DomainEntityIdentity<T> id)
         {
             if (null == id) throw new ArgumentException(
                 $"The identity does not reference any existing domain entity.", nameof(id));
         }
-          
+
         /// <summary>
         /// Returns true if the string value is null or empty or consists from whitespaces only.
         /// </summary>
-        /// <param name="value">a string value to evaluate</param>
+        /// <param name="value">a string value to evaluate</param> 
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static bool IsNullOrWhiteSpace(this string value)
         {
             return (null == value || string.IsNullOrEmpty(value.Trim()));
         }
-                    
+
         /// <summary>
         /// Gets a dictionary value by key or null, if no such key in the dictionary.
         /// </summary>
         /// <typeparam name="T">type of dictionary values</typeparam>
         /// <param name="dictionary">dictionary to search</param>
         /// <param name="key">key to find</param>
-        /// <returns>a dictionary value by key or null, if no such key in the dictionary</returns>
+        /// <returns>a dictionary value by key or null, if no such key in the dictionary</returns> 
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public static T ValueOrDefault<T>(this IDictionary<string, T> dictionary, string key)
         {
-            if (dictionary.ContainsKey(key)) return dictionary[key];
+            if (dictionary.TryGetValue(key, out var result)) return result;
             return default;
         }
 
