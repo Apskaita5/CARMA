@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using A5Soft.CARMA.Domain.Math;
@@ -27,6 +28,8 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         protected DomainObject(IValidationEngineProvider validationEngineProvider)
         {
             if (validationEngineProvider.IsNull()) throw new ArgumentNullException(nameof(validationEngineProvider));
@@ -39,6 +42,8 @@ namespace A5Soft.CARMA.Domain
         /// Creates a copy of the domain object.
         /// </summary>
         /// <param name="objectToCopy">a domain object to copy</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         protected DomainObject(T objectToCopy)
         {
             if (objectToCopy.IsNull()) throw new ArgumentNullException(nameof(objectToCopy));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;
@@ -26,6 +27,8 @@ namespace A5Soft.CARMA.Domain
         /// Creates a parent instance of the object.
         /// </summary>
         /// <param name="validationEngineProvider">Validation engine to use for child items.</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public DomainBindingList(IValidationEngineProvider validationEngineProvider)
         {
             Initialize();
@@ -39,6 +42,8 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         /// <param name="parent">a parent of the list</param>
         /// <param name="validationEngineProvider">Validation engine to use for child items.</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public DomainBindingList(IDomainObject parent, IValidationEngineProvider validationEngineProvider)
         {
             Initialize();
@@ -54,6 +59,8 @@ namespace A5Soft.CARMA.Domain
         /// <param name="listToCopy">a list to copy</param>
         /// <param name="newParent">a (new) parent for the new list</param>
         /// <param name="copyChildMethod">a method to copy children</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         public DomainBindingList(DomainBindingList<TChild> listToCopy, IDomainObject newParent,
             Func<TChild, TChild> copyChildMethod)
         {

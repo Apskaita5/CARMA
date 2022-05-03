@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;
 
@@ -20,12 +21,16 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         protected DomainEntity(IValidationEngineProvider validationEngineProvider) 
             : base(validationEngineProvider) {}
 
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         protected DomainEntity(DomainEntityIdentity<T> identity, IValidationEngineProvider validationEngineProvider, 
             bool allowNewIdentity = false) : base(validationEngineProvider)
         {
@@ -37,12 +42,16 @@ namespace A5Soft.CARMA.Domain
             if (!identity.IsNull()) identity.EnsureValidIdentityFor<T>();
             
             Id = identity;
+
+            if (null != identity) MarkClean();
         }
 
         /// <summary>
         /// Creates a copy of the domain entity.
         /// </summary>
         /// <param name="entityToCopy">an entity to copy</param>
+        [DebuggerHidden]
+        [DebuggerStepThrough]
         protected DomainEntity(T entityToCopy) : base(entityToCopy)
         { }
 
