@@ -2165,6 +2165,48 @@
         <member name="M:A5Soft.CARMA.Application.UnauthenticatedCommandWithParameterUseCaseBase`1.GetMenuTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
+        <member name="T:A5Soft.CARMA.Application.UnauthenticatedQueryUseCaseBase`1">
+            <summary>
+            A base use case for an unauthenticated query operation (that gets a query result
+            for an unauthenticated user without a query criteria).
+            E.g. create signup request use case returns a new sign up request instance
+            preinitialized with the profile values.
+            </summary>
+            <typeparam name="TResult">a type of the query result (must be binary serializable)</typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryUseCaseBase`1.InvokeAsync(System.Threading.CancellationToken)">
+            <summary>
+            Gets a query result.
+            </summary>
+            <param name="ct">cancellation token (if any)</param>
+            <returns>a query result</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryUseCaseBase`1.QueryIntAsync(System.Threading.CancellationToken)">
+            <summary>
+            Implement this method to fetch a query result.
+            </summary>
+            <returns>a query result</returns>
+            <remarks>This method is always executed on server side (if data portal is configured).</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryUseCaseBase`1.BeforeDataPortalAsync(System.Threading.CancellationToken)">
+            <summary>
+            Implement this method for any actions that should be taken before remote invocation.
+            Only invoked if a remote data portal is used.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryUseCaseBase`1.AfterDataPortalAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Implement this method for any actions that should be taken after
+            a successful remote invocation.
+            Only invoked if a remote data portal is used.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.UnauthenticatedQueryUseCaseBase`1.GetMetadata">
+            <summary>
+            Gets metadata for the entity fetched.
+            Returns null if the entity is not a class or an interface.
+            </summary>
+        </member>
         <member name="T:A5Soft.CARMA.Application.UnauthenticatedQueryWithCriteriaUseCaseBase`2">
             <summary>
             A base use case for an unauthenticated query operation (that gets a query result
