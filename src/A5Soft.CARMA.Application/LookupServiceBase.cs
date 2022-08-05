@@ -28,6 +28,7 @@ namespace A5Soft.CARMA.Application
         protected readonly ILogger _logger;
         private readonly IClientDataPortal _dataPortal;
         private readonly IAuthenticationStateProvider _authenticationStateProvider;
+        protected bool _allowAnonymousUseCases = false;
 
 
         /// <inheritdoc cref="IAuthorizedUseCase.GetIdentityAsync" />
@@ -139,9 +140,12 @@ namespace A5Soft.CARMA.Application
 
         private async Task AuthorizeAsync(Type requesterType)
         {
-            if (!typeof(IAuthorizedUseCase).IsAssignableFrom(requesterType))
+            if (!_allowAnonymousUseCases && !typeof(IAuthorizedUseCase).IsAssignableFrom(requesterType))
                 throw new ArgumentException($"Only use cases that implement IAuthorizedUseCase " +
                     $"can request lookup values while {requesterType.FullName} does not.");
+            if (!typeof(IUseCase).IsAssignableFrom(requesterType))
+                throw new ArgumentException($"Only use cases can request lookup values while " +
+                    $"{requesterType.FullName} is not.");
 
             UseCaseAttribute attribute = null;
             foreach (var implementedInterface in requesterType.GetInterfaces())
@@ -155,6 +159,8 @@ namespace A5Soft.CARMA.Application
             if (null == attribute.LookupTypes || Array.IndexOf(attribute.LookupTypes, typeof(TLookup)) < 0)
                 throw new ArgumentException($"Use case {requesterType.FullName} " +
                     $"does not require a lookup of type {typeof(TLookup).FullName}.");
+
+            if (!typeof(IAuthorizedUseCase).IsAssignableFrom(requesterType)) return;
 
             var authorizer = AuthorizationProvider.GetAuthorizer(requesterType);
             if (!authorizer.IsAuthorized(await GetIdentityAsync())) throw new SecurityException(
