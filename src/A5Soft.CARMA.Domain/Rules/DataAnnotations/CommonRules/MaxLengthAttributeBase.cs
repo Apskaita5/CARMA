@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -9,17 +7,9 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
     /// A base class for max string length validation.
     /// </summary> 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public abstract class MaxLengthAttributeBase : System.ComponentModel.DataAnnotations.StringLengthAttribute,
-        IPropertyValidationAttribute
+    public abstract class MaxLengthAttributeBase : PropertyRuleAttributeBase
     {
-        /// <summary>
-        /// Gets or sets a value indicating severity of broken rule.
-        /// </summary>
-        public RuleSeverity Severity { get; }
-
-        /// <inheritdoc />
-        public override bool RequiresValidationContext
-            => true;
+        private readonly static Type[] _supportedValueTypes = new Type[] { typeof(string) };
 
 
         /// <summary>
@@ -28,43 +18,33 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// <param name="maximumLength">maximum string length</param>
         /// <param name="severity">a value indicating severity of broken rule</param>
         protected MaxLengthAttributeBase(int maximumLength, RuleSeverity severity = RuleSeverity.Error)
-            : base(maximumLength)
+            : base()
         {
             Severity = severity;
-            MinimumLength = 0;
+            MaxLength = (uint)maximumLength;
         }
 
 
-        /// <inheritdoc />
-        public override bool IsValid(object value)
+        /// <summary>
+        /// Gets a max allowed string length.
+        /// </summary>
+        public uint MaxLength { get; }
+
+        /// <inheritdoc/>
+        protected override bool NullIsAlwaysValid => true;
+
+        /// <inheritdoc/>
+        protected override Type[] SupportedValueTypes => _supportedValueTypes;
+
+        /// <inheritdoc/>
+        protected override string GetErrorDescripton(object value, object entityInstance, Type entityType,
+            string propertyDisplayName, Dictionary<string, (object Value, string DisplayName)> otherProperties)
         {
-            if (Severity == RuleSeverity.Error) return IsValidInternal(value as string);
-            return true;
-        }
+            var validatedValue = (string)value;
 
-        /// <inheritdoc cref="IPropertyValidationAttribute.GetValidationResult" />
-        public BrokenRule GetValidationResult(object instance, IPropertyMetadata propInfo,
-            IEnumerable<Metadata.IPropertyMetadata> relatedProps)
-        {
-            if (IsValidInternal(propInfo.GetValue(instance) as string)) return null;
+            if (validatedValue.IsNullOrWhiteSpace() || validatedValue.Trim().Length <= MaxLength) return null;
 
-            return new BrokenRule(this.GetType().FullName, propInfo.Name,
-                GetLocalizedErrorMessageFor(propInfo.GetDisplayName()), Severity);
-        }
-
-
-        /// <inheritdoc />
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-        {
-            if (null == validationContext) throw new ArgumentNullException(nameof(validationContext));
-
-            if (Severity != RuleSeverity.Error || IsValidInternal(value as string)) return null;
-
-            var displayName = validationContext.DisplayName.IsNullOrWhiteSpace()
-                ? validationContext.GetPropertyDisplayName()
-                : validationContext.DisplayName;
-
-            return new ValidationResult(GetLocalizedErrorMessageFor(displayName));
+            return GetLocalizedErrorMessageFor(propertyDisplayName);
         }
 
         /// <summary>
@@ -73,11 +53,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// <param name="localizedPropName">a localized name of the property that is invalid</param>
         /// <returns>a localized error message for current culture</returns>
         protected abstract string GetLocalizedErrorMessageFor(string localizedPropName);
-
-        private bool IsValidInternal(string value)
-        {
-            return (value?.Trim().Length ?? 0) <= MaximumLength;
-        }
-
     }
 }

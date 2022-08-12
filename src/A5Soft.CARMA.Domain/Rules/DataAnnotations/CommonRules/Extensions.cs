@@ -44,9 +44,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             var displayAttr = prop.GetCustomAttributeWithInheritance<DisplayAttribute>();
 
             if (null == displayAttr) return otherPropertyName;
-            
+
             return displayAttr.GetName();
         }
-
     }
 }

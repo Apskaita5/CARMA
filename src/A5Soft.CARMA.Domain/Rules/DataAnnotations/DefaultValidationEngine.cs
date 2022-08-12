@@ -86,7 +86,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         public IEntityMetadata EntityMetadata { get; }
 
 
-        /// <inheritdoc cref="IValidationEngine.GetBrokenRules" />
+        /// <inheritdoc cref="IValidationEngine.GetBrokenRules(object, string)" />
         public List<BrokenRule> GetBrokenRules(object instance, string propName)
         {
             if (propName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propName));
@@ -121,7 +121,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             return result;
         }
 
-        /// <inheritdoc cref="IValidationEngine.GetBrokenRules" />
+        /// <inheritdoc cref="IValidationEngine.GetBrokenRules(object, string, bool)" />
         public List<BrokenRule> GetBrokenRules(object instance, string propName, bool includeDependentProps)
         {
             var result = GetBrokenRules(instance, propName);
@@ -139,7 +139,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             return result;
         }
 
-        /// <inheritdoc cref="IValidationEngine.GetBrokenRules" />
+        /// <inheritdoc cref="IValidationEngine.GetBrokenRules(object)" />
         public List<BrokenRule> GetBrokenRules(object instance)
         {
             EnsureInstanceIsValid(instance);
@@ -191,6 +191,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
                 $"Instance of type {instance.GetType().FullName} is not assignable to entity type {EntityMetadata.EntityType.FullName}.",
                     nameof(instance));
         }
-
     }
 }

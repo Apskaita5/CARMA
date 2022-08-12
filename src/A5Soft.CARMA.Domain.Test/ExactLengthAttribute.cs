@@ -15,7 +15,7 @@ namespace A5Soft.CARMA.Domain.Test
 
         protected override string GetLocalizedErrorMessageFor(string localizedPropName)
         {
-            return $"{localizedPropName} length should be {this.MaximumLength} characters.";
+            return $"{localizedPropName} length should be {this.RequiredLength} characters.";
         }
 
         public override bool IsValid(object value)

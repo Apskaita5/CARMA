@@ -1,27 +1,28 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain.Math;
+using System;
 using System.Collections.Generic;
-using A5Soft.CARMA.Domain.Math;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
     /// <summary>
-    /// A base class for (property) values equal rule.
+    /// A base class for (property) values greater than rule.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public abstract class EqualToAttributeBase : PropertyRuleAttributeBase
+    public abstract class GreaterThanAttributeBase : PropertyRuleAttributeBase
     {
-        private readonly static Type[] _supportedValueTypes = new Type[] { typeof(string), typeof(bool),
-            typeof(float), typeof(double), typeof(decimal), typeof(byte), typeof(short), typeof(ushort),
-            typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(bool?), typeof(float?),
-            typeof(double?), typeof(decimal?), typeof(byte?), typeof(short?), typeof(ushort?),
-            typeof(int?), typeof(uint?), typeof(long?), typeof(ulong?), typeof(IDomainEntityReference) };
+        private readonly static Type[] _supportedValueTypes = new Type[] { typeof(DateTime), typeof(float),
+            typeof(double), typeof(decimal), typeof(byte), typeof(short), typeof(ushort), typeof(int),
+            typeof(uint), typeof(long), typeof(ulong), typeof(DateTime?), typeof(float?),
+            typeof(double?), typeof(decimal?), typeof(byte?), typeof(short?), typeof(ushort?), typeof(int?),
+            typeof(uint?), typeof(long?), typeof(ulong?) };
 
 
         /// <summary>
-        /// (property) values equal rule
+        /// Property value is greater than <see cref="ReferenceProperty"/> value rule.
         /// </summary>
         /// <param name="referenceProperty">a name of the other property</param>
-        protected EqualToAttributeBase(string referenceProperty)
+        /// <remarks>For <see langword="null"/> values rule is not applied, i.e. always returns valid result.</remarks>
+        protected GreaterThanAttributeBase(string referenceProperty)
             : base()
         {
             if (referenceProperty.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(referenceProperty));
@@ -41,16 +42,21 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         public int SignificantDigits { get; set; } = 2;
 
         /// <summary>
-        /// Gets or sets a string comparision method.
+        /// Gets or sets a value indicating whether a time component of a <see cref="DateTime"/>
+        /// values should be evaluated.
+        /// Only applicable for <see cref="DateTime"/> properties. Default is false.
         /// </summary>
-        public StringComparison StringComparison { get; set; } = StringComparison.CurrentCulture;
+        public bool EvaluateTime { get; set; } = false;
 
-        /// <inheritdoc cref="IDependsOnProperties.DependsOnProperties" />
+        /// <inheritdoc />
         protected override List<string> DependsOnOtherProperties
             => new List<string>(new[] { ReferenceProperty });
 
         /// <inheritdoc />
         protected override bool EntityInstanceRequired => true;
+
+        /// <inheritdoc />
+        protected override bool NullIsAlwaysValid => true;
 
         /// <inheritdoc />
         protected override Type[] SupportedValueTypes => _supportedValueTypes;
@@ -77,8 +83,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         private bool IsValidInternal(object value, object otherValue, Type entityType, string propName)
         {
-            if (null == value && null == otherValue) return true;
-            if (null == value || null == otherValue) return false;
+            // Do not compare null values.
+            if (null == value || null == otherValue) return true;
 
             if (value.GetType() != otherValue.GetType()) throw new InvalidOperationException(
                 $"Property value types on entity {entityType.FullName} are not the same: {value.GetType().FullName} vs. {otherValue.GetType().FullName}.");
@@ -87,89 +93,82 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             {
                 if (otherValue is double doubleOtherValue)
                 {
-                    return doubleValue.EqualsTo(doubleOtherValue, SignificantDigits);
+                    return doubleValue.GreaterThan(doubleOtherValue, SignificantDigits);
                 }
             }
             else if (value is float floatValue)
             {
                 if (otherValue is float floatOtherValue)
                 {
-                    return !(System.Math.Abs(floatValue - floatOtherValue) > float.Epsilon);
+                    return floatValue - floatOtherValue > float.Epsilon;
                 }
             }
             else if (value is decimal decimalValue)
             {
                 if (otherValue is decimal decimalOtherValue)
                 {
-                    return decimalValue.AccountingRound(SignificantDigits) == decimalOtherValue.AccountingRound(SignificantDigits);
+                    return decimalValue.AccountingRound(SignificantDigits) > decimalOtherValue.AccountingRound(SignificantDigits);
+                }
+            }
+            else if (value is DateTime dateTimeValue)
+            {
+                if (otherValue is DateTime dateTimeOtherValue)
+                {
+                    if (EvaluateTime) return dateTimeValue > dateTimeOtherValue;
+                    return dateTimeValue.Date > dateTimeOtherValue.Date;
                 }
             }
             else if (value is int intValue)
             {
                 if (otherValue is int intOtherValue)
                 {
-                    return intValue == intOtherValue;
+                    return intValue > intOtherValue;
                 }
             }
             else if (value is uint uintValue)
             {
                 if (otherValue is uint uintOtherValue)
                 {
-                    return uintValue == uintOtherValue;
+                    return uintValue > uintOtherValue;
                 }
             }
             else if (value is long longValue)
             {
                 if (otherValue is long longOtherValue)
                 {
-                    return longValue == longOtherValue;
+                    return longValue > longOtherValue;
                 }
             }
             else if (value is ulong ulongValue)
             {
                 if (otherValue is ulong ulongOtherValue)
                 {
-                    return ulongValue == ulongOtherValue;
+                    return ulongValue > ulongOtherValue;
                 }
             }
             else if (value is byte byteValue)
             {
                 if (otherValue is byte byteOtherValue)
                 {
-                    return byteValue == byteOtherValue;
+                    return byteValue > byteOtherValue;
                 }
             }
             else if (value is short shortValue)
             {
                 if (otherValue is short shortOtherValue)
                 {
-                    return shortValue == shortOtherValue;
+                    return shortValue > shortOtherValue;
                 }
             }
             else if (value is ushort ushortValue)
             {
                 if (otherValue is ushort ushortOtherValue)
                 {
-                    return ushortValue == ushortOtherValue;
-                }
-            }
-            else if (value is string stringValue)
-            {
-                if (otherValue is string stringOtherValue)
-                {
-                    return stringValue.Trim().Equals(stringOtherValue.Trim(), StringComparison);
-                }
-            }
-            else if (value is IDomainEntityReference reference)
-            {
-                if (otherValue is IDomainEntityReference otherReference)
-                {
-                    return reference.ReferenceEqualsTo(otherReference);
+                    return ushortValue > ushortOtherValue;
                 }
             }
 
-            throw new InvalidOperationException($"Entity type {entityType} property {propName} value type " +
-                $"{value.GetType().FullName} is not implemented for rule {nameof(GreaterThanAttributeBase)}.");
+            throw new InvalidOperationException($"Entity type {entityType} property {propName} value type {value.GetType().FullName} is not implemented for rule {nameof(GreaterThanAttributeBase)}.");
         }
     }
 }

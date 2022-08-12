@@ -1,71 +1,60 @@
-﻿using A5Soft.CARMA.Domain.Metadata;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
-
     /// <summary>
     /// A base class for email rule.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public abstract class EmailAddressAttributeBase : System.ComponentModel.DataAnnotations.DataTypeAttribute, 
-        IPropertyValidationAttribute
+        public abstract class EmailAddressAttributeBase : PropertyRuleAttributeBase
     {
+        private readonly static Type[] _supportedValueTypes = new Type[] { typeof(string) };
+
+
+        /// <summary>
+        /// Email validation rule
+        /// </summary>
+        protected EmailAddressAttributeBase() : base() { }
+
 
         /// <summary>
         /// Gets or sets a value indicating whether multiple email addresses can be specified delimited by ;.
         /// </summary>
         public bool AllowMultipleAddresses { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating severity of broken rule.
-        /// </summary>
-        public RuleSeverity Severity { get; set; }
 
-        /// <inheritdoc />
-        public override bool RequiresValidationContext
-            => true;
+        /// <inheritdoc/>
+        protected override bool NullIsAlwaysValid => true;
 
+        /// <inheritdoc/>
+        protected override Type[] SupportedValueTypes => _supportedValueTypes;
 
-        /// <summary>
-        /// Email validation rule
-        /// </summary>
-        protected EmailAddressAttributeBase() : base(DataType.EmailAddress)
-        { }
-
-
-        /// <inheritdoc />
-        public override bool IsValid(object value)
+        /// <inheritdoc/>
+        protected override string GetErrorDescripton(object value, object entityInstance, Type entityType,
+            string propertyDisplayName, Dictionary<string, (object Value, string DisplayName)> otherProperties)
         {
-            if (Severity != RuleSeverity.Error) return true;
-            return IsValidInternal(value as string);
-        }
+            var email = (string)value;
 
-        /// <inheritdoc cref="IPropertyValidationAttribute.GetValidationResult" />
-        public BrokenRule GetValidationResult(object instance, IPropertyMetadata propInfo,
-            IEnumerable<IPropertyMetadata> relatedProps)
-        {
-            if (IsValidInternal(propInfo.GetValue(instance) as string)) return null;
+            if (email.IsNullOrWhiteSpace()) return null;
 
-            return new BrokenRule(this.GetType().FullName, propInfo.Name,
-                GetLocalizedErrorMessageFor(propInfo.GetDisplayName()), Severity);
-        }
+            bool isValid = true;
+            if (AllowMultipleAddresses)
+            {
+                foreach (var emailAddress in email.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (!IsValidEmailAddress(emailAddress.Trim()))
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+            else isValid = IsValidEmailAddress(email);
 
+            if (isValid) return null;
 
-        /// <inheritdoc />
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-        {
-            if (null == validationContext) throw new ArgumentNullException(nameof(validationContext));
-
-            if (Severity != RuleSeverity.Error || IsValidInternal(value as string)) return null;
-
-            var displayName = validationContext.DisplayName.IsNullOrWhiteSpace()
-                ? validationContext.GetPropertyDisplayName()
-                : validationContext.DisplayName;
-
-            return new ValidationResult(GetLocalizedErrorMessageFor(displayName));
+            return GetLocalizedErrorMessageFor(propertyDisplayName);
         }
 
         /// <summary>
@@ -75,21 +64,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// <returns>a localized error message for current culture</returns>
         protected abstract string GetLocalizedErrorMessageFor(string localizedPropName);
 
-        private bool IsValidInternal(string value)
-        {
-            if (value.IsNullOrWhiteSpace()) return true;
-
-            if (AllowMultipleAddresses)
-            {
-                foreach (var emailAddress in value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    if (!IsValidEmailAddress(emailAddress.Trim())) return false;
-                }
-            }
-            else return IsValidEmailAddress(value);
-
-            return true;
-        }
 
         private static bool IsValidEmailAddress(string emailAddress)
         {
@@ -105,6 +79,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
             return (atCount == 1 && emailAddress[0] != '@' && emailAddress[emailAddress.Length - 1] != '@');
         }
-        
     }
 }

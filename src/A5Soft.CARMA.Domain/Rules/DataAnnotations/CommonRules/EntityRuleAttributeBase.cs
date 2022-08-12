@@ -6,15 +6,15 @@ using A5Soft.CARMA.Domain.Metadata;
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
     /// <summary>
-    /// A base class for custom individual rule, i.e. a rule that is designed for
-    /// a specific property of a domain entity.
+    /// A base class for an entity rule, i.e. a rule that is designed for
+    /// a specific domain entity, not a particular property.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public abstract class CustomRuleAttributeBase : ValidationAttribute, 
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = true)]
+    public abstract class EntityRuleAttributeBase : ValidationAttribute,
         IPropertyValidationAttribute
     {
         /// <inheritdoc />
-        protected CustomRuleAttributeBase() { }
+        protected EntityRuleAttributeBase() { }
 
 
         /// <summary>
@@ -55,6 +55,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// </summary>
         /// <param name="instance">Domain object instance to validate.</param>
         protected abstract BrokenRule GetValidationResult(object instance);
-
     }
 }
