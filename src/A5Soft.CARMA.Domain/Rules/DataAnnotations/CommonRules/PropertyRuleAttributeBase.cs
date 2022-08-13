@@ -21,7 +21,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// <summary>
         /// Gets a value indicating severity of broken rule. Default - Error.
         /// </summary>
-        public RuleSeverity Severity { get; protected set; } = RuleSeverity.Error;
+        public RuleSeverity Severity { get; set; } = RuleSeverity.Error;
 
         /// <summary>
         /// Gets or sets a name of the bool switch property that controls
