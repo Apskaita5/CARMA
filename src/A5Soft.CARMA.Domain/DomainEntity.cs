@@ -23,7 +23,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainEntity(IValidationEngineProvider validationEngineProvider) 
+        protected DomainEntity(IValidationEngineProvider validationEngineProvider)
             : base(validationEngineProvider) {}
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace A5Soft.CARMA.Domain
             }
 
             if (!identity.IsNull()) identity.EnsureValidIdentityFor<T>();
-            
+
             Id = identity;
 
             if (null != identity) MarkClean();
@@ -56,7 +56,7 @@ namespace A5Soft.CARMA.Domain
         { }
 
         #endregion
-        
+
         #region Properties
 
         /// <summary>

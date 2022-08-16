@@ -1064,6 +1064,44 @@
             (i.e. checks rules and raises binding event).</remarks>
             <returns>true if the property has been changed, otherwise false</returns>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Guid@,System.Guid,System.Action)">
+            <summary>
+            Property setter that shall be used to set Guid properties.
+            </summary>
+            <param name="propertyName">a name of the property</param>
+            <param name="oldValue">current field value</param>
+            <param name="newValue">new field value</param>
+            <param name="postProcessing">an action to be executed after the property value is set;
+            if you specify the post processing action, it shall invoke PropertyHasChanged
+            (or PropertiesHaveChanged)</param>
+            <remarks>Does the following:
+            1. Checks if the new and old values are the same (if so, returns false);
+            2. Checks if the property is not locked due to the entity state (if so, raises binding event and returns false);
+            3. Raises OnPropertyChanging (i.e. binding event);
+            4. Updates property value to the new one;
+            5. Invokes post processing action or, if it's null, raises PropertyHasChanged
+            (i.e. checks rules and raises binding event).</remarks>
+            <returns>true if the property has been changed, otherwise false</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Nullable{System.Guid}@,System.Nullable{System.Guid},System.Action)">
+            <summary>
+            Property setter that shall be used to set nullable Guid properties.
+            </summary>
+            <param name="propertyName">a name of the property</param>
+            <param name="oldValue">current field value</param>
+            <param name="newValue">new field value</param>
+            <param name="postProcessing">an action to be executed after the property value is set;
+            if you specify the post processing action, it shall invoke PropertyHasChanged
+            (or PropertiesHaveChanged)</param>
+            <remarks>Does the following:
+            1. Checks if the new and old values are the same (if so, returns false);
+            2. Checks if the property is not locked due to the entity state (if so, raises binding event and returns false);
+            3. Raises OnPropertyChanging (i.e. binding event);
+            4. Updates property value to the new one;
+            5. Invokes post processing action or, if it's null, raises PropertyHasChanged
+            (i.e. checks rules and raises binding event).</remarks>
+            <returns>true if the property has been changed, otherwise false</returns>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.DomainObject`1.SetPropertyValue(System.String,System.Int32@,System.Int32,System.Action)">
             <summary>
             Property setter that shall be used to set int properties.
@@ -1637,6 +1675,11 @@
             E.g. for WinForms binding schema there should be only one PropertyChanged event
             raised per range of changed properties, while for WPF binding schema an event per
             each property in range should be raised.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.IChild">
+            <summary>
+            A domain object that is a child of other (parent) domain object.
             </summary>
         </member>
         <member name="P:A5Soft.CARMA.Domain.IChild.Parent">

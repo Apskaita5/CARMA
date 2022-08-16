@@ -19,7 +19,7 @@ namespace A5Soft.CARMA.Domain
     /// <remarks>inherit from this class for entities that have no identity
     /// (only one instance per domain, e.g. some common settings) and no auditing functionality</remarks>
     [Serializable]
-    public abstract class DomainObject<T> 
+    public abstract class DomainObject<T>
         : BindableBase, ITrackState, IChildInternal, INotifyChildChanged, IDataErrorInfo
         where T : DomainObject<T>
     {
@@ -65,7 +65,7 @@ namespace A5Soft.CARMA.Domain
         { /* allows subclass to initialize events before any other activity occurs */ }
                
         #endregion
-        
+
         #region IsDeleted, IsDirty, IsValid, IsSavable, ContainsNewData, HasWarnings, BrokenRules
 
         // keep track of whether we are deleted or dirty (isNew is defined by identity)
@@ -465,7 +465,7 @@ namespace A5Soft.CARMA.Domain
         #endregion
 
         #region Parent/Child link
-         
+
         [NonSerialized]
         private IDomainObject _parent;
         private bool _isChild;
@@ -519,7 +519,7 @@ namespace A5Soft.CARMA.Domain
 
         private readonly List<string> _statefulChildren = new List<string>();
         private readonly List<string> _bindableChildren = new List<string>();
-        
+
 
         /// <summary>
         /// Child field setter that shall be used to set child object fields (init or update)
@@ -564,7 +564,7 @@ namespace A5Soft.CARMA.Domain
 
             if (childValue is IChildInternal cin) cin.SetParent(this);
 
-            if (typeof(IBindable).IsAssignableFrom(childValue.GetType()) 
+            if (typeof(IBindable).IsAssignableFrom(childValue.GetType())
                 && !_bindableChildren.Contains(fieldName))
                 _bindableChildren.Add(fieldName);
 
@@ -1005,7 +1005,7 @@ namespace A5Soft.CARMA.Domain
         /// 7. Invokes post processing action or, if it's null, raises PropertyHasChanged
         /// (i.e. checks rules and raises binding event).</remarks>
         /// <returns>true if the property has been changed, otherwise false</returns>
-        protected bool SetChildPropertyValue<TValue>(string propertyName, string fieldName, 
+        protected bool SetChildPropertyValue<TValue>(string propertyName, string fieldName,
             ref TValue oldValue, TValue newValue, bool addEventHooks = true, Action postProcessing = null) 
             where TValue : class
         {
@@ -1181,6 +1181,85 @@ namespace A5Soft.CARMA.Domain
         /// (i.e. checks rules and raises binding event).</remarks>
         /// <returns>true if the property has been changed, otherwise false</returns>
         protected bool SetPropertyValue(string propertyName, ref char? oldValue, char? newValue, 
+            Action postProcessing = null)
+        {
+            if (propertyName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propertyName));
+
+            if (!oldValue.HasValue && !newValue.HasValue) return false;
+            if (oldValue != newValue)
+            {
+                if (!CanWriteProperty(propertyName))
+                {
+                    // notify UI to update value back to the old one
+                    OnPropertiesChanged(propertyName);
+                    return false;
+                }
+                OnPropertyChanging(propertyName);
+                oldValue = newValue;
+                if (null != postProcessing) postProcessing();
+                else PropertyHasChanged(propertyName);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Property setter that shall be used to set Guid properties.
+        /// </summary>
+        /// <param name="propertyName">a name of the property</param>
+        /// <param name="oldValue">current field value</param>
+        /// <param name="newValue">new field value</param>
+        /// <param name="postProcessing">an action to be executed after the property value is set;
+        /// if you specify the post processing action, it shall invoke PropertyHasChanged
+        /// (or PropertiesHaveChanged)</param>
+        /// <remarks>Does the following:
+        /// 1. Checks if the new and old values are the same (if so, returns false);
+        /// 2. Checks if the property is not locked due to the entity state (if so, raises binding event and returns false);
+        /// 3. Raises OnPropertyChanging (i.e. binding event);
+        /// 4. Updates property value to the new one;
+        /// 5. Invokes post processing action or, if it's null, raises PropertyHasChanged
+        /// (i.e. checks rules and raises binding event).</remarks>
+        /// <returns>true if the property has been changed, otherwise false</returns>
+        protected bool SetPropertyValue(string propertyName, ref Guid oldValue, Guid newValue,
+            Action postProcessing = null)
+        {
+            if (propertyName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propertyName));
+
+            if (oldValue != newValue)
+            {
+                if (!CanWriteProperty(propertyName))
+                {
+                    // notify UI to update value back to the old one
+                    OnPropertiesChanged(propertyName);
+                    return false;
+                }
+                OnPropertyChanging(propertyName);
+                oldValue = newValue;
+                if (null != postProcessing) postProcessing();
+                else PropertyHasChanged(propertyName);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Property setter that shall be used to set nullable Guid properties.
+        /// </summary>
+        /// <param name="propertyName">a name of the property</param>
+        /// <param name="oldValue">current field value</param>
+        /// <param name="newValue">new field value</param>
+        /// <param name="postProcessing">an action to be executed after the property value is set;
+        /// if you specify the post processing action, it shall invoke PropertyHasChanged
+        /// (or PropertiesHaveChanged)</param>
+        /// <remarks>Does the following:
+        /// 1. Checks if the new and old values are the same (if so, returns false);
+        /// 2. Checks if the property is not locked due to the entity state (if so, raises binding event and returns false);
+        /// 3. Raises OnPropertyChanging (i.e. binding event);
+        /// 4. Updates property value to the new one;
+        /// 5. Invokes post processing action or, if it's null, raises PropertyHasChanged
+        /// (i.e. checks rules and raises binding event).</remarks>
+        /// <returns>true if the property has been changed, otherwise false</returns>
+        protected bool SetPropertyValue(string propertyName, ref Guid? oldValue, Guid? newValue,
             Action postProcessing = null)
         {
             if (propertyName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propertyName));

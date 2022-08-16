@@ -25,7 +25,7 @@ namespace A5Soft.CARMA.Domain
         /// A (primary) key that identifies the domain entity instance.
         /// </summary>
         public string Key { get; }
-        
+
 
         public static bool operator ==(DomainEntityIdentity<T> first, DomainEntityIdentity<T> second)
         {
