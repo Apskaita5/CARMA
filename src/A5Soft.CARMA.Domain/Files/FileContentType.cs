@@ -1,4 +1,4 @@
-﻿namespace A5Soft.CARMA.Application
+﻿namespace A5Soft.CARMA.Domain.Files
 {
     /// <summary>
     /// A reference class for well known file types.

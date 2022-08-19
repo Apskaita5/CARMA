@@ -1653,6 +1653,151 @@
             <param name="validationEngine"></param>
             <param name="valueToValidate">value to validate</param>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Files.Extensions">
+            <summary>
+            Extension methods for handling files.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Files.Extensions.GetFileType(System.String)">
+            <summary>
+            Gets a type of the file for the file extension specified.
+            </summary>
+            <param name="fileExtension">a file extension to get a file type for</param>
+            <returns>a type of the file</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Files.Extensions.GetFileMediaType(A5Soft.CARMA.Domain.Files.FileType)">
+            <summary>
+            Gets a file media (MIME) type.
+            </summary>
+            <param name="fileType">a type of the file to get the media (MIME) type for</param>
+            <returns>file media (MIME) type</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Files.Extensions.GetFileExtension(A5Soft.CARMA.Domain.Files.FileType)">
+            <summary>
+            Gets an extension for the file of the specified type.
+            </summary>
+            <param name="fileType">a type of the file to get an extension for</param>
+            <returns>an extension for the file (prefixed with .)</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Files.FileContent">
+            <summary>
+            A container class for file data and metadata.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Files.FileContent.Content">
+            <summary>
+            Gets a (binary) file content.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Files.FileContent.ContentType">
+            <summary>
+            Gets a file content MIME type as defined by IANA.
+            https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Files.FileContent.FileName">
+            <summary>
+            Gets a name of the file.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Files.FileContent.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Files.FileContentType">
+            <summary>
+            A reference class for well known file types.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Files.FileType">
+            <summary>
+            A types of files handled by the app.
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Unknown">
+            <summary>
+            Unkown file type.
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Xml">
+            <summary>
+            xml file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Pdf">
+            <summary>
+            pdf file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Doc">
+            <summary>
+            doc file (old word)
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Docx">
+            <summary>
+            docx file (current word version)
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Xls">
+            <summary>
+            xls file (old excel)
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Xlsx">
+            <summary>
+            xlss file (current excel version)
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Json">
+            <summary>
+            json file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Png">
+            <summary>
+            png image file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Tiff">
+            <summary>
+            tiff image file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Html">
+            <summary>
+            html file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Csv">
+            <summary>
+            csv (comma separated values) file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Rtf">
+            <summary>
+            rtf (rich text) file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Txt">
+            <summary>
+            plain text file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Zip">
+            <summary>
+            zip file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.GZip">
+            <summary>
+            gzip file
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.Files.FileType.Adoc">
+            <summary>
+            adoc file (signed document)
+            </summary>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.IBindable">
             <summary>
             Interface implemented by bindable objects (entities and their lists)
@@ -3698,6 +3843,39 @@
             <paramref name="validationContext"/> has no <see cref="P:System.ComponentModel.DataAnnotations.ValidationContext.MemberName"/> set</exception>
             <exception cref="T:System.InvalidOperationException">no such property for the type</exception>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase">
+            <summary>
+            A base class for (allowed) file extension rule.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase.#ctor(A5Soft.CARMA.Domain.Files.FileType[])">
+            <summary>
+            (allowed) file extension rule
+            </summary>
+            <param name="allowedTypes">a list of allowed file types</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase.AllowedTypes">
+            <summary>
+            Gets a list of allowed file types.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase.NullIsAlwaysValid">
+            <inheritdoc/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase.SupportedValueTypes">
+            <inheritdoc/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase.GetErrorDescripton(System.Object,System.Object,System.Type,System.String,System.Collections.Generic.Dictionary{System.String,System.ValueTuple{System.Object,System.String}})">
+            <inheritdoc/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.FileExtensionAttributeBase.GetLocalizedErrorMessageFor(System.String,System.String)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="extension">a file extension that is invalid</param>
+            <param name="validExtensions">valid file extensions</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.GreaterThanAttributeBase">
             <summary>
             A base class for (property) values greater than rule.
@@ -3749,6 +3927,39 @@
             </summary>
             <param name="localizedPropName">a localized name of the property that is invalid</param>
             <param name="localizedOtherPropName">a localized name of the other property that is invalid</param>
+            <returns>a localized error message for current culture</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase">
+            <summary>
+            A base class for max file size rule.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase.#ctor(System.Int32,A5Soft.CARMA.Domain.Rules.RuleSeverity)">
+            <summary>
+            Max file size rule.
+            </summary>
+            <param name="maxSizeMB">max allowed file size (MB)</param>
+            <param name="severity">a severity of the rule</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase.MaxSizeMB">
+            <summary>
+            Gets a max allowed file size (MB).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase.NullIsAlwaysValid">
+            <inheritdoc />
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase.SupportedValueTypes">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase.GetErrorDescripton(System.Object,System.Object,System.Type,System.String,System.Collections.Generic.Dictionary{System.String,System.ValueTuple{System.Object,System.String}})">
+            <inheritdoc/>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxFileSizeAttributeBase.GetLocalizedErrorMessageFor(System.Decimal)">
+            <summary>
+            Implement this method to get a localized error message for current culture.
+            </summary>
+            <param name="actualSizeMB">file size that is invalid (too large)</param>
             <returns>a localized error message for current culture</returns>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.MaxLengthAttributeBase">

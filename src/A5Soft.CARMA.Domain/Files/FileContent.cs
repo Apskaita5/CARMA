@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace A5Soft.CARMA.Application
+namespace A5Soft.CARMA.Domain.Files
 {
     /// <summary>
     /// A container class for file data and metadata.
