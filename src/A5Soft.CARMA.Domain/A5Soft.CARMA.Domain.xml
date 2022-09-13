@@ -3303,6 +3303,40 @@
             <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
             <param name="type"></param>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetPublicProperties``1">
+            <summary>
+            Gets public instance properties for a class or interface.
+            Solves GetProperties() for interfaces problem.
+            </summary>
+            <typeparam name="T">a type to get public properties for</typeparam>
+            <returns>public instance properties for a class or interface</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetPublicProperties``1(System.Func{System.Reflection.PropertyInfo,System.Boolean})">
+            <summary>
+            Gets public instance properties for a class or interface.
+            Solves GetProperties() for interfaces problem.
+            </summary>
+            <typeparam name="T">a type to get public properties for</typeparam>
+            <param name="filter">a property filter method</param>
+            <returns>public instance properties for a class or interface</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetPublicProperties(System.Type)">
+            <summary>
+            Gets public instance properties for a class or interface.
+            Solves GetProperties() for interfaces problem.
+            </summary>
+            <param name="forType">a type to get public properties for</param>
+            <returns>public instance properties for a class or interface</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetPublicProperties(System.Type,System.Func{System.Reflection.PropertyInfo,System.Boolean})">
+            <summary>
+            Gets public instance properties for a class or interface.
+            Solves GetProperties() for interfaces problem.
+            </summary>
+            <param name="forType">a type to get public properties for</param>
+            <param name="filter">a property filter method</param>
+            <returns>public instance properties for a class or interface</returns>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.Reflection.Extensions.GetEnumDisplayName``1(``0)">
             <summary>
             Gets a localized name of an enum value. (see <see cref="P:System.ComponentModel.DataAnnotations.DisplayAttribute.Name"/>)

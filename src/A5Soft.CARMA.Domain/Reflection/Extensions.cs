@@ -97,7 +97,118 @@ namespace A5Soft.CARMA.Domain.Reflection
 
             return result;
         }
-               
+
+        /// <summary>
+        /// Gets public instance properties for a class or interface.
+        /// Solves GetProperties() for interfaces problem.
+        /// </summary>
+        /// <typeparam name="T">a type to get public properties for</typeparam>
+        /// <returns>public instance properties for a class or interface</returns>
+        public static PropertyInfo[] GetPublicProperties<T>()
+            where T : class
+        {
+            return typeof(T).GetPublicProperties();
+        }
+
+        /// <summary>
+        /// Gets public instance properties for a class or interface.
+        /// Solves GetProperties() for interfaces problem.
+        /// </summary>
+        /// <typeparam name="T">a type to get public properties for</typeparam>
+        /// <param name="filter">a property filter method</param>
+        /// <returns>public instance properties for a class or interface</returns>
+        public static PropertyInfo[] GetPublicProperties<T>(Func<PropertyInfo, bool> filter)
+            where T : class
+        {
+            return typeof(T).GetPublicProperties(filter);
+        }
+
+        /// <summary>
+        /// Gets public instance properties for a class or interface.
+        /// Solves GetProperties() for interfaces problem.
+        /// </summary>
+        /// <param name="forType">a type to get public properties for</param>
+        /// <returns>public instance properties for a class or interface</returns>
+        public static PropertyInfo[] GetPublicProperties(this Type forType)
+        {
+            if (null == forType) throw new ArgumentNullException(nameof(forType));
+
+            if (forType.IsClass)
+            {
+                return forType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            }
+
+            if (forType.IsInterface)
+            {
+                var result = new Dictionary<string, PropertyInfo>(
+                    StringComparer.OrdinalIgnoreCase);
+                foreach (var prop in forType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    result.Add(prop.Name, prop);
+                }
+
+                foreach (var implementedInterface in forType.GetInterfaces())
+                {
+                    foreach (var prop in implementedInterface.GetProperties(
+                        BindingFlags.Public | BindingFlags.Instance))
+                    {
+                        if (!result.ContainsKey(prop.Name)) result.Add(prop.Name, prop);
+                    }
+                }
+
+                return result.Select(e => e.Value).ToArray();
+            }
+
+            throw new InvalidOperationException(
+                $"Method {nameof(GetPublicProperties)} can only handle classes and interfaces while {forType.FullName} is not.");
+        }
+
+        /// <summary>
+        /// Gets public instance properties for a class or interface.
+        /// Solves GetProperties() for interfaces problem.
+        /// </summary>
+        /// <param name="forType">a type to get public properties for</param>
+        /// <param name="filter">a property filter method</param>
+        /// <returns>public instance properties for a class or interface</returns>
+        public static PropertyInfo[] GetPublicProperties(this Type forType,
+            Func<PropertyInfo, bool> filter)
+        {
+            if (null == forType) throw new ArgumentNullException(nameof(forType));
+            if (null == filter) throw new ArgumentNullException(nameof(filter));
+
+            if (forType.IsClass)
+            {
+                return forType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => filter(p)).ToArray();
+            }
+
+            if (forType.IsInterface)
+            {
+                var result = new Dictionary<string, PropertyInfo>(
+                    StringComparer.OrdinalIgnoreCase);
+                foreach (var prop in forType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => filter(p)))
+                {
+                    result.Add(prop.Name, prop);
+                }
+
+                foreach (var implementedInterface in forType.GetInterfaces())
+                {
+                    foreach (var prop in implementedInterface.GetProperties(
+                        BindingFlags.Public | BindingFlags.Instance)
+                        .Where(p => filter(p)))
+                    {
+                        if (!result.ContainsKey(prop.Name)) result.Add(prop.Name, prop);
+                    }
+                }
+
+                return result.Select(e => e.Value).ToArray();
+            }
+
+            throw new InvalidOperationException(
+                $"Method {nameof(GetPublicProperties)} can only handle classes and interfaces while {forType.FullName} is not.");
+        }
+
 
         /// <summary>
         /// Gets a localized name of an enum value. (see <see cref="DisplayAttribute.Name"/>)

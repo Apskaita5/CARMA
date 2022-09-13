@@ -22,26 +22,26 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         internal EntityMetadata(Type entityType)
         {
             if (null == entityType) throw new ArgumentNullException(nameof(entityType));
-            if ((!entityType.IsClass && !entityType.IsInterface) || entityType == typeof(string)) 
+            if ((!entityType.IsClass && !entityType.IsInterface) || entityType == typeof(string))
                 throw new ArgumentException(
                 "Metadata can only be defined for classes or interfaces.", nameof(entityType));
 
             EntityType = entityType;
             _displayAttribute = GetDescriptionAttribute(entityType);
 
-            var relevantProperties = entityType.GetProperties()
-                .Where(p => null == p.GetCustomAttributeWithInheritance<IgnorePropertyMetadataAttribute>())
+            var relevantProperties = entityType.GetPublicProperties(
+                p => null == p.GetCustomAttributeWithInheritance<IgnorePropertyMetadataAttribute>())
                 .ToList();
 
             Properties = new ReadOnlyDictionary<string, IPropertyMetadata>(
-                relevantProperties.ToDictionary(k => k.Name, 
+                relevantProperties.ToDictionary(k => k.Name,
                     v => new PropertyMetadata(v) as IPropertyMetadata));
 
             PropertyNames = relevantProperties.Select(p => p.Name).ToArray();
 
             var relevantMethods = entityType.GetMethods(
                     BindingFlags.Instance | BindingFlags.Public)
-                .Select(m => (Method: m, 
+                .Select(m => (Method: m,
                     Attribute: m.GetCustomAttributes<MethodDescriptionAttribute>(true)
                         .FirstOrDefault()))
                 .Where(m => null != m.Attribute)
