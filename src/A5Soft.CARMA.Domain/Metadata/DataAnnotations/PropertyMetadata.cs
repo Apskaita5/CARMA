@@ -80,9 +80,9 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayOrder" />
         public int GetDisplayOrder()
         {
-            if (_displayAttribute.IsNull()) return 0;
+            if (_displayAttribute.IsNull()) return -1;
 
-            return _displayAttribute.GetOrder() ?? 10000;
+            return _displayAttribute.GetOrder() ?? 100000;
         }
 
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayAutoGenerate" />
