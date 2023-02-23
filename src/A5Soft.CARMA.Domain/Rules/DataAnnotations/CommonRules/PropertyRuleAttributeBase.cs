@@ -215,7 +215,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         private void EnsureValidContext(object value, object entityInstance, Type entityType)
         {
             if (null != value && null != SupportedValueTypes && SupportedValueTypes.Length > 0 &&
-                !SupportedValueTypes.Any(t => t.IsAssignableFrom(value.GetType())))
+                !SupportedValueTypes.Any(t => value.GetType().IsConvertableTo(t)))
                 throw new InvalidOperationException($"Property value type {value.GetType().FullName} " +
                     $"is not allowed for rule {this.GetType().FullName} (affected entity type " +
                     $"- {entityType?.FullName ?? "not specified"}).");
@@ -223,8 +223,9 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             if (null == entityInstance && EntityInstanceRequired)
                 throw new InvalidOperationException($"Validated entity instance is not specified for rule {this.GetType().FullName}.");
 
-            if (null != SupportedEntityType && !SupportedEntityType.IsAssignableFrom(entityType))
-                throw new InvalidOperationException($"Rule {this.GetType().FullName} does not support validated entity type {entityType.FullName}.");
+            if (null != SupportedEntityType && !entityType.IsConvertableTo(SupportedEntityType))
+                throw new InvalidOperationException($"Rule {this.GetType().FullName} " +
+                    $"does not support validated entity type {entityType.FullName}.");
         }
 
         private bool IsDisabled(object instance)

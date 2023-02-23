@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using A5Soft.CARMA.Domain.Rules;
 
@@ -122,6 +123,32 @@ namespace A5Soft.CARMA.Domain
                 .GetAllBrokenRules(valueToValidate);
 
             return new BrokenRulesCollection(result);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether <paramref name="type"/> value can be assigned to
+        /// <paramref name="destinationType"/> variable including implicit conversions.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="destinationType">type to check assignability to</param>
+        /// <returns>a value indicating whether <paramref name="type"/> value can be assigned to
+        /// <paramref name="destinationType"/> variable including implicit conversions</returns>
+        /// <remarks><see cref="Type.IsAssignableFrom"/> ignores implicit conversions</remarks>
+        public static bool IsConvertableTo(this Type type, Type destinationType)
+        {
+            if (null == type) throw new ArgumentNullException(nameof(type));
+            if (null == destinationType) throw new ArgumentNullException(nameof(destinationType));
+
+            if (type == destinationType || destinationType.IsAssignableFrom(type))
+                return true;
+
+            return (from method in type.GetMethods(BindingFlags.Static |
+                                                   BindingFlags.Public |
+                                                   BindingFlags.FlattenHierarchy)
+                    where method.Name == "op_Implicit" &&
+                          method.ReturnType == destinationType
+                    select method
+                    ).Count() > 0;
         }
     }
 }

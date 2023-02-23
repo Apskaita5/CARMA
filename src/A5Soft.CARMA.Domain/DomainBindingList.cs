@@ -20,7 +20,6 @@ namespace A5Soft.CARMA.Domain
         INotifyChildChanged, ITrackState, IChildInternal, IBindable, INotifyCollectionChanged
         where TChild : class, ITrackState
     {
-
         #region Constructors
 
         /// <summary>
@@ -33,7 +32,7 @@ namespace A5Soft.CARMA.Domain
         {
             Initialize();
             this.AllowNew = true;
-            _validationEngineProvider = validationEngineProvider 
+            _validationEngineProvider = validationEngineProvider
                 ?? throw new ArgumentNullException(nameof(validationEngineProvider));
         }
 
@@ -41,16 +40,21 @@ namespace A5Soft.CARMA.Domain
         /// Creates an instance of the object as a child of parent domain object.
         /// </summary>
         /// <param name="parent">a parent of the list</param>
+        /// <param name="propertyName">a name of the parent entity property for the list</param>
         /// <param name="validationEngineProvider">Validation engine to use for child items.</param>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        public DomainBindingList(IDomainObject parent, IValidationEngineProvider validationEngineProvider)
+        public DomainBindingList(IDomainObject parent, string propertyName,
+            IValidationEngineProvider validationEngineProvider)
         {
+            if (null == parent) throw new ArgumentNullException(nameof(parent));
+            if (propertyName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propertyName));
+
             Initialize();
             this.AllowNew = true;
             _validationEngineProvider = validationEngineProvider
                 ?? throw new ArgumentNullException(nameof(validationEngineProvider));
-            SetParent(parent);
+            SetParent(parent, propertyName);
         }
 
         /// <summary>
@@ -71,7 +75,7 @@ namespace A5Soft.CARMA.Domain
 
             this.AllowNew = true;
             _validationEngineProvider = listToCopy._validationEngineProvider;
-            SetParent(newParent);
+            SetParent(newParent, _parentPropertyName);
 
             AddRange(listToCopy.Select(c => copyChildMethod(c)), false);
 
@@ -262,11 +266,11 @@ namespace A5Soft.CARMA.Domain
         /// <inheritdoc cref="ITrackState.GetBrokenRulesTree" />
         public BrokenRulesTreeNode GetBrokenRulesTree(bool useInstanceDescription = false)
         {
-            var result = new BrokenRulesTreeNode(this.ToString(), new BrokenRule[]{});
+            var result = new BrokenRulesTreeNode(GetParentPropertyDisplayName(), new BrokenRule[]{});
 
             foreach (var statefulChild in this)
             {
-                result.AddBrokenRulesForChild(statefulChild.GetBrokenRulesTree(true));
+                result.AddBrokenRulesForChild(statefulChild.GetBrokenRulesTree(useInstanceDescription));
             }
 
             return result;
@@ -533,7 +537,7 @@ namespace A5Soft.CARMA.Domain
             // the child shouldn't be completely removed,
             // so copy it to the deleted list
             DeleteChild(child);
-            if (child is IChildInternal childInternal) childInternal.SetParent(null);
+            if (child is IChildInternal childInternal) childInternal.SetParent(null, null);
 
             if (RaiseListChangedEvents)
             {
@@ -552,17 +556,18 @@ namespace A5Soft.CARMA.Domain
             {
                 OnRemovingItem(child);
                 OnRemoveEventHooks(child);
-                
+
                 // the child shouldn't be completely removed,
                 // so copy it to the deleted list
                 DeleteChild(child);
 
-                if (child is IChildInternal childInternal) childInternal.SetParent(null);
+                if (child is IChildInternal childInternal) childInternal.SetParent(null, null);
             }
 
             base.ClearItems();
-            
-            if (RaiseListChangedEvents) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+            if (RaiseListChangedEvents) OnCollectionChanged(
+                new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         /// <summary>
@@ -605,9 +610,9 @@ namespace A5Soft.CARMA.Domain
             base.InsertItem(index, item);
 
             OnAddEventHooks(item);
-            if (item is IChildInternal ci) ci.SetParent(this);
+            if (item is IChildInternal ci) ci.SetParent(this, null);
 
-            if (RaiseListChangedEvents) 
+            if (RaiseListChangedEvents)
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
@@ -629,7 +634,7 @@ namespace A5Soft.CARMA.Domain
             var child = this[index];
             if (!child.IsNull())
             {
-                if (child is IChildInternal ciOld) ciOld.SetParent(null);
+                if (child is IChildInternal ciOld) ciOld.SetParent(null, null);
                 OnRemoveEventHooks(child);
                 DeleteChild(child);
             }
@@ -637,7 +642,7 @@ namespace A5Soft.CARMA.Domain
             if (!item.IsNull())
             {
                 OnAddEventHooks(item);
-                if (item is IChildInternal ciNew) ciNew.SetParent(this);
+                if (item is IChildInternal ciNew) ciNew.SetParent(this, null);
             }
 
             base.SetItem(index, item);
@@ -761,14 +766,14 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual void OnDeserialized()
         { }
-             
+
         [System.Runtime.Serialization.OnDeserialized]
         private void OnDeserializedHandler(System.Runtime.Serialization.StreamingContext context)
         {
             if (typeof(IChildInternal).IsAssignableFrom(typeof(TChild)))
             {
                 foreach (var child in this)
-                    ((IChildInternal)child)?.SetParent(this);
+                    ((IChildInternal)child)?.SetParent(this, null);
             }
 
             foreach (var item in this)
@@ -860,6 +865,7 @@ namespace A5Soft.CARMA.Domain
 
         [NonSerialized]
         private IDomainObject _parent;
+        private string _parentPropertyName;
         private bool _isChild;
 
 
@@ -885,15 +891,17 @@ namespace A5Soft.CARMA.Domain
         /// Used by BusinessListBase as a child object is created to tell the child object about its parent.
         /// </summary>
         /// <param name="parent">A reference to the parent collection object.</param>
-        protected virtual void SetParent(IDomainObject parent)
+        /// <param name="parentPropertyName">a name of the parent property for the list</param>
+        protected virtual void SetParent(IDomainObject parent, string parentPropertyName)
         {
             _parent = parent;
+            _parentPropertyName = parentPropertyName ?? string.Empty;
             if (!parent.IsNull()) MarkAsChild();
         }
 
-        void IChildInternal.SetParent(IDomainObject parent)
+        void IChildInternal.SetParent(IDomainObject parent, string parentPropertyName)
         {
-            SetParent(parent);
+            SetParent(parent, parentPropertyName);
         }
 
         /// <summary>
@@ -902,6 +910,23 @@ namespace A5Soft.CARMA.Domain
         protected void MarkAsChild()
         {
             _isChild = true;
+        }
+
+        private string GetParentPropertyDisplayName()
+        {
+            if (null != _parent && !_parentPropertyName.IsNullOrWhiteSpace())
+            {
+                var parentMetata = _validationEngineProvider
+                    .GetValidationEngine(_parent.GetType()).EntityMetadata;
+                var propMetadata = parentMetata.GetPropertyMetadata(_parentPropertyName);
+
+                if (null == propMetadata) throw new InvalidOperationException(
+                    $"Property {_parentPropertyName} is not defined for type {_parent.GetType().FullName}.");
+
+                return propMetadata.GetDisplayName();
+            }
+
+            return string.Empty;
         }
 
         #endregion
@@ -938,6 +963,5 @@ namespace A5Soft.CARMA.Domain
                 _businessObject.RaiseListChangedEvents = _initialRaiseListChangedEvents;
             }
         }
-
     }
 }

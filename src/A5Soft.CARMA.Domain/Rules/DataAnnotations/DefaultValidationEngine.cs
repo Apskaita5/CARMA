@@ -23,7 +23,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         #endregion
 
         #region Constructor
-             
+
         public DefaultValidationEngine(IEntityMetadata metadata)
         {
             EntityMetadata = metadata ?? throw new ArgumentNullException(nameof(metadata));

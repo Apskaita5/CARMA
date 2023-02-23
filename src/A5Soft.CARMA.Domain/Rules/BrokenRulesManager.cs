@@ -14,8 +14,8 @@ namespace A5Soft.CARMA.Domain.Rules
     {
         private readonly T _parent;
         private readonly IValidationEngine _engine;
-                          
-        
+
+
         public BrokenRulesManager(T parent, IValidationEngineProvider validationProvider)
         {
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
@@ -69,6 +69,5 @@ namespace A5Soft.CARMA.Domain.Rules
                  if (propertyNames.Contains(_brokenRules[i].Property)) _brokenRules.RemoveAt(i);
             }
         }
-
     }
 }

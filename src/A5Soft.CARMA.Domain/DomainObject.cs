@@ -63,7 +63,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected virtual void Initialize()
         { /* allows subclass to initialize events before any other activity occurs */ }
-               
+
         #endregion
 
         #region IsDeleted, IsDirty, IsValid, IsSavable, ContainsNewData, HasWarnings, BrokenRules
@@ -73,7 +73,7 @@ namespace A5Soft.CARMA.Domain
         private bool _containsNewData;
         private bool _isDirty = true;
         private static readonly string[] _noLockedProperties = new string[] { };
-        
+
         [NonSerialized]
         private BrokenRulesManager<T> _brokenRules;
         [NonSerialized]
@@ -244,7 +244,7 @@ namespace A5Soft.CARMA.Domain
         protected virtual void CheckPropertyRules(params string[] propertyNames)
         {
             if (_suspendValidation) return;
-            if (null == propertyNames || propertyNames.Length < 1) 
+            if (null == propertyNames || propertyNames.Length < 1)
                 throw new ArgumentNullException(nameof(propertyNames));
 
             var affectedProps = new List<string>();
@@ -500,7 +500,7 @@ namespace A5Soft.CARMA.Domain
         }
 
         /// <inheritdoc cref="IChildInternal.SetParent" />
-        void IChildInternal.SetParent(IDomainObject parent)
+        void IChildInternal.SetParent(IDomainObject parent, string parentPropertyName)
         {
             SetParent(parent);
         }
@@ -539,7 +539,7 @@ namespace A5Soft.CARMA.Domain
             where TValue : class
         {
             if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-            
+
             UnRegisterChildValue(oldValue, fieldName);
 
             oldValue = newValue;
@@ -554,7 +554,8 @@ namespace A5Soft.CARMA.Domain
         /// <param name="childValue">a new (incl. initial) value of a child field</param>
         /// <param name="fieldName">a name of the field that the child value is stored by</param>
         /// <param name="withEvents">whether to hook into the child object events</param>
-        protected virtual void RegisterChildValue<TC>(TC childValue, string fieldName, bool withEvents = true) where TC : class
+        protected virtual void RegisterChildValue<TC>(TC childValue, string fieldName, bool withEvents = true)
+            where TC : class
         {
             if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
 
@@ -562,7 +563,7 @@ namespace A5Soft.CARMA.Domain
 
             if (withEvents) AddEventHooks(childValue, fieldName);
 
-            if (childValue is IChildInternal cin) cin.SetParent(this);
+            if (childValue is IChildInternal cin) cin.SetParent(this, null);
 
             if (typeof(IBindable).IsAssignableFrom(childValue.GetType())
                 && !_bindableChildren.Contains(fieldName))
@@ -591,7 +592,7 @@ namespace A5Soft.CARMA.Domain
             else
             {
                 RemoveEventHooks(childValue, fieldName);
-                if (childValue is IChildInternal cin) cin.SetParent(null);
+                if (childValue is IChildInternal cin) cin.SetParent(null, null);
             }
 
             if (_bindableChildren.Contains(fieldName)) _bindableChildren.Remove(fieldName);

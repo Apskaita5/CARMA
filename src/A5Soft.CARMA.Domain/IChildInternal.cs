@@ -2,6 +2,6 @@
 {
     interface IChildInternal : IChild
     {
-        void SetParent(IDomainObject parent);
+        void SetParent(IDomainObject parent, string parentPropertyName);
     }
 }

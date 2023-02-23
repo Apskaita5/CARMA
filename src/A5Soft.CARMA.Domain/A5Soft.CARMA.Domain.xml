@@ -282,11 +282,12 @@
             </summary>
             <param name="validationEngineProvider">Validation engine to use for child items.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.#ctor(A5Soft.CARMA.Domain.IDomainObject,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.#ctor(A5Soft.CARMA.Domain.IDomainObject,System.String,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider)">
             <summary>
             Creates an instance of the object as a child of parent domain object.
             </summary>
             <param name="parent">a parent of the list</param>
+            <param name="propertyName">a name of the parent entity property for the list</param>
             <param name="validationEngineProvider">Validation engine to use for child items.</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.#ctor(A5Soft.CARMA.Domain.DomainBindingList{`0},A5Soft.CARMA.Domain.IDomainObject,System.Func{`0,`0})">
@@ -510,11 +511,12 @@
         <member name="P:A5Soft.CARMA.Domain.DomainBindingList`1.IsChild">
             <inheritdoc cref="P:A5Soft.CARMA.Domain.ITrackState.IsChild" />
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.SetParent(A5Soft.CARMA.Domain.IDomainObject)">
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.SetParent(A5Soft.CARMA.Domain.IDomainObject,System.String)">
             <summary>
             Used by BusinessListBase as a child object is created to tell the child object about its parent.
             </summary>
             <param name="parent">A reference to the parent collection object.</param>
+            <param name="parentPropertyName">a name of the parent property for the list</param>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.MarkAsChild">
             <summary>
@@ -826,8 +828,8 @@
             </summary>
             <param name="parent">A reference to the parent collection object.</param>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.A5Soft#CARMA#Domain#IChildInternal#SetParent(A5Soft.CARMA.Domain.IDomainObject)">
-            <inheritdoc cref="M:A5Soft.CARMA.Domain.IChildInternal.SetParent(A5Soft.CARMA.Domain.IDomainObject)" />
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.A5Soft#CARMA#Domain#IChildInternal#SetParent(A5Soft.CARMA.Domain.IDomainObject,System.String)">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.IChildInternal.SetParent(A5Soft.CARMA.Domain.IDomainObject,System.String)" />
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainObject`1.MarkAsChild">
             <summary>
@@ -1652,6 +1654,17 @@
             <typeparam name="T">a type of the value to validate</typeparam>
             <param name="validationEngine"></param>
             <param name="valueToValidate">value to validate</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.Extensions.IsConvertableTo(System.Type,System.Type)">
+            <summary>
+            Gets a value indicating whether <paramref name="type"/> value can be assigned to
+            <paramref name="destinationType"/> variable including implicit conversions.
+            </summary>
+            <param name="type"></param>
+            <param name="destinationType">type to check assignability to</param>
+            <returns>a value indicating whether <paramref name="type"/> value can be assigned to
+            <paramref name="destinationType"/> variable including implicit conversions</returns>
+            <remarks><see cref="M:System.Type.IsAssignableFrom(System.Type)"/> ignores implicit conversions</remarks>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Files.Extensions">
             <summary>

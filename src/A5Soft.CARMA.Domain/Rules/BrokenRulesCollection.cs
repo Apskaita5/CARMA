@@ -56,6 +56,5 @@ namespace A5Soft.CARMA.Domain.Rules
             _brokenRules.Add(new BrokenRule(string.Empty, property, description, severity));
             ResetCount();
         }
-
     }
 }

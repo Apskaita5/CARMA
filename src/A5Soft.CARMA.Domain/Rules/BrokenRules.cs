@@ -38,8 +38,8 @@ namespace A5Soft.CARMA.Domain.Rules
         /// </summary>
         /// <value>An integer value.</value>
         public int InformationCount { get; private set; }
-            
-        
+
+
 
         /// <summary>
         /// Returns the first <see cref="BrokenRule"/> object corresponding to the specified property

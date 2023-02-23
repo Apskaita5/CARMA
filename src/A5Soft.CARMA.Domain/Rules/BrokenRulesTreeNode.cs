@@ -29,9 +29,8 @@ namespace A5Soft.CARMA.Domain.Rules
         public BrokenRulesTreeNode(string entityDisplayName, BrokenRule[] brokenRules)
         {
             if (null == brokenRules) throw new ArgumentNullException(nameof(brokenRules));
-            if (entityDisplayName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(entityDisplayName));
 
-            EntityDisplayName = entityDisplayName;
+            EntityDisplayName = entityDisplayName ?? string.Empty;
             _brokenRules = new List<BrokenRule>(brokenRules);
         }
 
@@ -150,6 +149,5 @@ namespace A5Soft.CARMA.Domain.Rules
                 childEntityBrokenRule.AddChildDescription(builder, severity, separator);
             }
         }
-
     }
 }

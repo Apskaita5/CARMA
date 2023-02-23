@@ -13,7 +13,7 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// An id of the referenced entity.
         /// </summary>
-        public DomainEntityIdentity<T> Id 
+        public DomainEntityIdentity<T> Id
             => _id;
 
 
@@ -27,6 +27,12 @@ namespace A5Soft.CARMA.Domain
         public static bool operator !=(LookupBase<T> a, LookupBase<T> b)
         {
             return !(a == b);
+        }
+
+        public static implicit operator DomainEntityIdentity<T>(LookupBase<T> lookup)
+        {
+            if (null == lookup) return null;
+            return lookup.Id;
         }
 
         Type IDomainEntityReference.DomainEntityType => typeof(T);
