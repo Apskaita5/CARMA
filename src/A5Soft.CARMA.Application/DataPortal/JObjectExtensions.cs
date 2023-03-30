@@ -1,4 +1,5 @@
 ﻿using Castle.DynamicProxy;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using static A5Soft.CARMA.Application.DataPortal.Extensions;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
@@ -15,6 +17,10 @@ namespace A5Soft.CARMA.Application.DataPortal
     public static class JObjectExtension
     {
         private static ProxyGenerator generator = new ProxyGenerator();
+        private static JsonSerializer serializer = new JsonSerializer()
+        {
+            ContractResolver = new CustomResolver()
+        };
 
 
         /// <summary>
@@ -25,7 +31,6 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>an interface proxy of the type specified</returns>
         public static TInterfaceType ToProxy<TInterfaceType>(this JToken targetObject)
         {
-
             return (TInterfaceType)targetObject.ToProxy(typeof(TInterfaceType));
         }
 
@@ -37,7 +42,8 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <returns>an interface proxy of the type specified</returns>
         public static object ToProxy(this JToken targetToken, Type interfaceType)
         {
-            if (interfaceType.GetTypeInfo().IsValueType || interfaceType.GetTypeInfo().IsPrimitive || interfaceType.Equals(typeof(string)) || interfaceType.GetTypeInfo().IsEnum)
+            if (interfaceType.GetTypeInfo().IsValueType || interfaceType.GetTypeInfo().IsPrimitive
+                || interfaceType.Equals(typeof(string)) || interfaceType.GetTypeInfo().IsEnum)
             {
                 return targetToken.ToObject(interfaceType);
             }
@@ -56,7 +62,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             }
 
             if (typeof(Stream).IsAssignableFrom(interfaceType))
-            { 
+            {
                 var bytes = (byte[])targetToken.ToObject(typeof(byte[]));
                 if (null == bytes || bytes.Length < 1) return null;
                 return new MemoryStream(bytes);
@@ -69,11 +75,18 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             if (interfaceType.GetTypeInfo().IsClass)
             {
-                throw new Exception("Cannot Proxy " + interfaceType.FullName + " - It is a concrete class, only interfaces can be proxied.");
+                try
+                {
+                    return targetToken.ToObject(interfaceType, serializer);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Cannot Proxy {interfaceType.FullName} - It is a concrete class, only interfaces can be proxied.", ex);
+                }
             }
 
-            return generator.CreateInterfaceProxyWithoutTarget(interfaceType, new[] 
-                { typeof(JTokenExposable), typeof(ShouldSerialize) }, 
+            return generator.CreateInterfaceProxyWithoutTarget(interfaceType, new[]
+                { typeof(JTokenExposable), typeof(ShouldSerialize) },
                 new JTokenInterceptor(targetToken, interfaceType));
         }
 
@@ -103,7 +116,6 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             public void Intercept(IInvocation invocation)
             {
-
                 var methodName = invocation.Method.Name;
 
                 if (methodName == "getTargetJToken")
@@ -132,7 +144,6 @@ namespace A5Soft.CARMA.Application.DataPortal
 
                 if (methodName == "GetEnumerator" && invocation.Method.ReturnType.IsConstructedGenericType)
                 {
-
                     var returnType = invocation.Method.ReturnType.GetGenericArguments()[0];
 
                     Type enumeratorType = typeof(IEnumerator<>).MakeGenericType(returnType);
@@ -146,20 +157,14 @@ namespace A5Soft.CARMA.Application.DataPortal
                     }
 
                     return;
-
-
                 }
 
                 if (methodName == "GetEnumerator")
                 {
-
                     invocation.ReturnValue = JObjectExtension.generator.CreateInterfaceProxyWithoutTarget(typeof(IEnumerator), new EnumeratorInterceptor(typeof(IEnumerator), this, ((JArray)_target).GetEnumerator()));
 
                     return;
-
-
                 }
-
 
                 if (invocation.Method.IsSpecialName && methodName.StartsWith("get_"))
                 {
@@ -185,10 +190,8 @@ namespace A5Soft.CARMA.Application.DataPortal
                         return;
                     }
 
-
                     invocation.ReturnValue = _target[methodName].ToProxy(returnType);
                     return;
-
                 }
 
                 if (invocation.Method.IsSpecialName && methodName.StartsWith("set_"))
@@ -246,7 +249,6 @@ namespace A5Soft.CARMA.Application.DataPortal
                         {
                             ((IEnumerator<JToken>)_targetEnumerator).Dispose();
                         }
-
                         return;
                     case "get_Current":
                         var dictTypes = invocation.Method.ReturnType.GetGenericArguments();
@@ -277,11 +279,8 @@ namespace A5Soft.CARMA.Application.DataPortal
 
                     default:
                         throw new NotImplementedException();
-
                 }
             }
-
         }
-
     }
 }

@@ -30,16 +30,16 @@ namespace A5Soft.CARMA.Application.DataPortal
 
 
         /// <inheritdoc cref="IClientDataPortal.IsRemote" />
-        public bool IsRemote => 
+        public bool IsRemote =>
             _dataPortalProxy?.IsRemote ?? false;
 
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TResult}" />
-        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TResult>(Type useCaseType, 
-            ClaimsIdentity identity, CancellationToken ct = default) 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TResult>(Type useCaseType,
+            ClaimsIdentity identity, CancellationToken ct = default)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
+
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest(useCaseType, identity), ct);
 
@@ -47,11 +47,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg, TResult}" />
-        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter, 
-            ClaimsIdentity identity, CancellationToken ct = default) 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter,
+            ClaimsIdentity identity, CancellationToken ct = default)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
+
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest<TArg>(useCaseType, parameter, identity), ct);
 
@@ -73,13 +73,13 @@ namespace A5Soft.CARMA.Application.DataPortal
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1, TArg2, TResult}" />
         public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType,
-            TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity, 
+            TArg1 firstParameter, TArg2 secondParameter, ClaimsIdentity identity,
             CancellationToken ct = default)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
+
             var result = await InvokeAsync(
-                DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                DataPortalRequest.NewDataPortalRequest(useCaseType,
                     firstParameter, secondParameter, identity), ct);
 
             return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
@@ -87,20 +87,20 @@ namespace A5Soft.CARMA.Application.DataPortal
 
         /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg1,TArg2,TArg3,TResult}" />
         public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TArg3, TResult>(
-            Type useCaseType, TArg1 firstParameter, TArg2 secondParameter, 
+            Type useCaseType, TArg1 firstParameter, TArg2 secondParameter,
             TArg3 thirdParameter, ClaimsIdentity identity, CancellationToken ct = default)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
+
             var result = await InvokeAsync(
-                DataPortalRequest.NewDataPortalRequest(useCaseType, 
+                DataPortalRequest.NewDataPortalRequest(useCaseType,
                     firstParameter, secondParameter, thirdParameter, identity), ct);
 
             return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TResult}" />
-        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TResult>(Type useCaseType,
             CancellationToken ct = default)
         {
             var result = await InvokeAsync(
@@ -110,7 +110,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg, TResult}" />
-        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg, TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg, TResult>(Type useCaseType,
             TArg parameter, CancellationToken ct = default)
         {
             var result = await InvokeAsync(
@@ -120,7 +120,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         }
 
         /// <inheritdoc cref="IClientDataPortal.FetchUnauthenticatedAsync{TArg1, TArg2, TResult}" />
-        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type useCaseType, 
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchUnauthenticatedAsync<TArg1, TArg2, TResult>(Type useCaseType,
             TArg1 firstParameter, TArg2 secondParameter, CancellationToken ct = default)
         {
             var result = await InvokeAsync(
@@ -134,7 +134,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter, CancellationToken ct = default)
         {
             var result = await InvokeAsync(
-                DataPortalRequest.NewDataPortalRequest(useCaseType, firstParameter, 
+                DataPortalRequest.NewDataPortalRequest(useCaseType, firstParameter,
                     secondParameter, thirdParameter), ct);
 
             return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(null));
@@ -155,7 +155,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync" />
         public Task<ClaimsIdentity> InvokeAsync(Type useCaseType, ClaimsIdentity identity)
         {
-            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType,
                 identity), identity);
         }
 
@@ -163,28 +163,28 @@ namespace A5Soft.CARMA.Application.DataPortal
         public async Task<ClaimsIdentity> InvokeAsync<TArg>(Type useCaseType, TArg parameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
-            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+
+            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType,
                 parameter, identity), identity);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2}" />
-        public async Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, 
+        public async Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter,
             TArg2 secondParameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
+
             return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(
                     useCaseType, firstParameter, secondParameter, identity), identity);
         }
 
         /// <inheritdoc cref="IClientDataPortal.InvokeAsync{TArg1, TArg2, TArg3}" />
-        public async Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter, 
+        public async Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 firstParameter,
             TArg2 secondParameter, TArg3 thirdParameter, ClaimsIdentity identity)
         {
             if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
-            
-            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+
+            return await InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType,
                 firstParameter, secondParameter, thirdParameter, identity), identity);
         }
 
@@ -204,7 +204,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <inheritdoc cref="IClientDataPortal.InvokeUnauthenticatedAsync{TArg1, TArg2}" />
         public Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg1, TArg2>(Type useCaseType, TArg1 firstParameter, TArg2 secondParameter)
         {
-            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType,
                 firstParameter, secondParameter), null);
         }
 
@@ -212,7 +212,7 @@ namespace A5Soft.CARMA.Application.DataPortal
         public Task<ClaimsIdentity> InvokeUnauthenticatedAsync<TArg1, TArg2, TArg3>(
             Type useCaseType, TArg1 firstParameter, TArg2 secondParameter, TArg3 thirdParameter)
         {
-            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType, 
+            return InvokeVoidAsync(DataPortalRequest.NewDataPortalRequest(useCaseType,
                 firstParameter, secondParameter, thirdParameter), null);
         }
 
@@ -224,16 +224,16 @@ namespace A5Soft.CARMA.Application.DataPortal
             return result.GetUpdatedIdentity(initialIdentity);
         }
 
-        private async Task<DataPortalResponse> InvokeAsync(DataPortalRequest request, 
+        private async Task<DataPortalResponse> InvokeAsync(DataPortalRequest request,
             CancellationToken ct = default)
         {
             if (!IsRemote) throw new InvalidOperationException(
                 "Cannot invoke remote method on a data portal that is not remote.");
-               
+
             var response = await _dataPortalProxy.GetResponseAsync(
                 JsonConvert.SerializeObject(request), ct);
 
-            var result = BinaryDeserialize<DataPortalResponse>(response);
+            var result = response.Deserialize<DataPortalResponse>();
 
             if (result.ProcessingException != null) throw result.ProcessingException;
 

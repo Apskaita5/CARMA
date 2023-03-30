@@ -17,7 +17,7 @@ namespace A5Soft.CARMA.Application.DataPortal
 
         #region Constructors
 
-        private DataPortalRequest(Type remoteServiceType, ClaimsIdentity identity, 
+        private DataPortalRequest(Type remoteServiceType, ClaimsIdentity identity,
             params DataPortalParameter[] parameters)
         {
             RemoteServiceInterface = ResolveRemoteServiceInterface(remoteServiceType);

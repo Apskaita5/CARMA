@@ -22,9 +22,9 @@ namespace A5Soft.CARMA.Application.DataPortal
 
 
         /// <summary>
-        /// 
+        /// Creates a new ServerDataPortal instance.
         /// </summary>
-        /// <param name="logger"></param>
+        /// <param name="logger">logger for DI</param>
         protected ServerDataPortalBase(ILogger logger)
         {
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -42,11 +42,11 @@ namespace A5Soft.CARMA.Application.DataPortal
 
                 if (requestJson.IsNullOrWhiteSpace()) throw new ArgumentNullException(
                     "Null json request received on server.", nameof(requestJson));
-                
+
 
                 if (getService(typeof(IDataPortalProxy)) is IDataPortalProxy proxyPortal
                     && proxyPortal.IsRemote) return await proxyPortal.GetResponseAsync(requestJson);
-                   
+
                 var request = DeserializeRequest(requestJson);
 
                 request.ValidateRequest();
@@ -86,8 +86,7 @@ namespace A5Soft.CARMA.Application.DataPortal
                 if (null == resultProp) response = new DataPortalResponse(identity);
                 else response = new DataPortalResponse(resultProp.GetValue(task), identity);
 
-                return BinarySerialize(response);
-
+                return response.Serialize();
             }
             catch (Exception ex)
             {
@@ -96,7 +95,7 @@ namespace A5Soft.CARMA.Application.DataPortal
                 {
                     ProcessingException = GetExceptionForUser(ex)
                 };
-                return BinarySerialize(response);
+                return response.Serialize();
             }
         }
 
@@ -114,14 +113,13 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// </summary>
         /// <param name="user">a request identity to validate</param>
         protected abstract Task ValidateIdentity(ClaimsIdentity user);
-            
+
         /// <summary>
         /// Override this method to hide technical exceptions from user.
         /// </summary>
         /// <param name="actualException"></param>
         protected abstract Exception GetExceptionForUser(Exception actualException);
 
-       
         private static string BinarySerialize<T>(T response)
         {
             byte[] bytes;
@@ -155,6 +153,5 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             return request;
         }
-
     }
 }
