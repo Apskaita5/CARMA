@@ -637,6 +637,15 @@
             <param name="initialIdentity">initial user identity sent by a data portal request</param>
             <returns>a user identity returned by the use case</returns>
         </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.Extensions.Deserialize``1(System.String)">
+            <summary>
+            Deserializes value from json string. Handles Stream properties.
+            If serialized value type is an interface, value is deserialized by proxy.
+            </summary>
+            <typeparam name="T">a type of the value to deserialize</typeparam>
+            <param name="serializedValue">a json string that contains the serialized value</param>
+            <returns>deserialized value of the type specified</returns>
+        </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.Extensions.Deserialize(System.Type,System.String)">
             <summary>
             Deserializes value from json string. Handles Stream properties.
@@ -1002,9 +1011,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.ServerDataPortalBase.#ctor(A5Soft.CARMA.Application.ILogger)">
             <summary>
-            
+            Creates a new ServerDataPortal instance.
             </summary>
-            <param name="logger"></param>
+            <param name="logger">logger for DI</param>
         </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.ServerDataPortalBase.HandleRequest(System.String,System.Func{System.Type,System.Object},System.Action{System.Security.Claims.ClaimsIdentity})">
             <inheritdoc cref="!:IServerDataPortal.HandleRequest"/>

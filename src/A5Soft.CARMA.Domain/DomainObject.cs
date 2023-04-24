@@ -394,7 +394,8 @@ namespace A5Soft.CARMA.Domain
         /// <inheritdoc cref="ITrackState.CanWriteProperty" />
         public virtual bool CanWriteProperty(string propertyName)
         {
-            return true;
+            if (LockedProperties == _noLockedProperties) return true;
+            return !LockedProperties.Contains(propertyName?.Trim() ?? string.Empty);
         }
 
         /// <summary>
