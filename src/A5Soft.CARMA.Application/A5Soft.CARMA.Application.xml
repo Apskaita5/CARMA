@@ -325,6 +325,46 @@
             <remarks>Override this method in order to implement custom validation
             or disable validation by returning a new (empty) <see cref="T:A5Soft.CARMA.Domain.Rules.BrokenRulesCollection"/>.</remarks>
         </member>
+        <member name="T:A5Soft.CARMA.Application.ConfigurationBase">
+            <summary>
+            A base class for app configuration POCO's.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.ConfigurationBase.InterfaceType">
+            <summary>
+            A type of the configuration interface to add as a singleton service.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.ConfigurationBase.RootSection">
+            <summary>
+            A root (parent) section of a configuration where the config data is located (if any).
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ConfigurationBase.Init(System.String,System.Boolean)">
+            <summary>
+            Override the method to init configuration with calculated values.
+            </summary>
+            <param name="appPath">a path where the app files are located</param>
+            <param name="isDevelopment">whether its a development environment</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ConfigurationBase.Validate">
+            <summary>
+            Validates the state of the config data. Throws exception if not valid.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.IAppConfigurationProvider">
+            <summary>
+            App configuration provider that creates a poco configuration object,
+            binds it to the actual app configuration data and adds as a singleton service.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.IAppConfigurationProvider.AddConfigurationFor(System.Type)">
+            <summary>
+            Creates a poco configuration object of the specified type,
+            binds it to the actual app configuration data and adds as a singleton service.
+            </summary>
+            <param name="configurationType">a type of the poco configuration object to add</param>
+        </member>
         <member name="T:A5Soft.CARMA.Application.CreateUseCaseBase`2">
             <summary>
             Creates a new entity based on create criteria and returns either the created entity or its id.
