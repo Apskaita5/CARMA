@@ -48,6 +48,11 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// </summary>
         public bool EvaluateTime { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets value indicating whether equal property values are valid as well.
+        /// </summary>
+        public bool EqualValuesAreValid { get; set; } = false;
+
         /// <inheritdoc />
         protected override List<string> DependsOnOtherProperties
             => new List<string>(new[] { ReferenceProperty });
@@ -93,78 +98,157 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             {
                 if (otherValue is double doubleOtherValue)
                 {
-                    return doubleValue.GreaterThan(doubleOtherValue, SignificantDigits);
+                    if (EqualValuesAreValid)
+                    {
+                        return doubleValue.GreaterThan(doubleOtherValue, SignificantDigits) ||
+                            doubleValue.EqualsTo(doubleOtherValue, SignificantDigits);
+                    }
+                    else
+                    {
+                        return doubleValue.GreaterThan(doubleOtherValue, SignificantDigits);
+                    }
                 }
             }
             else if (value is float floatValue)
             {
                 if (otherValue is float floatOtherValue)
                 {
-                    return floatValue - floatOtherValue > float.Epsilon;
+                    if (EqualValuesAreValid)
+                    {
+                        return floatValue - floatOtherValue >= float.Epsilon;
+                    }
+                    else
+                    {
+                        return floatValue - floatOtherValue > float.Epsilon;
+                    }
                 }
             }
             else if (value is decimal decimalValue)
             {
                 if (otherValue is decimal decimalOtherValue)
                 {
-                    return decimalValue.AccountingRound(SignificantDigits) > decimalOtherValue.AccountingRound(SignificantDigits);
+                    if (EqualValuesAreValid)
+                    {
+                        return decimalValue.AccountingRound(SignificantDigits) >= decimalOtherValue.AccountingRound(SignificantDigits);
+                    }
+                    else
+                    {
+                        return decimalValue.AccountingRound(SignificantDigits) > decimalOtherValue.AccountingRound(SignificantDigits);
+                    }
                 }
             }
             else if (value is DateTime dateTimeValue)
             {
                 if (otherValue is DateTime dateTimeOtherValue)
                 {
-                    if (EvaluateTime) return dateTimeValue > dateTimeOtherValue;
-                    return dateTimeValue.Date > dateTimeOtherValue.Date;
+                    if (EqualValuesAreValid)
+                    {
+                        if (EvaluateTime) return dateTimeValue >= dateTimeOtherValue;
+                        return dateTimeValue.Date >= dateTimeOtherValue.Date;
+                    }
+                    else
+                    {
+                        if (EvaluateTime) return dateTimeValue > dateTimeOtherValue;
+                        return dateTimeValue.Date > dateTimeOtherValue.Date;
+                    }
                 }
             }
             else if (value is int intValue)
             {
                 if (otherValue is int intOtherValue)
                 {
-                    return intValue > intOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return intValue >= intOtherValue;
+                    }
+                    else
+                    {
+                        return intValue > intOtherValue;
+                    }
                 }
             }
             else if (value is uint uintValue)
             {
                 if (otherValue is uint uintOtherValue)
                 {
-                    return uintValue > uintOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return uintValue >= uintOtherValue;
+                    }
+                    else
+                    {
+                        return uintValue > uintOtherValue;
+                    }
                 }
             }
             else if (value is long longValue)
             {
                 if (otherValue is long longOtherValue)
                 {
-                    return longValue > longOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return longValue >= longOtherValue;
+                    }
+                    else
+                    {
+                        return longValue > longOtherValue;
+                    }
                 }
             }
             else if (value is ulong ulongValue)
             {
                 if (otherValue is ulong ulongOtherValue)
                 {
-                    return ulongValue > ulongOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return ulongValue >= ulongOtherValue;
+                    }
+                    else
+                    {
+                        return ulongValue > ulongOtherValue;
+                    }
                 }
             }
             else if (value is byte byteValue)
             {
                 if (otherValue is byte byteOtherValue)
                 {
-                    return byteValue > byteOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return byteValue >= byteOtherValue;
+                    }
+                    else
+                    {
+                        return byteValue > byteOtherValue;
+                    }
                 }
             }
             else if (value is short shortValue)
             {
                 if (otherValue is short shortOtherValue)
                 {
-                    return shortValue > shortOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return shortValue >= shortOtherValue;
+                    }
+                    else
+                    {
+                        return shortValue > shortOtherValue;
+                    }
                 }
             }
             else if (value is ushort ushortValue)
             {
                 if (otherValue is ushort ushortOtherValue)
                 {
-                    return ushortValue > ushortOtherValue;
+                    if (EqualValuesAreValid)
+                    {
+                        return ushortValue >= ushortOtherValue;
+                    }
+                    else
+                    {
+                        return ushortValue > ushortOtherValue;
+                    }
                 }
             }
 

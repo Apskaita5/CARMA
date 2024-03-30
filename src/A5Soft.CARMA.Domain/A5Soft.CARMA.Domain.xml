@@ -3953,6 +3953,11 @@
             Only applicable for <see cref="T:System.DateTime"/> properties. Default is false.
             </summary>
         </member>
+        <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.GreaterThanAttributeBase.EqualValuesAreValid">
+            <summary>
+            Gets or sets value indicating whether equal property values are valid as well.
+            </summary>
+        </member>
         <member name="P:A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.GreaterThanAttributeBase.DependsOnOtherProperties">
             <inheritdoc />
         </member>

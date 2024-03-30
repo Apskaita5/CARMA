@@ -7,7 +7,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
     /// A base class for email rule.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-        public abstract class EmailAddressAttributeBase : PropertyRuleAttributeBase
+    public abstract class EmailAddressAttributeBase : PropertyRuleAttributeBase
     {
         private readonly static Type[] _supportedValueTypes = new Type[] { typeof(string) };
 
@@ -38,21 +38,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
             if (email.IsNullOrWhiteSpace()) return null;
 
-            bool isValid = true;
-            if (AllowMultipleAddresses)
-            {
-                foreach (var emailAddress in email.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    if (!IsValidEmailAddress(emailAddress.Trim()))
-                    {
-                        isValid = false;
-                        break;
-                    }
-                }
-            }
-            else isValid = IsValidEmailAddress(email);
-
-            if (isValid) return null;
+            if (IsValidEmailAddress(email, AllowMultipleAddresses)) return null;
 
             return GetLocalizedErrorMessageFor(propertyDisplayName);
         }
@@ -64,6 +50,22 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// <returns>a localized error message for current culture</returns>
         protected abstract string GetLocalizedErrorMessageFor(string localizedPropName);
 
+
+        protected static bool IsValidEmailAddress(string emailAddress, bool allowMultiple)
+        {
+            if (allowMultiple)
+            {
+                foreach (var emailAddressItem in emailAddress.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (!IsValidEmailAddress(emailAddressItem.Trim()))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else return IsValidEmailAddress(emailAddress);
+        }
 
         private static bool IsValidEmailAddress(string emailAddress)
         {
