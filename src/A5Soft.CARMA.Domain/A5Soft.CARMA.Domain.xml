@@ -418,6 +418,18 @@
             <param name="index">The zero-based index of the item to remove.
             </param>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.MoveItemUp(`0)">
+            <summary>
+            Moves an item up in the list, i.e. new index = old index - 1.
+            </summary>
+            <param name="item">an item to move</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.MoveItemDown(`0)">
+            <summary>
+            Moves an item down in the list, i.e. new index = old index + 1.
+            </summary>
+            <param name="item">an item to move</param>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.ClearItems">
             <summary>
             Clears the collection, moving all active items to the deleted list.

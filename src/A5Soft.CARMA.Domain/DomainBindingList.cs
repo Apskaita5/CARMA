@@ -546,6 +546,55 @@ namespace A5Soft.CARMA.Domain
         }
 
         /// <summary>
+        /// Moves an item up in the list, i.e. new index = old index - 1.
+        /// </summary>
+        /// <param name="item">an item to move</param>
+        public void MoveItemUp(TChild item)
+        {
+            if (null == item) throw new ArgumentNullException(nameof(item));
+
+            int index = this.IndexOf(item);
+            if (index < 0) throw new InvalidOperationException(
+                $"Child {item.ToString()} does not belong to this list.");
+
+            if (index == 0) return;
+
+            base.RemoveItem(index);
+            base.InsertItem(index - 1, item);
+
+            if (RaiseListChangedEvents)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Move, item, index - 1, index));
+            }
+        }
+
+        /// <summary>
+        /// Moves an item down in the list, i.e. new index = old index + 1.
+        /// </summary>
+        /// <param name="item">an item to move</param>
+        public void MoveItemDown(TChild item)
+        {
+            if (null == item) throw new ArgumentNullException(nameof(item));
+
+            int index = this.IndexOf(item);
+            if (index < 0) throw new InvalidOperationException(
+                $"Child {item.ToString()} does not belong to this list.");
+
+            if (index == this.Count - 1) return;
+
+            base.RemoveItem(index);
+            base.InsertItem(index + 1, item);
+
+            if (RaiseListChangedEvents)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Move, item, index + 1, index));
+            }
+        }
+
+
+        /// <summary>
         /// Clears the collection, moving all active items to the deleted list.
         /// </summary>
         protected override void ClearItems()
