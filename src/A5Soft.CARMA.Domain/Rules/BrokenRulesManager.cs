@@ -19,7 +19,7 @@ namespace A5Soft.CARMA.Domain.Rules
         public BrokenRulesManager(T parent, IValidationEngineProvider validationProvider)
         {
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            _engine = validationProvider?.GetValidationEngine<T>()
+            _engine = validationProvider?.GetValidationEngine(parent.GetType())
                 ?? DefaultValidationEngineProvider.GetDefaultValidationEngine<T>();
         }
 
