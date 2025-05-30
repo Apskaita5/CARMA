@@ -9,13 +9,17 @@
             Basic info about an application service for DI.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Application.ApplicationServiceInfo.#ctor(System.Type,System.Type,A5Soft.CARMA.Domain.ServiceLifetime)">
+        <member name="M:A5Soft.CARMA.Application.ApplicationServiceInfo.#ctor(System.Type)">
             <summary>
-            constructor
+            Creates a new <see cref="T:A5Soft.CARMA.Application.ApplicationServiceInfo"/> instance for the app service type specified.
             </summary>
-            <param name="interfaceType">a type of the service (interface)</param>
-            <param name="implementationType">a service (interface) implementation</param>
-            <param name="lifetime">a service life time (scope)</param>
+            <param name="implementationType">the app service type to get info about</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ApplicationServiceInfo.#ctor(A5Soft.CARMA.Domain.IExternalServiceDescriptor)">
+            <summary>
+            Creates a new <see cref="T:A5Soft.CARMA.Application.ApplicationServiceInfo"/> instance for the external service specified.
+            </summary>
+            <param name="externalService">an external service to get info about</param>
         </member>
         <member name="P:A5Soft.CARMA.Application.ApplicationServiceInfo.InterfaceType">
             <summary>
@@ -31,6 +35,18 @@
             <summary>
             a service life time (scope)
             </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.ApplicationServiceInfo.AllowMultiple">
+            <summary>
+            whether there could be multiple implementations of this application service
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ApplicationServiceInfo.IsDuplicateFor(A5Soft.CARMA.Application.ApplicationServiceInfo)">
+            <summary>
+            Gets a value indicating whether this service is an implementation of the same service as the other one.
+            </summary>
+            <param name="otherService">the other service</param>
+            <returns>a value indicating whether this service is an implementation of the same service as the other one</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.Authorization.AuthenticationStateProviderBase">
             <summary>
@@ -1342,18 +1358,13 @@
             Extension methods for IoC containers.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Application.IoC.GetDefaultServices(A5Soft.CARMA.Domain.BuildConfiguration,System.Reflection.Assembly[])">
+        <member name="M:A5Soft.CARMA.Application.IoC.GetApplicationServices(A5Soft.CARMA.Domain.BuildConfiguration,System.Reflection.Assembly[])">
             <summary>
             Gets a list of default service implementations that are defined in the assemblies specified.
             </summary>
             <param name="assemblies"></param>
-            <param name="buildConfiguration">application build configuration (client/server)
+            <param name="forBuildConfiguration">application build configuration (client/server)
             to get service implementations for</param>
-        </member>
-        <member name="M:A5Soft.CARMA.Application.IoC.GetFrameworkServices">
-            <summary>
-            Gets default service implementations for CARMA framework.
-            </summary>
         </member>
         <member name="T:A5Soft.CARMA.Application.IUseCase">
             <summary>
@@ -1970,11 +1981,12 @@
             A service implementation can only have one remote interface.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Application.RemoteServiceAttribute.#ctor(A5Soft.CARMA.Domain.ServiceLifetime)">
+        <member name="M:A5Soft.CARMA.Application.RemoteServiceAttribute.#ctor(A5Soft.CARMA.Domain.ServiceLifetime,System.Boolean)">
             <summary>
             Default constructor for RemoteServiceAttribute.
             </summary>
             <param name="lifetime">a lifetime of the service within an IoC container</param>
+            <param name="allowMultipleImplementations">whether multiple implementations of the service are allowed (not only a single)</param>
         </member>
         <member name="T:A5Soft.CARMA.Application.RemoteUseCaseBase">
             <summary>
@@ -2309,9 +2321,6 @@
         <member name="T:A5Soft.CARMA.Application.UseCaseAttribute">
             <summary>
             Used to designate a use case interface that should be added to IoC container.
-            Sets localizable name and description of the use case interface.
-            Can use it as is by setting ResourceType value in the attribute decorator
-            or inherit this class and set ResourceType in the constructor.
             </summary>
         </member>
         <member name="M:A5Soft.CARMA.Application.UseCaseAttribute.#ctor(A5Soft.CARMA.Domain.ServiceLifetime,System.Type[])">

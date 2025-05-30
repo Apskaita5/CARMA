@@ -242,7 +242,7 @@
             <summary>
             Used to designate a default (remote) service or use case (interface) implementation
             that should be added to IoC container.
-            </summary>  
+            </summary>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.#ctor(System.Type,A5Soft.CARMA.Domain.BuildConfiguration)">
             <summary>
@@ -261,14 +261,6 @@
             <summary>
             a configuration of the app build (client/server/any) that the implementation is meant for
             </summary>
-        </member>
-        <member name="M:A5Soft.CARMA.Domain.DefaultServiceImplementationAttribute.GetServiceLifetime(System.Type)">
-            <summary>
-            Gets a service life time.
-            </summary>
-            <param name="implementation">a type of the service interface implementation</param>
-            <exception cref="T:System.ArgumentNullException">on null <paramref name="implementation"/></exception>
-            <exception cref="T:System.InvalidOperationException">if the service interface is not marked as a service</exception>
         </member>
         <member name="T:A5Soft.CARMA.Domain.DomainBindingList`1">
             <summary>
@@ -1904,6 +1896,36 @@
         <member name="T:A5Soft.CARMA.Domain.IDomainObject">
             <summary>
             This is the core interface implemented by all domain base classes.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.IExternalServiceDescriptor">
+            <summary>
+            Create classes with the interface to provide external service desciptors for IoC.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IExternalServiceDescriptor.ImplementationType">
+            <summary>
+            a type of the service implementation (class)
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IExternalServiceDescriptor.InterfaceType">
+            <summary>
+            a type of the service interface (could be null if registered only by implementation type)
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IExternalServiceDescriptor.ForBuildConfiguration">
+            <summary>
+            a configuration of the app build (client/server/any) that the implementation is meant for
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IExternalServiceDescriptor.Lifetime">
+            <summary>
+            a lifetime of the service within a IoC container
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.IExternalServiceDescriptor.AllowMultipleImplementations">
+            <summary>
+            whether multiple implementations of the service are allowed (not only a single)
             </summary>
         </member>
         <member name="T:A5Soft.CARMA.Domain.ILookup`1">
@@ -4700,15 +4722,22 @@
             Used to designate a service interface that should be added to IoC container.
             </summary>
         </member>
-        <member name="M:A5Soft.CARMA.Domain.ServiceAttribute.#ctor(A5Soft.CARMA.Domain.ServiceLifetime)">
+        <member name="M:A5Soft.CARMA.Domain.ServiceAttribute.#ctor(A5Soft.CARMA.Domain.ServiceLifetime,System.Boolean)">
             <summary>
             Default constructor for ServiceAttribute.
             </summary>
             <param name="lifetime">a lifetime of the service within an IoC container</param>
+            <param name="allowMultipleImplementations">whether multiple implementations of the service are allowed (not only a single)</param>
         </member>
         <member name="P:A5Soft.CARMA.Domain.ServiceAttribute.Lifetime">
             <summary>
             Gets a lifetime of the use case within a IoC container. Default is Transient.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.ServiceAttribute.AllowMultipleImplementations">
+            <summary>
+            Gets a value indicating whether multiple implementations of the service are allowed (not only a single).
+            Default is false.
             </summary>
         </member>
         <member name="T:A5Soft.CARMA.Domain.ServiceLifetime">
