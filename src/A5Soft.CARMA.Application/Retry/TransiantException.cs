@@ -13,5 +13,7 @@ namespace A5Soft.CARMA.Application.Retry
         public TransiantException(string message) : base(message) { }
 
         public TransiantException(string message, Exception innerException) : base(message, innerException) { }
+
+        public TransiantException(Exception innerException) : base(innerException?.Message ?? string.Empty, innerException) { }
     }
 }

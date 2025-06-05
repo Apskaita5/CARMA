@@ -2001,6 +2001,203 @@
         <member name="M:A5Soft.CARMA.Application.RemoteUseCaseBase.#ctor(A5Soft.CARMA.Application.DataPortal.IClientDataPortal,A5Soft.CARMA.Domain.Rules.IValidationEngineProvider,A5Soft.CARMA.Domain.Metadata.IMetadataProvider,A5Soft.CARMA.Application.ILogger)">
             <inheritdoc />
         </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.DoNotRetryPolicy">
+            <summary>
+            A retry policy requiring NOT to do retry.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.DoNotRetryPolicy.RetryAttempts">
+            <inheritdoc cref="P:A5Soft.CARMA.Application.Retry.IRetryPolicy.RetryAttempts"/>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.DoNotRetryPolicy.GetDelayForRetry(System.Int32)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.Retry.IRetryPolicy.GetDelayForRetry(System.Int32)"/>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy">
+            <summary>
+            A retry policy using exponential backoff (retry intervals grow exponentially)
+            and jitter (randomized delays help avoid thundering herd problems).
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.#ctor(System.Int32,System.TimeSpan,System.TimeSpan,System.Double)">
+            <summary>
+            Creates a new policy instance.
+            </summary>
+            <param name="retryAttempts">How many retry attempts to take (min 1, max 20).</param>
+            <param name="baseDelay">Base delay (e.g., 2 seconds).</param>
+            <param name="maxDelay">Maximum delay allowed (e.g., 1 minute).</param>
+            <param name="backoffFactor">Multiplier per attempt (base of the exponent).</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.#ctor(System.Int32)">
+            <summary>
+            Creates a new policy instance for default parameters:
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.BaseDelay"/> - 2 sec.
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.MaxDelay"/> - 1 min.
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.BackoffFactor"/> - 2.0.
+            </summary>
+            <param name="retryAttempts">How many retry attempts to take (min 1, max 20).</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.#ctor">
+            <summary>
+            Creates a new policy instance for default parameters:
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.RetryAttempts"/> - 3
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.BaseDelay"/> - 2 sec.
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.MaxDelay"/> - 1 min.
+            <see cref="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.BackoffFactor"/> - 2.0.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.RetryAttempts">
+            <summary>
+            How many retry attempts to take (min 1, max 20).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.BaseDelay">
+            <summary>
+            Base delay (e.g., 2 seconds).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.MaxDelay">
+            <summary>
+            Maximum delay allowed (e.g., 1 minute).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.BackoffFactor">
+            <summary>
+            Multiplier per attempt (base of the exponent).
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.ExponentialBackoffWithJitterRetryPolicy.GetDelayForRetry(System.Int32)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.Retry.IRetryPolicy.GetDelayForRetry(System.Int32)"/>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.Extensions">
+            <summary>
+            Extension methods for retry functionality.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.Extensions.ExecuteAsync(A5Soft.CARMA.Application.Retry.IRetryPolicy,System.Func{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Executes a <paramref name="method"/> using <paramref name="policy"/>.
+            </summary>
+            <param name="policy">a retry policy to use</param>
+            <param name="method">a method to execute</param>
+            <remarks><paramref name="method"/> is expected to throw <see cref="T:A5Soft.CARMA.Application.Retry.TransiantException"/>
+            if the error cause is transiant</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.Extensions.ExecuteAsync(A5Soft.CARMA.Application.Retry.IRetryPolicy,A5Soft.CARMA.Application.Retry.ITransientExceptionValidator,System.Func{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Executes a <paramref name="method"/> using <paramref name="policy"/>
+            and <paramref name="validator"/>.
+            </summary>
+            <param name="policy">a retry policy to use</param>
+            <param name="validator">a validator to use</param>
+            <param name="method">a method to execute</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.Extensions.IsTransiantException(System.Exception)">
+            <summary>
+            Traverses the exception hierarchy and returns true if there is any
+            <see cref="T:A5Soft.CARMA.Application.Retry.TransiantException"/> in the exception hierarchy.
+            </summary>
+            <param name="ex"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.Extensions.ToTransiantException(System.Exception)">
+            <summary>
+            Traverses the exception hierarchy and returns the first exception of type
+            <see cref="T:A5Soft.CARMA.Application.Retry.TransiantException"/>. If no such exception, returns null.
+            </summary>
+            <param name="ex"></param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.Extensions.IsTransiantException(System.Exception,A5Soft.CARMA.Application.Retry.ITransientExceptionValidator)">
+            <summary>
+            Traverses the exception hierarchy and returns true if there is any
+            transient error in the exception hierarchy.
+            </summary>
+            <param name="ex">an exception to inspect</param>
+            <param name="validator">a validator to use</param>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy">
+            <summary>
+            A retry policy using the Fibonacci sequence to determine retry delays.
+            Each retry delay is the sum of the two previous delays.
+            It grows slower than exponential backoff but faster than linear,
+            which can be useful when you want gentle retry escalation without going "too big too fast".
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.#ctor(System.Int32,System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Creates a new policy instance for the parameters provided.
+            </summary>
+            <param name="retryAttempts">How many retry attempts to take (min 1, max 20).</param>
+            <param name="timeUnit">Time unit for Fibonacci steps (e.g., seconds, minutes).</param>
+            <param name="maxDelay">Maximum delay allowed (e.g., 1 minute).</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.#ctor(System.Int32)">
+            <summary>
+            Creates a new policy instance for the default parameters:
+            <see cref="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.TimeUnit"/> - 1 sec.
+            <see cref="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.MaxDelay"/> - 5 min.
+            </summary>
+            <param name="retryAttempts">How many retry attempts to take (min 1, max 20).</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.#ctor">
+            <summary>
+            Creates a new policy instance for the default parameters:
+            <see cref="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.RetryAttempts"/> - 3
+            <see cref="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.TimeUnit"/> - 1 sec.
+            <see cref="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.MaxDelay"/> - 5 min.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.RetryAttempts">
+            <summary>
+            How many retry attempts to take (min 1, max 20).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.TimeUnit">
+            <summary>
+            Time unit for Fibonacci steps (e.g., seconds, minutes).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.MaxDelay">
+            <summary>
+            Maximum delay allowed (e.g., 1 minute).
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.GetDelayForRetry(System.Int32)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.Retry.IRetryPolicy.GetDelayForRetry(System.Int32)"/>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.IRetryPolicy">
+            <summary>
+            Policy settings for retry behaviour.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.IRetryPolicy.RetryAttempts">
+            <summary>
+            How many retry attempts to take.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.IRetryPolicy.GetDelayForRetry(System.Int32)">
+            <summary>
+            Gets a delay for the retry attempt.
+            </summary>
+            <param name="attempt">no of the attempt to get a dalay for</param>
+            <returns>a delay for the retry attempt</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.ITransientExceptionValidator">
+            <summary>
+            Base interface for transient exception validation,
+            i.e. deciding whether a particular exception is transient.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.ITransientExceptionValidator.IsTransient(System.Exception)">
+            <summary>
+            Gets a value indicating whether the exception specified is transient.
+            </summary>
+            <param name="ex">an exception to validate (not null)</param>
+            <returns>a value indicating whether the exception specified is transient</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.TransiantException">
+            <summary>
+            Wrapper for transient exceptions (e.g. remote database, mail or web server temporarily offline).
+            </summary>
+        </member>
         <member name="T:A5Soft.CARMA.Application.SaveUseCaseBase`2">
             <summary>
             A base use case for domain entity save operation (insert a new entity or update an existing one).
