@@ -10,7 +10,7 @@ namespace A5Soft.CARMA.Application.Retry
     /// which can be useful when you want gentle retry escalation without going "too big too fast".
     /// </summary>
     [Serializable]
-    public class FibonacciBackoffRetryPolicy
+    public class FibonacciBackoffRetryPolicy : IRetryPolicy
     {
         // Efficient Fibonacci with memoization
         private static Dictionary<int, long> _fibCache = new Dictionary<int, long> { { 1, 1 }, { 2, 1 } };

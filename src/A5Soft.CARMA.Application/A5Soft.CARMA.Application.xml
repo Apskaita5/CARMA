@@ -1265,11 +1265,41 @@
             <param name="exception">an exception that caused the critical failure</param>
             <param name="args">any data that needs to be logged along the exception</param>
         </member>
+        <member name="M:A5Soft.CARMA.Application.ILogger.LogCritical(System.String,System.Exception,System.Object[])">
+            <summary>
+            Logs a critical application exception.
+            </summary>
+            <param name="message">an event description to log</param>
+            <param name="exception">an exception that caused the critical failure</param>
+            <param name="args">any data that needs to be logged along the exception</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ILogger.LogCritical(System.String,System.Object[])">
+            <summary>
+            Logs a critical application exception.
+            </summary>
+            <param name="message">an event description to log</param>
+            <param name="args">any data that needs to be logged along the exception</param>
+        </member>
         <member name="M:A5Soft.CARMA.Application.ILogger.LogError(System.Exception,System.Object[])">
             <summary>
             Logs an application exception that is not critical.
             </summary>
             <param name="exception">an exception that caused the failure</param>
+            <param name="args">any data that needs to be logged along the exception</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ILogger.LogError(System.String,System.Exception,System.Object[])">
+            <summary>
+            Logs an application exception that is not critical.
+            </summary>
+            <param name="message">an event description to log</param>
+            <param name="exception">an exception that caused the failure</param>
+            <param name="args">any data that needs to be logged along the exception</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.ILogger.LogError(System.String,System.Object[])">
+            <summary>
+            Logs an application exception that is not critical.
+            </summary>
+            <param name="message">an event description to log</param>
             <param name="args">any data that needs to be logged along the exception</param>
         </member>
         <member name="M:A5Soft.CARMA.Application.ILogger.LogWarning(System.Exception,System.Object[])">
@@ -2161,6 +2191,36 @@
             </summary>
         </member>
         <member name="M:A5Soft.CARMA.Application.Retry.FibonacciBackoffRetryPolicy.GetDelayForRetry(System.Int32)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.Retry.IRetryPolicy.GetDelayForRetry(System.Int32)"/>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.Retry.FixedTimeSpansRetryPolicy">
+            <summary>
+            A retry policy using the fixed list of time spans.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FixedTimeSpansRetryPolicy.#ctor(System.Collections.Generic.List{System.TimeSpan})">
+            <summary>
+            Serialization constructor.
+            </summary>
+            <param name="delayTimeSpans">Time spans to delay for each retry (at least one).</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FixedTimeSpansRetryPolicy.#ctor(System.TimeSpan[])">
+            <summary>
+            Creates a new policy instance for the parameters provided.
+            </summary>
+            <param name="delayTimeSpans">Time spans to delay for each retry (at least one).</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.FixedTimeSpansRetryPolicy.RetryAttempts">
+            <summary>
+            How many retry attempts to take (min 1, max 20).
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.Retry.FixedTimeSpansRetryPolicy.DelayTimeSpans">
+            <summary>
+            Time spans to delay for each retry.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.Retry.FixedTimeSpansRetryPolicy.GetDelayForRetry(System.Int32)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.Retry.IRetryPolicy.GetDelayForRetry(System.Int32)"/>
         </member>
         <member name="T:A5Soft.CARMA.Application.Retry.IRetryPolicy">

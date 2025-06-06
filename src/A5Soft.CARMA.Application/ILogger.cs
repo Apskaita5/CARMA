@@ -18,11 +18,41 @@ namespace A5Soft.CARMA.Application
         void LogCritical(Exception exception, params object[] args);
 
         /// <summary>
+        /// Logs a critical application exception.
+        /// </summary>
+        /// <param name="message">an event description to log</param>
+        /// <param name="exception">an exception that caused the critical failure</param>
+        /// <param name="args">any data that needs to be logged along the exception</param>
+        void LogCritical(string message, Exception exception, params object[] args);
+
+        /// <summary>
+        /// Logs a critical application exception.
+        /// </summary>
+        /// <param name="message">an event description to log</param>
+        /// <param name="args">any data that needs to be logged along the exception</param>
+        void LogCritical(string message, params object[] args);
+
+        /// <summary>
         /// Logs an application exception that is not critical.
         /// </summary>
         /// <param name="exception">an exception that caused the failure</param>
         /// <param name="args">any data that needs to be logged along the exception</param>
         void LogError(Exception exception, params object[] args);
+
+        /// <summary>
+        /// Logs an application exception that is not critical.
+        /// </summary>
+        /// <param name="message">an event description to log</param>
+        /// <param name="exception">an exception that caused the failure</param>
+        /// <param name="args">any data that needs to be logged along the exception</param>
+        void LogError(string message, Exception exception, params object[] args);
+
+        /// <summary>
+        /// Logs an application exception that is not critical.
+        /// </summary>
+        /// <param name="message">an event description to log</param>
+        /// <param name="args">any data that needs to be logged along the exception</param>
+        void LogError(string message, params object[] args);
 
         /// <summary>
         /// Logs an application exception that could be handled by the application
