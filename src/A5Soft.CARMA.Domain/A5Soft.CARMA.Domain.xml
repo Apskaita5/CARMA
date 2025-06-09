@@ -4717,6 +4717,11 @@
             </summary>
             <remarks>Should NOT cause dialog "Are you sure?", only display field labels.</remarks>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.SerializationConstructorAttribute">
+            <summary>
+            An attribute to mark a serialization constructor.
+            </summary>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.ServiceAttribute">
             <summary>
             Used to designate a service interface that should be added to IoC container.
