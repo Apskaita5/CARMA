@@ -217,7 +217,7 @@ namespace A5Soft.CARMA.Domain.Reflection
         /// <param name="value"></param>
         public static string GetEnumDisplayName<TEnum>(this TEnum value)
         {
-            return value.GetEnumDisplayProperty(a => a.GetName(), 
+            return value.GetEnumDisplayProperty(a => a.GetName(),
                 v => value?.ToString() ?? string.Empty);
         }
 
@@ -373,18 +373,38 @@ namespace A5Soft.CARMA.Domain.Reflection
 
             if (null == value) return defaultValueGetter(value);
 
-            var fieldInfo = enumType.GetField(value.ToString());
+            if (enumType.IsDefined(typeof(FlagsAttribute), false))
+            {
+                var result = new List<string>();
+                foreach (var flagValue in value.ToString()
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim()))
+                {
+                    var fieldInfo = enumType.GetField(flagValue);
+                    var descriptionAttributes = fieldInfo.GetCustomAttributes(
+                        typeof(DisplayAttribute), false) as DisplayAttribute[];
 
-            var descriptionAttributes = fieldInfo.GetCustomAttributes(
+                    if (null != descriptionAttributes && descriptionAttributes.Length > 0 &&
+                        !propGetter(descriptionAttributes[0]).IsNullOrWhiteSpace())
+                        result.Add(propGetter(descriptionAttributes[0]));
+                    else result.Add(flagValue);
+                }
+
+                return string.Join(", ", result);            }
+            else
+            {
+                var fieldInfo = enumType.GetField(value.ToString());
+
+                var descriptionAttributes = fieldInfo.GetCustomAttributes(
                 typeof(DisplayAttribute), false) as DisplayAttribute[];
 
-            if (null == descriptionAttributes || descriptionAttributes.Length < 1 ||
-                propGetter(descriptionAttributes[0]).IsNullOrWhiteSpace())
-                return defaultValueGetter(value);
+                if (null == descriptionAttributes || descriptionAttributes.Length < 1 ||
+                    propGetter(descriptionAttributes[0]).IsNullOrWhiteSpace())
+                    return defaultValueGetter(value);
 
-            var result = propGetter(descriptionAttributes[0]);
+                var result = propGetter(descriptionAttributes[0]);
 
-            return result.IsNullOrWhiteSpace() ? defaultValueGetter(value) : result;
+                return result.IsNullOrWhiteSpace() ? defaultValueGetter(value) : result;
+            }
         }
 
         private static string LookupResource(Type resourceManagerProvider, string resourceKey)
