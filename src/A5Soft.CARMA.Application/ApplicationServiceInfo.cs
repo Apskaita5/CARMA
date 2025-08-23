@@ -9,6 +9,15 @@ namespace A5Soft.CARMA.Application
     /// </summary>
     public class ApplicationServiceInfo
     {
+        internal ApplicationServiceInfo(Type interfaceType, Type implementationType,
+            ServiceLifetime lifetime, bool allowMultiple)
+        {
+            InterfaceType = interfaceType ?? throw new ArgumentNullException(nameof(interfaceType));
+            ImplementationType = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
+            Lifetime = lifetime;
+            AllowMultiple = allowMultiple;
+        }
+
         /// <summary>
         /// Creates a new <see cref="ApplicationServiceInfo"/> instance for the app service type specified.
         /// </summary>

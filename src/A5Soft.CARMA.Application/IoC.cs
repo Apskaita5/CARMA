@@ -58,6 +58,20 @@ namespace A5Soft.CARMA.Application
                     result.Add(frameworkService);
             }
 
+            // add health checks
+            var healthChecks = new List<Type>();
+            foreach (var appService in result)
+            {
+                var attr = appService.ImplementationType
+                    .GetCustomAttribute<WithHealthCheckAttribute>();
+                if (null != attr) healthChecks.Add(attr.HealthCheckType);
+            }
+            foreach (var healthCheck in healthChecks)
+            {
+                result.Add(new ApplicationServiceInfo(typeof(IHealthCheck),
+                    healthCheck, ServiceLifetime.Singleton, true));
+            }
+
             return result;
         }
 

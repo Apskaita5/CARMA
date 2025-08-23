@@ -1140,6 +1140,13 @@
         <member name="M:A5Soft.CARMA.Application.DownloadFileUseCaseBase`1.GetMenuTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
+        <member name="M:A5Soft.CARMA.Application.Extensions.GetFullDescription(System.Exception)">
+            <summary>
+            Gets an extensive description of an exception.
+            </summary>
+            <param name="ex">an exception to get a description for</param>
+            <returns>an extensive description of an exception</returns>
+        </member>
         <member name="T:A5Soft.CARMA.Application.FetchDomainEntityUseCaseBase`1">
             <summary>
             A base use case for a domain entity fetch operation (that gets a domain entity by its identity).
@@ -1235,6 +1242,68 @@
         <member name="M:A5Soft.CARMA.Application.FetchDomainSingletonUseCaseBase`1.GetMenuTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
         </member>
+        <member name="T:A5Soft.CARMA.Application.HealthCheckResult">
+            <summary>
+            A description of a health check result for the application infrastructure component.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.HealthCheckResult.#ctor(System.String,System.Boolean,System.String)">
+            <summary>
+            Creates a description of a health check result for <see cref="F:A5Soft.CARMA.Application.HealthCheckState.Ok"/>
+            or <see cref="F:A5Soft.CARMA.Application.HealthCheckState.PoorPerformance"/>.
+            </summary>
+            <param name="componentName"><see cref="P:A5Soft.CARMA.Application.HealthCheckResult.ComponentName"/></param>
+            <param name="isPoorPerformance">whether the component is performing poorly, i.e.
+            <see cref="P:A5Soft.CARMA.Application.HealthCheckResult.HealthStatus"/> is <see cref="F:A5Soft.CARMA.Application.HealthCheckState.PoorPerformance"/>.</param>
+            <param name="details">Details of the health check (if any)</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.HealthCheckResult.#ctor(System.String,System.Exception,System.String)">
+            <summary>
+            Creates a description of a health check result for <see cref="F:A5Soft.CARMA.Application.HealthCheckState.Failed"/>.
+            </summary>
+            <param name="componentName"><see cref="P:A5Soft.CARMA.Application.HealthCheckResult.ComponentName"/></param>
+            <param name="ex">an exception thrown by the component</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.HealthCheckResult.ComponentName">
+            <summary>
+            A name of the infrastructure component checked.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.HealthCheckResult.HealthStatus">
+            <summary>
+            Whether the infrastructure component is healthy (functioning nominally)
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.HealthCheckResult.Exception">
+            <summary>
+            A description of the exception thrown by the component if it fails.
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.HealthCheckResult.Details">
+            <summary>
+            Details for the health check results.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.HealthCheckState">
+            <summary>
+            Infrastructure component health state.
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Application.HealthCheckState.Ok">
+            <summary>
+            Component is functioning nominally.
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Application.HealthCheckState.PoorPerformance">
+            <summary>
+            Component is functioning but the performance is poor.
+            </summary>
+        </member>
+        <member name="F:A5Soft.CARMA.Application.HealthCheckState.Failed">
+            <summary>
+            Component is not functioning.
+            </summary>
+        </member>
         <member name="T:A5Soft.CARMA.Application.IAuthorizedUseCase">
             <summary>
             Base interface for all use cases that implement authorization.
@@ -1252,6 +1321,19 @@
             <param name="throwOnNotAuthorized">whether to throw a (security) exception
             if the user is not authorized</param>
             <returns>a value indicating whether the user is authorized to invoke the use case</returns>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.IHealthCheck">
+            <summary>
+            Represents an interface that should be implemented by an infrastructure
+            component to run health checks for itself.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.IHealthCheck.CheckHealthAsync(System.Threading.CancellationToken)">
+            <summary>
+            Runs health checks for the infrastructure component and returns the check results.
+            </summary>
+            <param name="ct"></param>
+            <returns>health check result for the specific infrastructure component</returns>
         </member>
         <member name="T:A5Soft.CARMA.Application.ILogger">
             <summary>
@@ -2619,6 +2701,22 @@
         <member name="F:A5Soft.CARMA.Application.UseCaseBase.Logger">
             <summary>
             logger
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.WithHealthCheckAttribute">
+            <summary>
+            Attribute denoting that the application service has a health check.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.WithHealthCheckAttribute.#ctor(System.Type)">
+            <summary>
+            Attribute denoting that the application service has a health check.
+            </summary>
+            <param name="healthCheckType">a type of the health check service, should be a class service implementing <see cref="T:A5Soft.CARMA.Application.IHealthCheck"/></param>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.WithHealthCheckAttribute.HealthCheckType">
+            <summary>
+            a type of the health check service, should be a class service implementing <see cref="T:A5Soft.CARMA.Application.IHealthCheck"/>
             </summary>
         </member>
     </members>
