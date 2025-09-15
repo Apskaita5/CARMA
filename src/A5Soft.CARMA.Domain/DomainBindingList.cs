@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
+using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;
 using A5Soft.CARMA.Domain.Rules.DataAnnotations;
@@ -274,6 +275,12 @@ namespace A5Soft.CARMA.Domain
             }
 
             return result;
+        }
+
+        /// <inheritdoc cref="ITrackState.GetMetadata" />
+        public IEntityMetadata GetMetadata()
+        {
+            throw new NotSupportedException();
         }
 
         #endregion

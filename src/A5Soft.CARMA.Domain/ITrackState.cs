@@ -1,4 +1,5 @@
-﻿using A5Soft.CARMA.Domain.Rules;
+﻿using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Domain
 {
@@ -204,5 +205,10 @@ namespace A5Soft.CARMA.Domain
         /// an entity class description (for internal use only)</param>
         BrokenRulesTreeNode GetBrokenRulesTree(bool useInstanceDescription = false);
 
+        /// <summary>
+        /// Gets the metadata for the entity.
+        /// </summary>
+        /// <returns>metadata for the entity</returns>
+        IEntityMetadata GetMetadata();
     }
 }

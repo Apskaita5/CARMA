@@ -346,6 +346,9 @@
         <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.GetBrokenRulesTree(System.Boolean)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.GetBrokenRulesTree(System.Boolean)" />
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainBindingList`1.GetMetadata">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.GetMetadata" />
+        </member>
         <member name="P:A5Soft.CARMA.Domain.DomainBindingList`1.NotifyPropertyChangedEnabled">
             <summary>
             Enables or disables INotifyPropertyChanged interface for the child instances.
@@ -794,6 +797,9 @@
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainObject`1.GetBrokenRulesTree(System.Boolean)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.GetBrokenRulesTree(System.Boolean)" />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainObject`1.GetMetadata">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.GetMetadata" />
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainObject`1.CanWriteProperty(System.String)">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.ITrackState.CanWriteProperty(System.String)" />
@@ -1971,6 +1977,18 @@
             </remarks>
             <returns>A value indicating if this object is new.</returns>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.ISearchable">
+            <summary>
+            Interface to denote a class (lookup, query result, etc.) as searchable.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.ISearchable.Match(System.String)">
+            <summary>
+            Gets a value indicating whether the item matches the search string.
+            </summary>
+            <param name="searchString">a search string to compare to</param>
+            <returns>a value indicating whether the item matches the search string</returns>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.ITrackState">
             <summary>
             Defines the common properties required by objects that track their own state.
@@ -2171,6 +2189,12 @@
             <param name="useInstanceDescription">whether to use instance description instead of
             an entity class description (for internal use only)</param>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.ITrackState.GetMetadata">
+            <summary>
+            Gets the metadata for the entity.
+            </summary>
+            <returns>metadata for the entity</returns>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.LookupBase`1">
             <summary>
             A base class for lookups (implements equality overloads).
@@ -2180,6 +2204,13 @@
             <summary>
             An id of the referenced entity.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.Match(System.String)">
+            <summary>
+            Gets a value indicating whether the lookup matches the search string.
+            </summary>
+            <param name="searchString">a search string to compare to</param>
+            <returns>a value indicating whether the lookup matches the search string</returns>
         </member>
         <member name="M:A5Soft.CARMA.Domain.LookupBase`1.Equals(System.Object)">
             <inheritdoc />

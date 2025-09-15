@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using A5Soft.CARMA.Domain.Math;
+using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;
 
@@ -350,7 +351,7 @@ namespace A5Soft.CARMA.Domain
         [Display(AutoGenerateField = false)]
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
-        public BrokenRules BrokenRules 
+        public BrokenRules BrokenRules
             => RulesManager;
 
         /// <inheritdoc cref="ITrackState.LockedProperties" />
@@ -390,6 +391,9 @@ namespace A5Soft.CARMA.Domain
 
             return result;
         }
+
+        /// <inheritdoc cref="ITrackState.GetMetadata" />
+        public IEntityMetadata GetMetadata() => _brokenRules.Metadata;
 
         /// <inheritdoc cref="ITrackState.CanWriteProperty" />
         public virtual bool CanWriteProperty(string propertyName)

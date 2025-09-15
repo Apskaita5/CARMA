@@ -6,7 +6,7 @@
     /// Lookup must have some unique identity value (primary key) that
     /// references an entity within the application database graph.
     /// </summary>
-    public interface ILookup<T> : IDomainObject
+    public interface ILookup<T> : IDomainObject, IDomainEntityReference, ISearchable
     {
         /// <summary>
         /// Gets an identity object that uniquely identifies the domain entity instance

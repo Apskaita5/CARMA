@@ -77,9 +77,9 @@ namespace A5Soft.CARMA.Domain.Test.ValidationState
             Assert.True(instance.BrokenRules.ErrorCount == 2, $"Expected error count 2 got {instance.BrokenRules.ErrorCount}");
             instance.Name = "test";
             Assert.True(instance.BrokenRules.ErrorCount == 1, $"Expected error count 1 got {instance.BrokenRules.ErrorCount}");
-            instance.Lookup = new SimpleLookup("abc");
+            instance.Lookup = new MockSimpleLookup("abc");
             Assert.True(instance.BrokenRules.ErrorCount == 1, $"Expected error count 1 got {instance.BrokenRules.ErrorCount}");
-            instance.Lookup = new SimpleLookup("ab");
+            instance.Lookup = new MockSimpleLookup("ab");
             Assert.True(instance.IsValid, "Is valid.");
         }
     }

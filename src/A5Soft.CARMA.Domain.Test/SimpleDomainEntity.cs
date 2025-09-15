@@ -7,7 +7,7 @@ namespace A5Soft.CARMA.Domain.Test
 {
     internal class SimpleDomainEntity : DomainObject<SimpleDomainEntity>, ISimpleDomainEntity
     {
-        private SimpleLookup _lookup;
+        private MockSimpleLookup _lookup;
         private string _name;
 
 
@@ -15,14 +15,14 @@ namespace A5Soft.CARMA.Domain.Test
         public SimpleDomainEntity(Rules.IValidationEngineProvider validationEngineProvider) 
             : base(validationEngineProvider) 
         {
-            _lookup = new SimpleLookup("lt");
+            _lookup = new MockSimpleLookup("lt");
             _name = "test name";
         }
 
-        public SimpleLookup Lookup
+        public MockSimpleLookup Lookup
         {
             get => _lookup;
-            set => SetLookupPropertyValue<SimpleLookup, SimpleDomainEntity>(nameof(Lookup), ref _lookup, value);
+            set => SetLookupPropertyValue<MockSimpleLookup, SimpleDomainEntity>(nameof(Lookup), ref _lookup, value);
         }
 
         [IgnorePropertyMetadata]
