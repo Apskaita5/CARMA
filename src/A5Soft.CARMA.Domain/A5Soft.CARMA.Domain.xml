@@ -619,6 +619,7 @@
             Represents domain entity instance's unique identity value within the domain entity graph.
             </summary>
             <typeparam name="T">a type of the domain entity that is identified</typeparam>
+            <remarks>The class is fully compartable with a HashSet and a Dictionary out of the box.</remarks>
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.#ctor(System.String)">
             <summary>
@@ -631,7 +632,51 @@
             A (primary) key that identifies the domain entity instance.
             </summary>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.op_Equality(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
+            <summary>
+            Overloads the equality operator for the DomainEntityIdentity class.
+            </summary>
+            <param name="first">The first DomainEntityIdentity object to compare.</param>
+            <param name="second">The second DomainEntityIdentity object to compare.</param>
+            <returns>
+            True if both objects are null, or if the first object equals the second one. False otherwise.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.op_Inequality(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
+            <summary>
+            Overrides the not equal (!=) operator for the DomainEntityIdentity objects.
+            </summary>
+            <param name="first">The first DomainEntityIdentity object.</param>
+            <param name="second">The second DomainEntityIdentity object.</param>
+            <returns>
+            Returns a boolean indicating whether the two provided DomainEntityIdentity objects are not equal.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.op_Implicit(A5Soft.CARMA.Domain.DomainEntityIdentity{`0})~System.String">
+            <summary>
+            Defines an implicit conversion of a DomainEntityIdentity to a string by returning its key.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.op_Implicit(System.String)~A5Soft.CARMA.Domain.DomainEntityIdentity{`0}">
+            <summary>
+            Defines an implicit operator for the DomainEntityIdentity. Transforms a string value into a DomainEntityIdentity of a given type.
+            </summary>
+            <param name="value">The string value to convert.</param>
+            <returns>
+            A new instance of the DomainEntityIdentity for a specific type if the string value isn't null or white space.
+            Returns null if the string value is null or white space.
+            </returns>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.DomainEntityIdentity`1.A5Soft#CARMA#Domain#IDomainEntityReference#DomainEntityType">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityReference.DomainEntityType"/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.DomainEntityIdentity`1.A5Soft#CARMA#Domain#IDomainEntityReference#DomainEntityKey">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityReference.DomainEntityKey"/>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.Equals(A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
             <inheritdoc />
         </member>
         <member name="M:A5Soft.CARMA.Domain.DomainEntityIdentity`1.GetHashCode">
@@ -2199,11 +2244,50 @@
             <summary>
             A base class for lookups (implements equality overloads).
             </summary>
+            <remarks>The LookupBase implementation is fully compatible with HashSet and Dictionary out of the box.</remarks>
+        </member>
+        <member name="F:A5Soft.CARMA.Domain.LookupBase`1._id">
+            <summary>
+            An id (primary key) of the referenced entity.
+            </summary>
         </member>
         <member name="P:A5Soft.CARMA.Domain.LookupBase`1.Id">
             <summary>
             An id of the referenced entity.
             </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.op_Equality(A5Soft.CARMA.Domain.LookupBase{`0},A5Soft.CARMA.Domain.LookupBase{`0})">
+            <summary>
+            Overloads the equality operator for two instances of LookupBase.
+            </summary>
+            <param name="first">The first instance of LookupBase.</param>
+            <param name="second">The second instance of LookupBase.</param>
+            <returns>
+            Returns true if both instances are the same or both are null, otherwise false.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.op_Inequality(A5Soft.CARMA.Domain.LookupBase{`0},A5Soft.CARMA.Domain.LookupBase{`0})">
+            <summary>
+            Determines whether two LookUp instances are not equal.
+            </summary>
+            <param name="first">The first instance of LookUp.</param>
+            <param name="second">The second instance of LookUp.</param>
+            <returns>
+            Returns true if they are not equal, otherwise false.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.op_Implicit(A5Soft.CARMA.Domain.LookupBase{`0})~A5Soft.CARMA.Domain.DomainEntityIdentity{`0}">
+            <summary>
+            Converts the <see cref="T:A5Soft.CARMA.Domain.LookupBase`1"/> object to <see cref="T:A5Soft.CARMA.Domain.DomainEntityIdentity`1"/>.
+            Automatically retrieves the <see cref="P:A5Soft.CARMA.Domain.LookupBase`1.Id"/> property if the <paramref name="lookup"/> is not null.
+            </summary>
+            <param name="lookup">The <see cref="T:A5Soft.CARMA.Domain.LookupBase`1"/> object to be converted.</param>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.LookupBase`1.A5Soft#CARMA#Domain#IDomainEntityReference#DomainEntityType">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityReference.DomainEntityType"/>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.LookupBase`1.A5Soft#CARMA#Domain#IDomainEntityReference#DomainEntityKey">
+            <inheritdoc cref="P:A5Soft.CARMA.Domain.IDomainEntityReference.DomainEntityType"/>
         </member>
         <member name="M:A5Soft.CARMA.Domain.LookupBase`1.Match(System.String)">
             <summary>
@@ -2213,10 +2297,89 @@
             <returns>a value indicating whether the lookup matches the search string</returns>
         </member>
         <member name="M:A5Soft.CARMA.Domain.LookupBase`1.Equals(System.Object)">
-            <inheritdoc />
+            <summary>
+            Determines whether the specified object is equal to the current lookup.
+            Optimized to leverage DomainEntityIdentity's cached hash code.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupBase`1.Equals(A5Soft.CARMA.Domain.LookupBase{`0})">
+            <summary>
+            Determines whether the specified lookup is equal to the current lookup.
+            Type-safe equality without boxing.
+            </summary>
         </member>
         <member name="M:A5Soft.CARMA.Domain.LookupBase`1.GetHashCode">
-            <inheritdoc />
+            <summary>
+            Returns the hash code for this lookup.
+            Leverages DomainEntityIdentity's pre-computed hash code for maximum performance.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.LookupCache`2">
+            <summary>
+            High-performance cache for lookup entities - Dictionary + List approach.
+            Optimized for GetAll() performance at cost of additional memory.
+            Implements IEnumerable for direct iteration support.
+            </summary>
+            <typeparam name="TEntity">Type of the entity being referenced</typeparam>
+            <typeparam name="TLookup">Type of the lookup class (must derive from LookupBase)</typeparam>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.#ctor(System.Collections.Generic.IEnumerable{`1})">
+            <summary>
+            Initializes a new instance of the LookupCache class that contains elements copied from the specified collection.
+            </summary>
+            <param name="items">The collection whose elements are copied to the new LookupCache.</param>
+            <returns>
+            An exception if the collection of items is null, or if any of the id values associated with the items within the collection are null.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.GetAll">
+            <summary>
+            Returns all lookups as a <see cref="T:System.Collections.Generic.IReadOnlyCollection`1"/>.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.FindById(A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
+            <summary>
+            Finds an instance of <typeparamref name="TLookup"/> by its ID.
+            </summary>
+            <param name="id">The ID of the entity to find.</param>
+            <returns>
+            The instance of <typeparamref name="TLookup"/> with the specified ID,
+            or null if no such instance exists.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.Contains(A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
+            <summary>
+            Checks if the collection contains a lookup with the specified id.
+            </summary>
+            <param name="id">The identity of the entity.</param>
+            <returns>
+            True if the specified lookup is found in the collection; otherwise false.
+            </returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.TryGetById(A5Soft.CARMA.Domain.DomainEntityIdentity{`0},`1@)">
+            <summary>
+            Attempts to fetch a lookup instance for the given Id.
+            </summary>
+            <param name="id">The id of the entity to find.</param>
+            <param name="lookup">Output parameter for the retrieved lookup</param>
+            <returns>
+            Returns true if the lookup is successfully retrieved. Else returns false.
+            </returns>
+        </member>
+        <member name="P:A5Soft.CARMA.Domain.LookupCache`2.Count">
+            <summary>
+            Gets the total number of items in the cache.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.GetEnumerator">
+            <summary>
+            Gets the enumerator for the lookup collection.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Implements the GetEnumerator method of the IEnumerable interface, which exposes an enumerator that supports a simple iteration over a non-generic collection.
+            </summary>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Math.Extensions">
             <summary>
