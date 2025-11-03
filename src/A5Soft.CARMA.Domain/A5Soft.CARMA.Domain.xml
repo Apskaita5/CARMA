@@ -1993,6 +1993,18 @@
             within the application database graph that is referenced by the lookup.
             </summary>
         </member>
+        <member name="T:A5Soft.CARMA.Domain.ILookupCache`1">
+            <summary>
+            Cache interface for type agnostic lookup (DB ORM operations).
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.ILookupCache`1.FindByKey(System.String)">
+            <summary>
+            Gets a lookup instance by normalized key (Trim().ToLowerInvariant()) or null if no such lookup.
+            </summary>
+            <param name="normalizedKey">a normalized key (Trim().ToLowerInvariant()) to find</param>
+            <returns>a lookup instance for <paramref name="normalizedKey"/> or null if no such key</returns>
+        </member>
         <member name="T:A5Soft.CARMA.Domain.INotifyChildChanged">
             <summary>
             Implemented by classes that notify when a child object has changed.
@@ -2347,6 +2359,9 @@
             or null if no such instance exists.
             </returns>
         </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCache`2.FindByKey(System.String)">
+            <inheritdoc cref="M:A5Soft.CARMA.Domain.ILookupCache`1.FindByKey(System.String)"/>
+        </member>
         <member name="M:A5Soft.CARMA.Domain.LookupCache`2.Contains(A5Soft.CARMA.Domain.DomainEntityIdentity{`0})">
             <summary>
             Checks if the collection contains a lookup with the specified id.
@@ -2379,6 +2394,37 @@
         <member name="M:A5Soft.CARMA.Domain.LookupCache`2.System#Collections#IEnumerable#GetEnumerator">
             <summary>
             Implements the GetEnumerator method of the IEnumerable interface, which exposes an enumerator that supports a simple iteration over a non-generic collection.
+            </summary>
+        </member>
+        <member name="T:A5Soft.CARMA.Domain.LookupCacheFactory">
+            <summary>
+            Factory for creating LookupCache instances without knowing TEntity at compile time.
+            Uses reflection to determine TEntity from TLookup's base class.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCacheFactory.Create``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Creates a LookupCache for the given lookups.
+            Automatically determines TEntity from TLookup's LookupBase&lt;TEntity&gt; inheritance.
+            </summary>
+            <typeparam name="TLookup">The lookup type (must derive from LookupBase&lt;T&gt;)</typeparam>
+            <param name="lookups">The lookup instances to cache</param>
+            <returns>A LookupCache instance wrapped in ILookupCache interface</returns>
+            <exception cref="T:System.InvalidOperationException">If TLookup doesn't derive from LookupBase&lt;T&gt;</exception>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCacheFactory.GetCacheType``1">
+            <summary>
+            Gets a LookupCache type for the given lookups.
+            Automatically determines TEntity from TLookup's <see cref="T:A5Soft.CARMA.Domain.LookupBase`1"/> inheritance.
+            </summary>
+            <typeparam name="TLookup">The lookup type (must derive from <see cref="T:A5Soft.CARMA.Domain.LookupBase`1"/>)</typeparam>
+            <returns>A LookupCache instance wrapped in <see cref="T:A5Soft.CARMA.Domain.ILookupCache`1"/> interface</returns>
+            <exception cref="T:System.InvalidOperationException">If <typeparamref name="TLookup"/>
+            doesn't derive from <see cref="T:A5Soft.CARMA.Domain.LookupBase`1"/></exception>
+        </member>
+        <member name="M:A5Soft.CARMA.Domain.LookupCacheFactory.FindLookupEntityType(System.Type)">
+            <summary>
+            Finds the LookupBase referenced entity type in the inheritance chain.
             </summary>
         </member>
         <member name="T:A5Soft.CARMA.Domain.Math.Extensions">
