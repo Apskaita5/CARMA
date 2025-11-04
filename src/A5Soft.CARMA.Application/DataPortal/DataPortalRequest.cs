@@ -85,6 +85,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         public Type RemoteServiceInterface { get; set; }
 
         /// <summary>
+        /// Gets or sets the generic argument sequence, if the RemoteServiceInterface method is generic (e.g. for lookups).
+        /// </summary>
+        public Type[] GenericArguments { get; set; }
+
+        /// <summary>
         /// Gets or sets user culture.
         /// </summary>
         public CultureInfo Culture { get; set; }
@@ -174,6 +179,21 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             if (null == method) throw new InvalidOperationException(
                 $"Remote method is not defined for remote service interface {RemoteServiceInterface.FullName}.");
+            if (method.IsGenericMethod && null == GenericArguments) throw new InvalidOperationException(
+                $"Remote method is generic, but no generic signature provided ({RemoteServiceInterface.FullName}).");
+
+            if (method.IsGenericMethod)
+            {
+                try
+                {
+                    method = method.MakeGenericMethod(GenericArguments);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Generic method signature mismatch. Interface {RemoteServiceInterface.FullName}." +
+                        $" GenericArguments: {string.Join(", ", GenericArguments.Select(t => t.Name))}", ex);
+                }
+            }
 
             var requiredParams = method.GetParameters();
             var providedParams = GetRemoteMethodSignature();
@@ -230,7 +250,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return new DataPortalRequest(remoteServiceType, identity);
         }
 
-        public static DataPortalRequest NewDataPortalRequest<TArg>(Type remoteServiceType, 
+        public static DataPortalRequest NewDataPortalRequest<TArg>(Type remoteServiceType,
             TArg parameter, ClaimsIdentity identity)
         {
             if (null == identity) throw new ArgumentNullException(nameof(identity));
@@ -238,6 +258,20 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             return new DataPortalRequest(remoteServiceType, identity,
                 DataPortalParameter.NewParameter(parameter));
+        }
+
+        public static DataPortalRequest NewDataPortalRequest<TArg>(Type remoteServiceType,
+            TArg parameter, Type[] genericArguments, ClaimsIdentity identity)
+        {
+            if (null == identity) throw new ArgumentNullException(nameof(identity));
+            if (null == remoteServiceType) throw new ArgumentNullException(nameof(remoteServiceType));
+            if (null == genericArguments) throw new ArgumentNullException(nameof(genericArguments));
+
+            return new DataPortalRequest(remoteServiceType, identity,
+                DataPortalParameter.NewParameter(parameter))
+            {
+                GenericArguments = genericArguments
+            };
         }
 
         public static DataPortalRequest NewDataPortalRequest<TArg1, TArg2>(

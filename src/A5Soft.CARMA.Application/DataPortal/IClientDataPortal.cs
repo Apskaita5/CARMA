@@ -49,6 +49,22 @@ namespace A5Soft.CARMA.Application.DataPortal
             ClaimsIdentity identity, CancellationToken ct = default);
 
         /// <summary>
+        /// Executes method of the use case specified remotely and return the result.
+        /// </summary>
+        /// <param name="useCaseType">a type of the use case or its interface</param>
+        /// <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
+        /// (should be either an interface (all the way to primitive types), a primitive type
+        /// or a json serializable POCO)</typeparam>
+        /// <typeparam name="TResult">a type of result of the method executed (should be binary serializable)</typeparam>
+        /// <param name="parameter">a value of the (only) argument for the use case InvokeAsync method</param>
+        /// <param name="genericArgs">generic arguments for the generic remote method</param>
+        /// <param name="identity">identity of the user invoking the method</param>
+        /// <param name="ct">cancellation token (if any)</param>
+        /// <returns>a result of the method executed</returns>
+        Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter,
+            Type[] genericArgs, ClaimsIdentity identity, CancellationToken ct = default);
+
+        /// <summary>
         /// Downloads file using data portal.
         /// </summary>
         /// <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method

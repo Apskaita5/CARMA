@@ -46,7 +46,7 @@ namespace A5Soft.CARMA.Application.DataPortal
             return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }
 
-        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg, TResult}" />
+        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg, TResult}(Type, TArg, ClaimsIdentity, CancellationToken)" />
         public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter,
             ClaimsIdentity identity, CancellationToken ct = default)
         {
@@ -54,6 +54,18 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             var result = await InvokeAsync(
                 DataPortalRequest.NewDataPortalRequest<TArg>(useCaseType, parameter, identity), ct);
+
+            return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
+        }
+
+        /// <inheritdoc cref="IClientDataPortal.FetchAsync{TArg, TResult}(Type, TArg, Type[], ClaimsIdentity, CancellationToken)" />
+        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(Type useCaseType, TArg parameter,
+            Type[] genericArgs, ClaimsIdentity identity, CancellationToken ct = default)
+        {
+            if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
+
+            var result = await InvokeAsync(
+                DataPortalRequest.NewDataPortalRequest<TArg>(useCaseType, parameter, genericArgs, identity), ct);
 
             return ((TResult)result.Result, Identity: result.GetUpdatedIdentity(identity));
         }

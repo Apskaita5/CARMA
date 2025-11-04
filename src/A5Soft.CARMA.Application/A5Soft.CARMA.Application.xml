@@ -453,6 +453,9 @@
         <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.FetchAsync``2(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchAsync``2(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)" />
         </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.FetchAsync``2(System.Type,``0,System.Type[],System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchAsync``2(System.Type,``0,System.Type[],System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)" />
+        </member>
         <member name="M:A5Soft.CARMA.Application.DataPortal.ClientDataPortal.DownloadAsync``1(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
             <inheritdoc cref="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.DownloadAsync``1(System.Type,``0,System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)" />
         </member>
@@ -594,6 +597,11 @@
             <summary>
             Gets or sets a type of the remote service interface (to resolve configured version on server
             and invoke data portal method.)
+            </summary>
+        </member>
+        <member name="P:A5Soft.CARMA.Application.DataPortal.DataPortalRequest.GenericArguments">
+            <summary>
+            Gets or sets the generic argument sequence, if the RemoteServiceInterface method is generic (e.g. for lookups).
             </summary>
         </member>
         <member name="P:A5Soft.CARMA.Application.DataPortal.DataPortalRequest.Culture">
@@ -752,6 +760,21 @@
             or a json serializable POCO)</typeparam>
             <typeparam name="TResult">a type of result of the method executed (should be binary serializable)</typeparam>
             <param name="parameter">a value of the (only) argument for the use case InvokeAsync method</param>
+            <param name="identity">identity of the user invoking the method</param>
+            <param name="ct">cancellation token (if any)</param>
+            <returns>a result of the method executed</returns>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.DataPortal.IClientDataPortal.FetchAsync``2(System.Type,``0,System.Type[],System.Security.Claims.ClaimsIdentity,System.Threading.CancellationToken)">
+            <summary>
+            Executes method of the use case specified remotely and return the result.
+            </summary>
+            <param name="useCaseType">a type of the use case or its interface</param>
+            <typeparam name="TArg">a type of the (only) argument for the use case InvokeAsync method
+            (should be either an interface (all the way to primitive types), a primitive type
+            or a json serializable POCO)</typeparam>
+            <typeparam name="TResult">a type of result of the method executed (should be binary serializable)</typeparam>
+            <param name="parameter">a value of the (only) argument for the use case InvokeAsync method</param>
+            <param name="genericArgs">generic arguments for the generic remote method</param>
             <param name="identity">identity of the user invoking the method</param>
             <param name="ct">cancellation token (if any)</param>
             <returns>a result of the method executed</returns>
@@ -1241,6 +1264,60 @@
         </member>
         <member name="M:A5Soft.CARMA.Application.FetchDomainSingletonUseCaseBase`1.GetMenuTitle">
             <inheritdoc cref="M:A5Soft.CARMA.Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>
+        </member>
+        <member name="T:A5Soft.CARMA.Application.GenericLookupService">
+            <summary>
+            A service that fetches a list of lookups of the specified type
+            if it is required for the use case specified and the user is authorized to invoke the use case.
+            </summary>
+            <remarks>Lookups (e.g. list of persons to be displayed in dropdowns) contain
+            sensitive personal and/or business data. However there is no reasonable way
+            to manage access authorization as the need of a particular lookup
+            is defined by business entities that the user has access to.
+            I.e. if a user has write access to invoices he needs a lookup for persons.
+            Therefore we need a service that is only accessible by use cases
+            which transfers authorization responsibility to them.
+            E.g. save invoice use case shall be responsible for providing all the necessary lookups
+            for a user in order to edit an invoice.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.GenericLookupService.GetIdentityAsync">
+            <inheritdoc cref="M:A5Soft.CARMA.Application.IAuthorizedUseCase.GetIdentityAsync" />
+        </member>
+        <member name="P:A5Soft.CARMA.Application.GenericLookupService.AuthorizationProvider">
+            <summary>
+            Gets an authorization provider.
+            </summary>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.GenericLookupService.FetchAsync``2(System.Type)">
+            <summary>
+            Gets a lookup value.
+            </summary>
+            <param name="requesterType">a type of the use case that requests the lookup</param>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.GenericLookupService.GetValueFromLocalCache``2">
+            <summary>
+            Implement this method to get a requested value from a local cache (if used/configured).
+            </summary>
+            <remarks>Do not configure local cache for shared environments even if a remote data portal is used.
+            The data portal will return only lookups for the user, which will render the
+            shared cache invalid. Data portal cannot return lookup values that are not meant for the user
+            as it will compromise its security.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.GenericLookupService.SetLocalCacheValue``2(System.Collections.Generic.List{``0})">
+            <summary>
+            Implement this method to add fetched lookup value to a local cache (if used/configured).
+            </summary>
+            <remarks>Only invoked if a remote data portal is used.
+            Do not configure local cache for shared environments even if a remote data portal is used.
+            The data portal might return only lookups for the user, which will render the
+            shared cache invalid. Data portal cannot return lookup values that are not meant for the user
+            as it will compromise its security.</remarks>
+        </member>
+        <member name="M:A5Soft.CARMA.Application.GenericLookupService.DoFetchAsync``2">
+            <summary>
+            Implement this method to fetch lookup value from a database or a server side cache.
+            </summary>
+            <remarks>If required, filter out the returned lookup values for the current user.</remarks>
         </member>
         <member name="T:A5Soft.CARMA.Application.HealthCheckResult">
             <summary>
