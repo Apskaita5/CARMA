@@ -21,6 +21,7 @@ namespace A5Soft.CARMA.Domain
         private bool _notifyPropertyChangedEnabled = false;
         private bool _notifyPropertyChangingEnabled = false;
         private BindingMode _bindingMode = BindingMode.WinForms;
+        [NonSerialized]
         private bool _suspendBinding = false;
 
 
@@ -28,7 +29,7 @@ namespace A5Soft.CARMA.Domain
         [Display(AutoGenerateField = false)]
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
-        public bool NotifyPropertyChangedEnabled 
+        public bool NotifyPropertyChangedEnabled
         {
             get
             {
@@ -103,7 +104,7 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// apply with using pattern to temporally disable binding events
         /// </summary>
-        public IDisposable SuspendBindings() 
+        public IDisposable SuspendBindings()
             => new SuspendBindingsInt(this);
 
         #region INotifyPropertyChanged
@@ -359,6 +360,5 @@ namespace A5Soft.CARMA.Domain
                 Dispose(disposing: true);
             }
         }
-
     }
 }

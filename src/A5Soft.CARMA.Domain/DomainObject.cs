@@ -954,7 +954,7 @@ namespace A5Soft.CARMA.Domain
         /// <param name="fieldName">a name of the field (or property) that has changed</param>
         /// <param name="sender">a (child) object that raised the event</param>
         /// <param name="e">change event arguments</param>
-        protected virtual void ChildHasChanged(string fieldName, object sender, ChildChangedEventArgs e)
+        internal virtual void ChildHasChanged(string fieldName, object sender, ChildChangedEventArgs e)
         {
             if (e.ListChangedArgs.IsNull() || e.ListChangedArgs.ListChangedType != ListChangedType.ItemChanged)
                 OnChildChanged(e);
