@@ -49,7 +49,7 @@ namespace A5Soft.CARMA.Domain
         /// <returns>a value indicating whether the reference is to the same domain entity</returns>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        public static bool ReferenceEqualsTo(this IDomainEntityReference reference, 
+        public static bool ReferenceEqualsTo(this IDomainEntityReference reference,
             IDomainEntityReference referenceToCompare)
         {
             if (ReferenceEquals(reference, null) && object.ReferenceEquals(referenceToCompare, null))

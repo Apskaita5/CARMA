@@ -18,7 +18,7 @@ namespace A5Soft.CARMA.Domain
     /// <typeparam name="TChild">Type of item contained in list.</typeparam>
     [Serializable]
     public class DomainBindingList<TChild> : BindingList<TChild>, 
-        INotifyChildChanged, ITrackState, IChildInternal, IBindable, INotifyCollectionChanged
+        INotifyChildChanged, ITrackState, IChildInternal, IBindableChildInt, IBindable, INotifyCollectionChanged
         where TChild : class, ITrackState
     {
         #region Constructors
@@ -372,7 +372,7 @@ namespace A5Soft.CARMA.Domain
                 }
             }
         }
-          
+
         #endregion
 
         #region Delete and Undelete child
@@ -958,6 +958,14 @@ namespace A5Soft.CARMA.Domain
         void IChildInternal.SetParent(IDomainObject parent, string parentPropertyName)
         {
             SetParent(parent, parentPropertyName);
+        }
+
+        /// <inheritdoc cref="IBindableChildInt.UpdateBindingOptions(IBindable)" />
+        void IBindableChildInt.UpdateBindingOptions(IBindable parent)
+        {
+            NotifyPropertyChangingEnabled = parent.NotifyPropertyChangingEnabled;
+            BindingMode = parent.BindingMode;
+            NotifyPropertyChangedEnabled = true;
         }
 
         /// <summary>

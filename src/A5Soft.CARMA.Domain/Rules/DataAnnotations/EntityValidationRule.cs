@@ -48,6 +48,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
             return null;
         }
-
     }
 }

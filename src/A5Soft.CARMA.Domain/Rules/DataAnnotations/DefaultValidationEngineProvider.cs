@@ -29,7 +29,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         public IValidationEngine GetValidationEngine(Type entityType)
         {
             if (null == entityType) throw new ArgumentNullException(nameof(entityType));
-            if (null == entityType) throw new ArgumentNullException(nameof(entityType));
             return _Cache.GetOrAdd(entityType, t => new DefaultValidationEngine(
                 _metadataProvider.GetEntityMetadata(t)));
         }

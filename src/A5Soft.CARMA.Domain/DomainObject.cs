@@ -1,15 +1,13 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain.Math;
+using A5Soft.CARMA.Domain.Metadata;
+using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
+using A5Soft.CARMA.Domain.Rules;
+using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using A5Soft.CARMA.Domain.Math;
-using A5Soft.CARMA.Domain.Metadata;
-using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
-using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Domain
 {
@@ -21,7 +19,7 @@ namespace A5Soft.CARMA.Domain
     /// (only one instance per domain, e.g. some common settings) and no auditing functionality</remarks>
     [Serializable]
     public abstract class DomainObject<T>
-        : BindableBase, ITrackState, IChildInternal, INotifyChildChanged, IDataErrorInfo
+        : BindableBase, ITrackState, IChildInternal, IBindableChildInt, INotifyChildChanged, IDataErrorInfo
         where T : DomainObject<T>
     {
         #region Constructors
@@ -37,6 +35,7 @@ namespace A5Soft.CARMA.Domain
 
             Initialize();
             _brokenRules = new BrokenRulesManager<T>((T)this, validationEngineProvider);
+            _childrenManager = new ChildrenManager<T>((T)this);
         }
 
         /// <summary>
@@ -51,6 +50,7 @@ namespace A5Soft.CARMA.Domain
 
             Initialize();
             _brokenRules = objectToCopy._brokenRules.GetCopy((T)this);
+            _childrenManager = new ChildrenManager<T>((T)this);
         }
 
         #endregion
@@ -97,10 +97,7 @@ namespace A5Soft.CARMA.Domain
         public void SetValidationEngine(IValidationEngineProvider validationEngineProvider)
         {
             _brokenRules = new BrokenRulesManager<T>((T)this, validationEngineProvider);
-            foreach (var statefulChild in GetStatefulChildren())
-            {
-                statefulChild.SetValidationEngine(validationEngineProvider);
-            }
+            _childrenManager.SetValidationEngine(validationEngineProvider);
         }
 
         /// <inheritdoc cref="ITrackState.IsDeleted" />
@@ -108,7 +105,7 @@ namespace A5Soft.CARMA.Domain
         [Display(AutoGenerateField = false)]
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
-        public bool IsDeleted 
+        public bool IsDeleted
             => _isDeleted;
 
         /// <inheritdoc cref="ITrackState.IsDirty" />
@@ -117,14 +114,14 @@ namespace A5Soft.CARMA.Domain
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
         public virtual bool IsDirty
-            => IsSelfDirty || AnyStatefulChildren(c => c.IsDirty);
+            => IsSelfDirty || _childrenManager.IsDirty();
 
         /// <inheritdoc cref="ITrackState.IsSelfDirty" />
         [Browsable(false)]
         [Display(AutoGenerateField = false)]
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
-        public virtual bool IsSelfDirty 
+        public virtual bool IsSelfDirty
             => _isDirty;
 
         /// <inheritdoc cref="ITrackState.ContainsNewData" />
@@ -133,7 +130,7 @@ namespace A5Soft.CARMA.Domain
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
         public virtual bool ContainsNewData
-            => SelfContainsNewData || AnyStatefulChildren(c => c.ContainsNewData);
+            => SelfContainsNewData || _childrenManager.ContainsNewData();
 
         /// <inheritdoc cref="ITrackState.SelfContainsNewData" />
         [Browsable(false)]
@@ -277,13 +274,7 @@ namespace A5Soft.CARMA.Domain
         public void CheckRules(bool checkRulesForChildren = true)
         {
             CheckObjectRules();
-            if (checkRulesForChildren)
-            {
-                foreach (var statefulChild in GetStatefulChildren())
-                {
-                    statefulChild.CheckRules();
-                }
-            }
+            if (checkRulesForChildren) _childrenManager.CheckRules();
         }
 
         /// <summary>
@@ -315,7 +306,7 @@ namespace A5Soft.CARMA.Domain
         [IgnorePropertyMetadata]
         public virtual bool IsValid
         {
-            get { return IsSelfValid && !AnyStatefulChildren(c => !c.IsValid); }
+            get { return IsSelfValid && _childrenManager.IsValid(); }
         }
 
         /// <inheritdoc cref="ITrackState.IsSelfValid" />
@@ -333,7 +324,7 @@ namespace A5Soft.CARMA.Domain
         [IgnorePropertyMetadata]
         public virtual bool HasWarnings
         {
-            get { return HasSelfWarnings || AnyStatefulChildren(c => c.HasWarnings); }
+            get { return HasSelfWarnings || _childrenManager.HasWarnings(); }
         }
 
         /// <inheritdoc cref="ITrackState.HasSelfWarnings" />
@@ -383,11 +374,7 @@ namespace A5Soft.CARMA.Domain
             }
 
             var result = new BrokenRulesTreeNode(description, RulesManager.ToBrokenRuleArray());
-
-            foreach (var statefulChild in GetStatefulChildren())
-            {
-                result.AddBrokenRulesForChild(statefulChild.GetBrokenRulesTree(false));
-            }
+            _childrenManager.AddChildrenBrokenRules(result);
 
             return result;
         }
@@ -510,6 +497,14 @@ namespace A5Soft.CARMA.Domain
             SetParent(parent);
         }
 
+        /// <inheritdoc cref="IBindableChildInt.UpdateBindingOptions(IBindable)" />
+        void IBindableChildInt.UpdateBindingOptions(IBindable parent)
+        {
+            NotifyPropertyChangingEnabled = parent.NotifyPropertyChangingEnabled;
+            BindingMode = parent.BindingMode;
+            NotifyPropertyChangedEnabled = true;
+        }
+
         /// <summary>
         /// Marks the object as being a child object.
         /// </summary>
@@ -522,9 +517,13 @@ namespace A5Soft.CARMA.Domain
 
         #region Child bindings
 
-        private readonly List<string> _statefulChildren = new List<string>();
-        private readonly List<string> _bindableChildren = new List<string>();
+        private ChildrenManager<T> _childrenManager;
 
+        /// <summary>
+        /// Registers current child fields values.
+        /// Should be invoked in a constructor after the initialization is completed.
+        /// </summary>
+        protected void RegisterCurrentChildValues() => _childrenManager.RestoreEventHooks();
 
         /// <summary>
         /// Child field setter that shall be used to set child object fields (init or update)
@@ -545,249 +544,14 @@ namespace A5Soft.CARMA.Domain
         {
             if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
 
-            UnRegisterChildValue(oldValue, fieldName);
+            _childrenManager.UnregisterChildValueFor(fieldName);
 
             oldValue = newValue;
 
-            RegisterChildValue(oldValue, fieldName, addEventHooks);
-        }
-
-        /// <summary>
-        /// Registers a new (incl. initial) value of a child field.  
-        /// </summary>
-        /// <typeparam name="TC"></typeparam>
-        /// <param name="childValue">a new (incl. initial) value of a child field</param>
-        /// <param name="fieldName">a name of the field that the child value is stored by</param>
-        /// <param name="withEvents">whether to hook into the child object events</param>
-        protected virtual void RegisterChildValue<TC>(TC childValue, string fieldName, bool withEvents = true)
-            where TC : class
-        {
-            if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-
-            if (childValue.IsNull()) return;
-
-            if (withEvents) AddEventHooks(childValue, fieldName);
-
-            if (childValue is IChildInternal cin) cin.SetParent(this, null);
-
-            if (typeof(IBindable).IsAssignableFrom(childValue.GetType())
-                && !_bindableChildren.Contains(fieldName))
-                _bindableChildren.Add(fieldName);
-
-            if (childValue is ITrackState && !_statefulChildren.Contains(fieldName))
-                _statefulChildren.Add(fieldName);
-        }
-
-        /// <summary>
-        /// Unregisters an old value of a child field.
-        /// Method shall be invoked before the child value is updated for those fields
-        /// that were registered by RegisterChildValue method.  
-        /// </summary>
-        /// <typeparam name="TC"></typeparam>
-        /// <param name="childValue">an old value of a child field (before it is updated)</param>
-        /// <param name="fieldName">a name of the field that the child value is stored by</param>
-        protected virtual void UnRegisterChildValue<TC>(TC childValue, string fieldName) where TC : class
-        {
-            if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-
-            if (childValue.IsNull())
-            {
-                if (_childrenWithEvents.Contains(fieldName)) _childrenWithEvents.Remove(fieldName);
-            }
-            else
-            {
-                RemoveEventHooks(childValue, fieldName);
-                if (childValue is IChildInternal cin) cin.SetParent(null, null);
-            }
-
-            if (_bindableChildren.Contains(fieldName)) _bindableChildren.Remove(fieldName);
-            if (_statefulChildren.Contains(fieldName)) _statefulChildren.Remove(fieldName);
-        }
-
-        /// <summary>
-        /// Gets an array of children that implements ITrackState and have their value set. 
-        /// </summary>
-        /// <returns></returns>
-        protected ITrackState[] GetStatefulChildren()
-        {
-            var result = new List<ITrackState>();
-            foreach (var statefulChildName in _statefulChildren)
-            {
-                var child = GetStatefulChild(statefulChildName);
-                if (!child.IsNull()) result.Add(child);
-            }
-
-            return result.ToArray();
-        }
-
-        /// <summary>
-        /// Gets a value indicating that any child, that implements ITrackState, has state defined by the predicate.
-        /// </summary>
-        /// <param name="predicate">a child state to find</param>
-        /// <returns>a value indicating that any child, that implements ITrackState, has state defined by the predicate.</returns>
-        protected bool AnyStatefulChildren(Func<ITrackState, bool> predicate)
-        {
-            foreach (var statefulChildName in _statefulChildren)
-            {
-                var child = GetStatefulChild(statefulChildName);
-                if (!child.IsNull() && predicate.Invoke(child)) return true;
-            }
-
-            return false;
-        }
-
-        private ITrackState GetStatefulChild(string fieldName)
-        {
-            var childField = typeof(T).GetField(fieldName,
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (null == childField)
-            {
-                var propField = typeof(T).GetProperty(fieldName);
-                if (null != propField)
-                {
-                    if (propField.GetValue(this) is ITrackState result) return result;
-                }
-            }
-            else if (childField.GetValue(this) is ITrackState result) return result;
-
-            return null;
+            _childrenManager.RegisterChildValueFor(fieldName);
         }
 
         #region Bubbling event Hooks
-
-        [NonSerialized]
-        private readonly Dictionary<string, PropertyChangedEventHandler> _propertyChangedDelegates
-            = new Dictionary<string, PropertyChangedEventHandler>();
-        [NonSerialized]
-        private readonly Dictionary<string, ListChangedEventHandler> _listChangedDelegates
-            = new Dictionary<string, ListChangedEventHandler>();
-        [NonSerialized]
-        private readonly Dictionary<string, NotifyCollectionChangedEventHandler> _collectionChangedDelegates
-            = new Dictionary<string, NotifyCollectionChangedEventHandler>();
-        [NonSerialized]
-        private readonly Dictionary<string, EventHandler<ChildChangedEventArgs>> _childChangedDelegates
-            = new Dictionary<string, EventHandler<ChildChangedEventArgs>>();
-        private readonly List<string> _childrenWithEvents = new List<string>();
-
-
-        /// <summary>
-        /// For internal use.
-        /// </summary>
-        /// <param name="child">Child object.</param>
-        /// <param name="fieldName">a name of a (private) field that manages child value</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected void AddEventHooks<TC>(TC child, string fieldName) where TC : class
-        {
-            if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-            if (child.IsNull()) throw new ArgumentNullException(nameof(child));
-
-            OnAddEventHooks(child, fieldName);
-        }
-
-        /// <summary>
-        /// Hook child object events.
-        /// </summary>
-        /// <param name="child">Child object.</param>
-        /// <param name="fieldName">a name of a (private) field that manages child value</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual void OnAddEventHooks<TC>(TC child, string fieldName) where TC : class
-        {
-            if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-            if (child.IsNull()) throw new ArgumentNullException(nameof(child));
-
-            bool hasAnyEvents = false;
-
-            if (child is BindableBase bb)
-            {
-                bb.NotifyPropertyChangingEnabled = NotifyPropertyChangingEnabled;
-                bb.BindingMode = BindingMode;
-                bb.NotifyPropertyChangedEnabled = true;
-            }
-
-            if (child is INotifyPropertyChanged pc)
-            {
-                _propertyChangedDelegates[fieldName] = (o, e) =>
-                    ChildHasChanged(fieldName, o, CreateChildChangedEventArgs(o, e));
-                pc.PropertyChanged += _propertyChangedDelegates[fieldName];
-                hasAnyEvents = true;
-            }
-
-            if (child is IBindingList bl)
-            {
-                _listChangedDelegates[fieldName] = (o, e) =>
-                    ChildHasChanged(fieldName, o, CreateChildChangedEventArgs(o, null, e));
-                bl.ListChanged += _listChangedDelegates[fieldName];
-                hasAnyEvents = true;
-            }
-            else if (child is INotifyCollectionChanged ncc)
-            {
-                _collectionChangedDelegates[fieldName] = (o, e) =>
-                    ChildHasChanged(fieldName, o, CreateChildChangedEventArgs(o, null, e));
-                ncc.CollectionChanged += _collectionChangedDelegates[fieldName];
-                hasAnyEvents = true;
-            }
-
-            if (child is INotifyChildChanged nchc)
-            {
-                _childChangedDelegates[fieldName] = (o, e) =>
-                    ChildHasChanged(fieldName, o, e);
-                nchc.ChildChanged += _childChangedDelegates[fieldName];
-                hasAnyEvents = true;
-            }
-
-            if (hasAnyEvents) _childrenWithEvents.Add(fieldName);
-        }
-
-        /// <summary>
-        /// For internal use only.
-        /// </summary>
-        /// <param name="child">Child object.</param>
-        /// <param name="fieldName">a name of a (private) field that manages child value</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected void RemoveEventHooks<TC>(TC child, string fieldName) where TC : class
-        {
-            if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-            if (child.IsNull()) throw new ArgumentNullException(nameof(child));
-            OnRemoveEventHooks(child, fieldName);
-        }
-
-        /// <summary>
-        /// Unhook child object events.
-        /// </summary>
-        /// <param name="child">Child object.</param>
-        /// <param name="fieldName">a name of a (private) field that manages child value</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual void OnRemoveEventHooks<TC>(TC child, string fieldName) where TC : class
-        {
-            if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
-            if (child.IsNull()) throw new ArgumentNullException(nameof(child));
-
-            if (child is INotifyPropertyChanged pc && _propertyChangedDelegates.ContainsKey(fieldName))
-            {
-                pc.PropertyChanged -= _propertyChangedDelegates[fieldName];
-                _propertyChangedDelegates.Remove(fieldName);
-            }
-
-            if (child is IBindingList bl && _listChangedDelegates.ContainsKey(fieldName))
-            {
-                bl.ListChanged -= _listChangedDelegates[fieldName];
-                _listChangedDelegates.Remove(fieldName);
-            }
-            else if (child is INotifyCollectionChanged ncc && _collectionChangedDelegates.ContainsKey(fieldName))
-            {
-                ncc.CollectionChanged -= _collectionChangedDelegates[fieldName];
-                _collectionChangedDelegates.Remove(fieldName);
-            }
-
-            if (child is INotifyChildChanged nchc && _childChangedDelegates.ContainsKey(fieldName))
-            {
-                nchc.ChildChanged -= _childChangedDelegates[fieldName];
-                _childChangedDelegates.Remove(fieldName);
-            }
-
-            if (_childrenWithEvents.Contains(fieldName)) _childrenWithEvents.Remove(fieldName);
-        }
-
 
         /// <summary>
         /// Enables or disables child binding support for INotifyPropertyChanging
@@ -795,12 +559,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected override void OnNotifyPropertyChangingEnabledChanged()
         {
-            foreach (var bindableChildName in _bindableChildren)
-            {
-                var bindableChild = GetBindableChild(bindableChildName);
-                if (!bindableChild.IsNull())
-                    bindableChild.NotifyPropertyChangingEnabled = NotifyPropertyChangingEnabled;
-            }
+            _childrenManager.OnBindingOptionsChanged();
         }
 
         /// <summary>
@@ -810,12 +569,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         protected override void OnBindingModeChanged()
         {
-            foreach (var bindableChildName in _bindableChildren)
-            {
-                var bindableChild = GetBindableChild(bindableChildName);
-                if (!bindableChild.IsNull())
-                    bindableChild.BindingMode = BindingMode;
-            }
+            _childrenManager.OnBindingOptionsChanged();
         }
 
         /// <summary>
@@ -827,67 +581,7 @@ namespace A5Soft.CARMA.Domain
         /// e.g. loosing track of invoice items renders impossible to keep subtotals.</remarks>
         protected override void OnNotifyPropertyChangedEnabledChanged()
         {
-            foreach (var bindableChildName in _bindableChildren)
-            {
-                if (_childrenWithEvents.Contains(bindableChildName))
-                {
-                    if (NotifyPropertyChangedEnabled)
-                    {
-                        var bindableChild = GetBindableChild(bindableChildName);
-                        if (!bindableChild.IsNull())
-                            bindableChild.NotifyPropertyChangedEnabled = true;
-                    }
-                }
-                else
-                {
-                    var bindableChild = GetBindableChild(bindableChildName);
-                    if (!bindableChild.IsNull())
-                        bindableChild.NotifyPropertyChangedEnabled = NotifyPropertyChangedEnabled;
-                }
-            }
-        }
-
-
-        private void RestoreEventHooks()
-        {
-            foreach (var childWithEventName in _childrenWithEvents)
-            {
-                var childField = typeof(T).GetField(childWithEventName,
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                if (null == childField)
-                {
-                    var propField = typeof(T).GetProperty(childWithEventName);
-                    if (null != propField)
-                    {
-                        var value = propField.GetValue(this);
-                        if (!value.IsNull()) AddEventHooks(value, childWithEventName);
-                    }
-                }
-                else
-                {
-                    var value = childField.GetValue(this);
-                    if (!value.IsNull()) AddEventHooks(value, childWithEventName);
-                }
-            }
-        }
-
-        private IBindable GetBindableChild(string fieldName)
-        {
-            var childField = typeof(T).GetField(fieldName,
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (null == childField)
-            {
-                var childProp = typeof(T).GetProperty(fieldName);
-                if (null != childProp)
-                {
-                    if (childProp.GetValue(this) is IBindable result && !result.IsNull())
-                        return result;
-                }
-            }
-            else if (childField.GetValue(this) is IBindable result && !result.IsNull())
-                return result;
-
-            return null;
+            _childrenManager.OnBindingOptionsChanged();
         }
 
         #endregion
@@ -927,26 +621,6 @@ namespace A5Soft.CARMA.Domain
             _childChangedHandlers?.Invoke(this, e); ;
         }
 
-
-        private ChildChangedEventArgs CreateChildChangedEventArgs(object childObject,
-            PropertyChangedEventArgs propertyArgs)
-        {
-            return new ChildChangedEventArgs(childObject, propertyArgs);
-        }
-
-        private ChildChangedEventArgs CreateChildChangedEventArgs(object childObject,
-            PropertyChangedEventArgs propertyArgs, ListChangedEventArgs listArgs)
-        {
-            return new ChildChangedEventArgs(childObject, propertyArgs, listArgs);
-        }
-
-        private ChildChangedEventArgs CreateChildChangedEventArgs(object childObject,
-            PropertyChangedEventArgs propertyArgs, NotifyCollectionChangedEventArgs listArgs)
-        {
-            return new ChildChangedEventArgs(childObject, propertyArgs, listArgs);
-        }
-
-
         /// <summary>
         /// Bubbles up child change events. Override it to handle child changes.
         /// Call base at first, if you want to bubble events before your code executes and vice versa.
@@ -969,7 +643,8 @@ namespace A5Soft.CARMA.Domain
         [System.Runtime.Serialization.OnDeserialized]
         private void OnDeserializedHandler(System.Runtime.Serialization.StreamingContext context)
         {
-            RestoreEventHooks();
+            _childrenManager = _childrenManager ?? new ChildrenManager<T>((T)this);
+            _childrenManager.RestoreEventHooks();
             OnDeserialized(context);
         }
 
@@ -1012,7 +687,7 @@ namespace A5Soft.CARMA.Domain
         /// (i.e. checks rules and raises binding event).</remarks>
         /// <returns>true if the property has been changed, otherwise false</returns>
         protected bool SetChildPropertyValue<TValue>(string propertyName, string fieldName,
-            ref TValue oldValue, TValue newValue, bool addEventHooks = true, Action postProcessing = null) 
+            ref TValue oldValue, TValue newValue, bool addEventHooks = true, Action postProcessing = null)
             where TValue : class
         {
             if (fieldName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(fieldName));
@@ -1029,11 +704,11 @@ namespace A5Soft.CARMA.Domain
 
                 OnPropertyChanging(propertyName);
 
-                UnRegisterChildValue(oldValue, fieldName);
+                _childrenManager.UnregisterChildValueFor(fieldName);
 
                 oldValue = newValue;
 
-                RegisterChildValue(oldValue, fieldName, addEventHooks);
+                _childrenManager.RegisterChildValueFor(fieldName);
 
                 if (null != postProcessing) postProcessing();
                 else PropertyHasChanged(propertyName);

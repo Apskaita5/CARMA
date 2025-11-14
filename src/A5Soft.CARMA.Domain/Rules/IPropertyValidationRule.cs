@@ -25,6 +25,5 @@ namespace A5Soft.CARMA.Domain.Rules
         /// </summary>
         /// <returns>a list of properties (their names) which values are used by the validation rule (if any)</returns>
         List<string> GetRelatedProperties();
-
     }
 }

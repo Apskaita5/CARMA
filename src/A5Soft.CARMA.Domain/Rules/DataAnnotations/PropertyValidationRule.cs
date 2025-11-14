@@ -24,7 +24,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
 
         /// <inheritdoc cref="IPropertyValidationRule.GetValidationResult" />
-        public BrokenRule GetValidationResult(object instance, IPropertyMetadata propInfo, 
+        public BrokenRule GetValidationResult(object instance, IPropertyMetadata propInfo,
             IEnumerable<IPropertyMetadata> relatedProps)
         {
             if (instance.IsNull()) throw new ArgumentNullException(nameof(instance));
@@ -45,7 +45,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             var err = _validator.GetValidationResult(propValue, context);
             if (null != err)
             {
-                return new BrokenRule(_validator.GetType().FullName, propInfo.Name, 
+                return new BrokenRule(_validator.GetType().FullName, propInfo.Name,
                     err.ErrorMessage, RuleSeverity.Error);
             }
 
