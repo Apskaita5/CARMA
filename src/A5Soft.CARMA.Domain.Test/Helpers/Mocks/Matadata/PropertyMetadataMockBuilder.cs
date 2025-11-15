@@ -3,6 +3,8 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +28,21 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
         private int _displayOrder = 10000;
         private bool _autoGenerate = true;
         private bool _autoGenerateFilter = true;
-        private object _value;
+        private Func<object, object> _getter;
+
+        public PropertyMetadataMockBuilder(PropertyInfo propInfo)
+        {
+            _mock = new Mock<IPropertyMetadata>();
+            _name = propInfo.Name;
+            _propertyType = propInfo.PropertyType;
+            _displayName = propInfo.Name; // Default to property name
+            _entityType = propInfo.DeclaringType;
+            _description = $"Some description of property {_displayName}";
+            _isReadOnly = !propInfo.CanWrite;
+            _prompt = $"Some prompt for property {_displayName}";
+            _shortName = _displayName;
+            _getter = CreateGetter(propInfo);
+        }
 
         public PropertyMetadataMockBuilder(string propertyName, Type propertyType = null)
         {
@@ -34,6 +50,7 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
             _name = propertyName;
             _propertyType = propertyType ?? typeof(string);
             _displayName = propertyName; // Default to property name
+            _getter = (o) => GetDefaultValue(_propertyType);
         }
 
         public PropertyMetadataMockBuilder ForEntityType(Type entityType)
@@ -102,12 +119,6 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
             return this;
         }
 
-        public PropertyMetadataMockBuilder WithValue(object value)
-        {
-            _value = value;
-            return this;
-        }
-
         public IPropertyMetadata Build()
         {
             _mock.Setup(x => x.EntityType).Returns(_entityType);
@@ -122,12 +133,57 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
             _mock.Setup(x => x.GetDisplayOrder()).Returns(_displayOrder);
             _mock.Setup(x => x.GetDisplayAutoGenerate(It.IsAny<bool>())).Returns(_autoGenerate);
             _mock.Setup(x => x.GetAutoGenerateFilter(It.IsAny<bool>())).Returns(_autoGenerateFilter);
-            _mock.Setup(x => x.GetValue(It.IsAny<object>())).Returns(_value);
+            _mock.Setup(x => x.GetValue(It.IsAny<object>())).Returns(_getter);
 
             return _mock.Object;
         }
 
         //public static implicit operator IPropertyMetadata(PropertyMetadataMockBuilder builder)
         //    => builder.Build();
+
+        private static Func<object, object> CreateGetter(PropertyInfo property)
+        {
+            if (property == null) throw new ArgumentNullException(nameof(property));
+
+            var getMethod = property.GetGetMethod(nonPublic: true);
+            if (getMethod == null)
+                throw new ArgumentException($"Property '{property.Name}' does not have a getter.");
+
+            // (object instance) =>
+            var instanceParam = Expression.Parameter(typeof(object), "instance");
+
+            // Convert instance → declaringType (skip for static)
+            Expression instanceCast = getMethod.IsStatic
+                ? null
+                : Expression.Convert(instanceParam, property.DeclaringType!);
+
+            // Access property
+            Expression propertyAccess = getMethod.IsStatic
+                ? Expression.Property(null, property)
+                : Expression.Property(instanceCast!, property);
+
+            // Box value types
+            Expression convertToObject = Expression.Convert(propertyAccess, typeof(object));
+
+            // Build lambda
+            var lambda = Expression.Lambda<Func<object, object>>(convertToObject, instanceParam);
+            return lambda.Compile();  // create fast delegate
+        }
+
+        private static object GetDefaultValue(Type propertyType)
+        {
+            if (propertyType == null) return null;
+
+            // Nullable<T> → return null
+            if (Nullable.GetUnderlyingType(propertyType) != null)
+                return null;
+
+            // Value type → Activator.CreateInstance gives default(T)
+            if (propertyType.IsValueType)
+                return Activator.CreateInstance(propertyType);
+
+            // Reference type → null
+            return null;
+        }
     }
 }

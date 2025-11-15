@@ -21,6 +21,7 @@ namespace A5Soft.CARMA.Domain.Rules
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
             _engine = validationProvider?.GetValidationEngine(parent.GetType())
                 ?? DefaultValidationEngineProvider.GetDefaultValidationEngine<T>();
+            if (null == _engine.EntityMetadata) throw new InvalidOperationException("Engine must include entity metadata.");
         }
 
         private BrokenRulesManager(T forNewParent, IValidationEngine validationEngine)

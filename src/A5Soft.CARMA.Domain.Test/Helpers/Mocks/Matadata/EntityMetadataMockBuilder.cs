@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 
 namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
 {
@@ -20,12 +21,19 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
         private string _displayNameForOld;
         private string _helpUri;
 
-        public EntityMetadataMockBuilder(Type entityType)
+        public EntityMetadataMockBuilder(Type entityType, bool withAllProperties)
         {
             _mock = new Mock<IEntityMetadata>();
             _entityType = entityType;
             _displayNameForNew = $"New {entityType.Name}";
             _displayNameForOld = $"Edit {entityType.Name}";
+            if (withAllProperties)
+            {
+                foreach (var prop in entityType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    _properties.Add(prop.Name, (new PropertyMetadataMockBuilder(prop)).Build());
+                }
+            }
         }
 
         public EntityMetadataMockBuilder ForType<T>()

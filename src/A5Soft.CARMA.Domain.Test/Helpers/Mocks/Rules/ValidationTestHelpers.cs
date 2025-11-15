@@ -15,7 +15,7 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         public static IValidationEngineProvider CreateFailingProvider<TEntity>(
             params BrokenRule[] rules)
         {
-            var engine = new ValidationEngineMockBuilder();
+            var engine = new ValidationEngineMockBuilder(typeof(TEntity));
 
             foreach (var rule in rules)
             {

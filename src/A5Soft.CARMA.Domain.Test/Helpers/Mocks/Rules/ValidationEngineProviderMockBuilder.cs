@@ -12,7 +12,6 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
     {
         private readonly Mock<IValidationEngineProvider> _mock;
         private readonly Dictionary<Type, IValidationEngine> _engines = new();
-        private IValidationEngine _defaultEngine;
 
         public ValidationEngineProviderMockBuilder()
         {
@@ -36,7 +35,7 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         public ValidationEngineProviderMockBuilder WithEngine<TEntity>(
             Action<ValidationEngineMockBuilder> configure = null)
         {
-            var builder = new ValidationEngineMockBuilder();
+            var builder = new ValidationEngineMockBuilder(typeof(TEntity));
             configure?.Invoke(builder);
 
             _engines[typeof(TEntity)] = builder.Build();
@@ -44,44 +43,43 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         }
 
         /// <summary>
-        /// Sets a default engine to return for any unregistered type.
-        /// </summary>
-        public ValidationEngineProviderMockBuilder WithDefaultEngine(IValidationEngine engine)
-        {
-            _defaultEngine = engine;
-            return this;
-        }
-
-        /// <summary>
         /// Configures provider to return engines that always validate successfully.
         /// </summary>
-        public ValidationEngineProviderMockBuilder AllValid()
+        public ValidationEngineProviderMockBuilder WithAllValid(Type forType)
         {
-            _defaultEngine = new ValidationEngineMockBuilder().AllValid().Build();
+            _engines[forType] = new ValidationEngineMockBuilder(forType).AllValid().Build();
             return this;
         }
 
         public IValidationEngineProvider Build()
         {
-            // Setup GetValidationEngine(Type)
-            _mock.Setup(x => x.GetValidationEngine(It.IsAny<Type>()))
-                .Returns<Type>(type =>
-                {
-                    return _engines.TryGetValue(type, out var engine)
-                        ? engine
-                        : _defaultEngine;
-                });
+            try
+            {
+                // Setup GetValidationEngine(Type)
+                _mock.Setup(x => x.GetValidationEngine(It.IsAny<Type>()))
+                    .Returns<Type>(type =>
+                    {
+                        return _engines.TryGetValue(type, out var engine)
+                            ? engine
+                            : throw new NotImplementedException($"Engine for type {type.FullName} is not set up.");
+                    });
 
-            // Setup GetValidationEngine<T>()
-            _mock.Setup(x => x.GetValidationEngine<It.IsAnyType>())
-                .Returns<Type>(type =>
-                {
-                    return _engines.TryGetValue(type, out var engine)
-                        ? engine
-                        : _defaultEngine;
-                });
+                // Setup GetValidationEngine<T>()
+                //_mock.Setup(x => x.GetValidationEngine<It.IsAnyType>())
+                //    .Returns<Type>(type =>
+                //    {
+                //        return _engines.TryGetValue(type, out var engine)
+                //            ? engine
+                //            : _defaultEngine;
+                //    });
 
-            return _mock.Object;
+                return _mock.Object;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
         }
 
         //public static implicit operator IValidationEngineProvider(

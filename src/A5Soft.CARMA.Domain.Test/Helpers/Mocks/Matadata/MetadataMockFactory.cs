@@ -61,52 +61,6 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
         }
 
         /// <summary>
-        /// Creates entity metadata with common properties for a typical business entity.
-        /// </summary>
-        public static IEntityMetadata CreateTypicalEntityMetadata<T>(
-            params string[] propertyNames)
-        {
-            var builder = new EntityMetadataMockBuilder(typeof(T));
-
-            foreach (var propName in propertyNames)
-            {
-                builder.WithProperty(propName);
-            }
-
-            return builder.Build();
-        }
-
-        /// <summary>
-        /// Creates a complete entity metadata for a user entity.
-        /// </summary>
-        public static IEntityMetadata CreateUserEntityMetadata()
-        {
-            return new EntityMetadataMockBuilder(typeof(object))
-                .WithDisplayNameForNew("Create New User")
-                .WithDisplayNameForOld("Edit User")
-                .WithProperty("Name", b => b
-                    .WithDisplayName("Full Name")
-                    .WithPrompt("Enter user's full name")
-                    .WithDisplayOrder(1))
-                .WithProperty("Email", b => b
-                    .WithDisplayName("Email Address")
-                    .WithPrompt("user@example.com")
-                    .WithDisplayOrder(2))
-                .WithProperty("Age", b => b
-                    .WithDisplayName("Age")
-                    .WithDisplayOrder(3))
-                .WithProperty("IsActive", b => b
-                    .WithDisplayName("Active")
-                    .WithDescription("Indicates if user account is active")
-                    .WithDisplayOrder(4))
-                .WithMethod("Save", m => m
-                    .WithDisplayName("Save User"))
-                .WithMethod("Delete", m => m
-                    .WithDisplayName("Delete User"))
-                .Build();
-        }
-
-        /// <summary>
         /// Creates use case metadata for a CRUD operation.
         /// </summary>
         public static IUseCaseMetadata CreateCrudUseCaseMetadata(
@@ -121,28 +75,6 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
                         ? $"Are you sure you want to delete this {entityName}?"
                         : null)
                 .WithSuccessMessage($"{entityName} {operation.ToLower()}d successfully")
-                .Build();
-        }
-
-        /// <summary>
-        /// Creates a metadata provider with no metadata (returns nulls).
-        /// </summary>
-        public static IMetadataProvider CreateEmptyMetadataProvider()
-        {
-            return new MetadataProviderMockBuilder().Build();
-        }
-
-        /// <summary>
-        /// Creates a metadata provider for testing with typical entity.
-        /// </summary>
-        public static IMetadataProvider CreateTypicalMetadataProvider<TEntity>()
-        {
-            return new MetadataProviderMockBuilder()
-                .WithEntityMetadata<TEntity>(builder => builder
-                    .WithProperty("Id")
-                    .WithProperty("Name")
-                    .WithProperty("CreatedAt")
-                    .WithProperty("UpdatedAt"))
                 .Build();
         }
     }

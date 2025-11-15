@@ -30,7 +30,7 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata
         public MetadataProviderMockBuilder WithEntityMetadata<T>(
             Action<EntityMetadataMockBuilder> configure = null)
         {
-            var builder = new EntityMetadataMockBuilder(typeof(T));
+            var builder = new EntityMetadataMockBuilder(typeof(T), false);
             configure?.Invoke(builder);
             _entityMetadata[typeof(T)] = builder.Build();
             return this;

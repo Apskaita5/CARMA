@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
+using System;
 
 namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
 {
@@ -102,41 +103,16 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         }
 
         /// <summary>
-        /// Creates a validation engine that always validates successfully.
-        /// </summary>
-        public static IValidationEngine CreatePassingEngine(IEntityMetadata metadata = null)
-        {
-            return new ValidationEngineMockBuilder()
-                .WithEntityMetadata(metadata)
-                .AllValid()
-                .Build();
-        }
-
-        /// <summary>
-        /// Creates a validation engine with common field validations.
-        /// </summary>
-        public static IValidationEngine CreateTypicalFieldValidationEngine(
-            IEntityMetadata metadata = null)
-        {
-            return new ValidationEngineMockBuilder()
-                .WithEntityMetadata(metadata)
-                .WithPropertyRule("Name", rule => rule
-                    .WithRuleName("REQUIRED")
-                    .WithDescription("Name is required"))
-                .WithPropertyRule("Email", rule => rule
-                    .WithRuleName("REQUIRED")
-                    .WithDescription("Email is required"))
-                .Build();
-        }
-
-        /// <summary>
         /// Creates a validation engine provider that always validates successfully.
         /// </summary>
-        public static IValidationEngineProvider CreatePassingProvider()
+        public static IValidationEngineProvider CreatePassingProvider(params Type[] forTypes)
         {
-            return new ValidationEngineProviderMockBuilder()
-                .AllValid()
-                .Build();
+            var builder = new ValidationEngineProviderMockBuilder();
+            foreach (var t in forTypes)
+            {
+                builder.WithAllValid(t);
+            }
+            return builder.Build();
         }
 
         /// <summary>
@@ -145,20 +121,6 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         public static IValidationEngineProvider CreateEmptyProvider()
         {
             return new ValidationEngineProviderMockBuilder()
-                .Build();
-        }
-
-        /// <summary>
-        /// Creates a typical validation scenario with required fields and format checks.
-        /// </summary>
-        public static IValidationEngine CreateUserValidationEngine(IEntityMetadata metadata = null)
-        {
-            return new ValidationEngineMockBuilder()
-                .WithEntityMetadata(metadata)
-                .WithPropertyRule("Name", CreateRequiredFieldError("Name", "Full Name"))
-                .WithPropertyRule("Email", CreateRequiredFieldError("Email", "Email Address"))
-                .WithPropertyRule("Email", CreateEmailFormatError("Email"))
-                .WithPropertyRule("Age", CreateRangeError("Age", 18, 120, "Age"))
                 .Build();
         }
     }

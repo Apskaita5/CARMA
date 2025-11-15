@@ -15,15 +15,9 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         private readonly ValidationEngineMockBuilder _builder;
         private readonly Dictionary<Func<object, bool>, List<BrokenRule>> _conditions = new();
 
-        public ConditionalValidationBuilder()
+        public ConditionalValidationBuilder(Type forEntityType)
         {
-            _builder = new ValidationEngineMockBuilder();
-        }
-
-        public ConditionalValidationBuilder WithEntityMetadata(IEntityMetadata metadata)
-        {
-            _builder.WithEntityMetadata(metadata);
-            return this;
+            _builder = new ValidationEngineMockBuilder(forEntityType);
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules;
+using A5Soft.CARMA.Domain.Test.Helpers.Mocks.Matadata;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -17,15 +18,10 @@ namespace A5Soft.CARMA.Domain.Test.Helpers.Mocks.Rules
         private readonly Dictionary<string, string[]> _dependentProperties = new();
         private readonly List<BrokenRule> _entityLevelRules = new();
 
-        public ValidationEngineMockBuilder()
+        public ValidationEngineMockBuilder(Type forEntityType)
         {
             _mock = new Mock<IValidationEngine>();
-        }
-
-        public ValidationEngineMockBuilder WithEntityMetadata(IEntityMetadata metadata)
-        {
-            _entityMetadata = metadata;
-            return this;
+            _entityMetadata = (new EntityMetadataMockBuilder(forEntityType, true)).Build();
         }
 
         /// <summary>

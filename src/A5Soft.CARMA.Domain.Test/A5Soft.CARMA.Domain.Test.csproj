@@ -19,12 +19,4 @@
     <ProjectReference Include="..\A5Soft.CARMA.Domain\A5Soft.CARMA.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helpers\TestDoubles\" />
-    <Folder Include="Integration\" />
-    <Folder Include="Fixtures\" />
-    <Folder Include="Unit\" />
-    <Folder Include="Performance\" />
-  </ItemGroup>
-
 </Project>
