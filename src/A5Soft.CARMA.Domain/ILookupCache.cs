@@ -9,6 +9,16 @@ namespace A5Soft.CARMA.Domain
         where TLookup : class
     {
         /// <summary>
+        /// Gets the total number of items in the cache.
+        /// </summary>
+        public int Count { get; }
+
+        /// <summary>
+        /// Returns all lookups as a <see cref="IReadOnlyCollection{TLookup}"/>.
+        /// </summary>
+        public IReadOnlyCollection<TLookup> GetAll();
+
+        /// <summary>
         /// Gets a lookup instance by normalized key (Trim().ToLowerInvariant()) or null if no such lookup.
         /// </summary>
         /// <param name="normalizedKey">a normalized key (Trim().ToLowerInvariant()) to find</param>

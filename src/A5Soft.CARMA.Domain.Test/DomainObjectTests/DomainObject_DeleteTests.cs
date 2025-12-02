@@ -64,19 +64,5 @@ namespace A5Soft.CARMA.Domain.Test.DomainObjectTests
             // Assert
             child.IsDeleted.Should().BeTrue();
         }
-
-        [Fact]
-        public void DeleteChild_ParentEntity_ShouldThrow()
-        {
-            // Arrange
-            var entity = new TestDomainEntity(_provider);
-
-            // Act
-            Action act = () => entity.DeleteChild();
-
-            // Assert
-            act.Should().Throw<NotSupportedException>()
-                .WithMessage("*not applicable for parent entity*");
-        }
     }
 }

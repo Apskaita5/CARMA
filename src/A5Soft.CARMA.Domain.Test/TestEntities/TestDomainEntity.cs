@@ -25,6 +25,12 @@ namespace A5Soft.CARMA.Domain.Test.TestEntities
         public TestDomainEntity(TestDomainEntity source)
             : base(source)
         {
+            _name = source.Name;
+            _age = source.Age;
+            _birthDate = source.BirthDate;
+            _child = source.Child;
+            _isActive = source.IsActive;
+            _salary = source.Salary;
         }
 
         public string Name
@@ -71,11 +77,5 @@ namespace A5Soft.CARMA.Domain.Test.TestEntities
         public void TestPropertyHasChanged(string propertyName) => PropertyHasChanged(propertyName);
         public void TestCheckPropertyRules(params string[] propertyNames) => CheckPropertyRules(propertyNames);
         public void TestCheckObjectRules() => CheckObjectRules();
-
-        public void DeleteChild()
-        {
-            var deleteChildMethod = this.GetType().GetMethod("DeleteChild", BindingFlags.Instance | BindingFlags.NonPublic);
-            deleteChildMethod.Invoke(this, null);
-        }
     }
 }

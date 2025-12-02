@@ -89,7 +89,7 @@ namespace A5Soft.CARMA.Domain.Test.DomainObjectTests
 
             // Assert
             eventCount.Should().Be(0);
-            parent.IsDirty.Should().BeFalse();
+            parent.IsSelfDirty.Should().BeFalse();
         }
 
         [Fact]

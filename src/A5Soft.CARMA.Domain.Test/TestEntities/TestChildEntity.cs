@@ -26,5 +26,14 @@ namespace A5Soft.CARMA.Domain.Test.TestEntities
             var deleteChildMethod = this.GetType().GetMethod("DeleteChild", BindingFlags.Instance | BindingFlags.NonPublic);
             deleteChildMethod.Invoke(this, null);
         }
+
+        // Expose protected methods for testing
+        public void TestMarkDirty() => MarkDirty();
+        public void TestMarkClean() => MarkClean();
+        public void TestMarkNew() => MarkNew();
+        public void TestMarkDeleted() => MarkDeleted();
+        public void TestPropertyHasChanged(string propertyName) => PropertyHasChanged(propertyName);
+        public void TestCheckPropertyRules(params string[] propertyNames) => CheckPropertyRules(propertyNames);
+        public void TestCheckObjectRules() => CheckObjectRules();
     }
 }

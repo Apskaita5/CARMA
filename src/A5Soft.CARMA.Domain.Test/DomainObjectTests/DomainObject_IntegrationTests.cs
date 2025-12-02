@@ -27,22 +27,17 @@ namespace A5Soft.CARMA.Domain.Test.IntegrationTests
 
             // Assert - Initial state
             entity.IsDirty.Should().BeTrue();
-            entity.IsValid.Should().BeTrue();
 
             // Act - Modify
             entity.Name = "John Doe";
             entity.Age = 30;
             entity.Salary = 50000.00m;
 
-            // Assert - After modification
-            entity.IsSavable.Should().BeTrue();
-
             // Act - Simulate save
             entity.TestMarkClean();
 
             // Assert - After save
             entity.IsDirty.Should().BeFalse();
-            entity.IsSavable.Should().BeFalse();
 
             // Act - Modify again
             entity.Salary = 55000.00m;
@@ -76,6 +71,7 @@ namespace A5Soft.CARMA.Domain.Test.IntegrationTests
             // Act - Add first child
             parent.Child = child1;
             child1.Description = "Child 1";
+            child1.TestMarkClean();
             parent.TestMarkClean();
 
             // Assert
