@@ -78,14 +78,17 @@ namespace A5Soft.CARMA.Domain.Test.LookupTests
             Assert.NotEqual(testType, otherType);
         }
 
-        //[Fact]
-        //public void Create_WorksWithInheritedLookups()
-        //{
-        //    var lookups = new[] { new TestLookup("id1", "Name1") };
-        //    var cache = LookupCacheFactory.Create(lookups);
+        [Fact]
+        public void Create_WorksWithInheritedLookups()
+        {
+            var lookups = new[] { new TestLookup("id1", "Name1") };
+            var cache = LookupCacheFactory.Create(lookups);
 
-        //    var result = cache.FindById(new DomainEntityIdentity<TestDomainEntity>("id1"));
-        //    Assert.NotNull(result);
-        //}
+            Assert.IsType<LookupCache<TestDomainEntity, TestLookup>>(cache);
+
+            var result = ((LookupCache<TestDomainEntity, TestLookup>)cache)
+                .FindById(new DomainEntityIdentity<TestDomainEntity>("id1"));
+            Assert.NotNull(result);
+        }
     }
 }

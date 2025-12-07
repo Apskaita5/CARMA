@@ -19,7 +19,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         /// <typeparam name="TLookup">The lookup type (must derive from LookupBase&lt;T&gt;)</typeparam>
         /// <param name="lookups">The lookup instances to cache</param>
-        /// <returns>A LookupCache instance wrapped in ILookupCache interface</returns>
+        /// <returns>A LookupCache instance by ILookupCache interface</returns>
         /// <exception cref="InvalidOperationException">If TLookup doesn't derive from LookupBase&lt;T&gt;</exception>
         public static ILookupCache<TLookup> Create<TLookup>(IEnumerable<TLookup> lookups)
             where TLookup : class

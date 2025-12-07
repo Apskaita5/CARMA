@@ -12,7 +12,7 @@ namespace A5Soft.CARMA.Domain
     /// </summary>
     /// <typeparam name="TEntity">Type of the entity being referenced</typeparam>
     /// <typeparam name="TLookup">Type of the lookup class (must derive from LookupBase)</typeparam>
-    public class LookupCache<TEntity, TLookup> : ILookupCache<TLookup>
+    public sealed class LookupCache<TEntity, TLookup> : ILookupCache<TLookup>
         where TLookup : LookupBase<TEntity>
     {
         private readonly Dictionary<DomainEntityIdentity<TEntity>, TLookup> _lookupById;

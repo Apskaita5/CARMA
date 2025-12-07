@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,63 +12,6 @@ namespace A5Soft.CARMA.Domain.Reflection
     /// </summary>
     public static class Extensions
     {
-
-        /// <summary>
-        /// Gets a list of custom attributes of type TAttribute for the property specified.
-        /// Includes attributes defined for the same property by the ancestor classes and interfaces.
-        /// </summary>
-        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
-        /// <param name="baseProp"></param>
-        public static List<TAttribute> GetCustomAttributesWithInheritance<TAttribute>(
-            this PropertyInfo baseProp) where TAttribute : Attribute
-        {
-            if (null == baseProp) throw new ArgumentNullException(nameof(baseProp));
-
-            var result = new List<TAttribute>();
-
-            foreach (var prop in GetInheritedProperties(baseProp))
-            {
-                var attributes = prop.GetCustomAttributes(typeof(TAttribute), false);
-                if (null != attributes && attributes.Length > 0)
-                    result.AddRange(attributes.Select(a => (TAttribute)a));
-            }
-
-            foreach (var prop in GetInterfaceProperties(baseProp))
-            {
-                var attributes = prop.GetCustomAttributes(typeof(TAttribute), false);
-                if (null != attributes && attributes.Length > 0)
-                    result.AddRange(attributes.Select(a => (TAttribute)a));
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets a first custom attribute of type TAttribute for the property specified.
-        /// Includes attributes defined for the same property by the ancestor classes and interfaces.
-        /// </summary>
-        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
-        /// <param name="baseProp"></param>
-        public static TAttribute GetCustomAttributeWithInheritance<TAttribute>(
-            this PropertyInfo baseProp) where TAttribute : Attribute
-        {
-            if (null == baseProp) throw new ArgumentNullException(nameof(baseProp));
-
-            foreach (var prop in GetInheritedProperties(baseProp))
-            {
-                var result = prop.GetCustomAttributes(typeof(TAttribute), false);
-                if (null != result && result.Length > 0) return (TAttribute)result[0];
-            }
-
-            foreach (var prop in GetInterfaceProperties(baseProp))
-            {
-                var result = prop.GetCustomAttributes(typeof(TAttribute), false);
-                if (null != result && result.Length > 0) return (TAttribute)result[0];
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Gets a list of custom attributes of type TAttribute for the (class or interface) type specified.
         /// Includes attributes defined by the ancestor classes and interfaces.
@@ -85,17 +29,82 @@ namespace A5Soft.CARMA.Domain.Reflection
             {
                 var attributes = inheritedType.GetCustomAttributes(typeof(TAttribute), false);
                 if (null != attributes && attributes.Length > 0)
-                    result.AddRange(attributes.Select(a => (TAttribute)a));
+                    result.AddRange(attributes.Cast<TAttribute>());
             }
 
             foreach (var interfaceType in GetAllInterfaces(type))
             {
                 var attributes = interfaceType.GetCustomAttributes(typeof(TAttribute), false);
                 if (null != attributes && attributes.Length > 0)
+                    result.AddRange(attributes.Cast<TAttribute>());
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a list of custom attributes of type TAttribute for the property specified.
+        /// Includes attributes defined for the same property by the ancestor classes and interfaces.
+        /// </summary>
+        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+        /// <param name="prop"></param>
+        public static List<TAttribute> GetCustomAttributesWithInheritance<TAttribute>(
+            this PropertyInfo prop) where TAttribute : Attribute
+        {
+            if (null == prop) throw new ArgumentNullException(nameof(prop));
+
+            var result = new List<TAttribute>();
+
+            var selfAttributes = prop.GetCustomAttributes(typeof(TAttribute), false);
+            if (null != selfAttributes && selfAttributes.Length > 0)
+                result.AddRange(selfAttributes.Cast<TAttribute>());
+
+            foreach (var iProp in GetInheritedProperties(prop))
+            {
+                var attributes = iProp.GetCustomAttributes(typeof(TAttribute), false);
+                if (null != attributes && attributes.Length > 0)
+                    result.AddRange(attributes.Select(a => (TAttribute)a));
+            }
+
+            foreach (var iProp in GetInterfaceProperties(prop))
+            {
+                var attributes = iProp.GetCustomAttributes(typeof(TAttribute), false);
+                if (null != attributes && attributes.Length > 0)
                     result.AddRange(attributes.Select(a => (TAttribute)a));
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets a first custom attribute of type TAttribute for the property specified.
+        /// Includes attributes defined for the same property by the ancestor classes and interfaces.
+        /// </summary>
+        /// <typeparam name="TAttribute">a type of the custom attribute to get</typeparam>
+        /// <param name="prop"></param>
+        /// <remarks>First checks attribute on the prop itself, then inherited prop and finaly interface prop</remarks>
+        public static TAttribute GetCustomAttributeWithInheritance<TAttribute>(
+            this PropertyInfo prop) where TAttribute : Attribute
+        {
+            if (null == prop) throw new ArgumentNullException(nameof(prop));
+
+            var selfAttributes = prop.GetCustomAttributes(typeof(TAttribute), false);
+            if (null != selfAttributes && selfAttributes.Length > 0)
+                return (TAttribute)selfAttributes[0];
+
+            foreach (var iProp in GetInheritedProperties(prop))
+            {
+                var result = iProp.GetCustomAttributes(typeof(TAttribute), false);
+                if (null != result && result.Length > 0) return (TAttribute)result[0];
+            }
+
+            foreach (var iProp in GetInterfaceProperties(prop))
+            {
+                var result = iProp.GetCustomAttributes(typeof(TAttribute), false);
+                if (null != result && result.Length > 0) return (TAttribute)result[0];
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -210,85 +219,6 @@ namespace A5Soft.CARMA.Domain.Reflection
         }
 
 
-        /// <summary>
-        /// Gets a localized name of an enum value. (see <see cref="DisplayAttribute.Name"/>)
-        /// </summary>
-        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
-        /// <param name="value"></param>
-        public static string GetEnumDisplayName<TEnum>(this TEnum value)
-        {
-            return value.GetEnumDisplayProperty(a => a.GetName(),
-                v => value?.ToString() ?? string.Empty);
-        }
-
-        /// <summary>
-        /// Gets a localized short name of an enum value. (see <see cref="DisplayAttribute.ShortName"/>)
-        /// </summary>
-        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
-        /// <param name="value"></param>
-        public static string GetEnumDisplayShortName<TEnum>(this TEnum value)
-        {
-            return value.GetEnumDisplayProperty(a => a.GetShortName(),
-                v => value?.ToString() ?? string.Empty);
-        }
-
-        /// <summary>
-        /// Gets a localized description of an enum value. (see <see cref="DisplayAttribute.Description"/>)
-        /// </summary>
-        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
-        /// <param name="value"></param>
-        public static string GetEnumDisplayDescription<TEnum>(this TEnum value)
-        {
-            return value.GetEnumDisplayProperty(a => a.GetDescription(),
-                v => value?.ToString() ?? string.Empty);
-        }
-
-        /// <summary>
-        /// Gets a localized description of an enum value. (see <see cref="DisplayAttribute.Description"/>)
-        /// </summary>
-        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
-        /// <param name="value"></param>
-        public static string GetEnumDescription<TEnum>(TEnum value)
-        {
-            return value.GetEnumDisplayProperty(a => a.GetDescription(), v => string.Empty);
-        }
-
-        /// <summary>
-        /// Gets a localized dataSource for the enum values.
-        /// </summary>
-        /// <typeparam name="TEnum">type of enum</typeparam>
-        /// <param name="values"></param>
-        public static List<(TEnum Value, string Name, string Description)> GetEnumDataSource<TEnum>(
-            this IEnumerable<TEnum> values) where TEnum : struct
-        {
-            Type enumType = typeof(TEnum);
-            if (!enumType.IsEnum) throw new InvalidOperationException(
-                "Method GetEnumDisplayProperty is only applicable for Enum types.");
-
-            var result = new List<(TEnum Value, string Name, string Description)>();
-            foreach (var enumValue in values)
-            {
-                var fieldInfo = enumType.GetField(enumValue.ToString());
-
-                var descriptionAttributes = fieldInfo.GetCustomAttributes(
-                    typeof(DisplayAttribute), false) as DisplayAttribute[];
-
-                if (null == descriptionAttributes || descriptionAttributes.Length < 1 ||
-                    descriptionAttributes[0].Name.IsNullOrWhiteSpace())
-                {
-                    result.Add((Value: enumValue, Name: enumValue.ToString(), Description: string.Empty));
-                }
-                else
-                {
-                    result.Add((Value: enumValue, Name: descriptionAttributes[0].GetName() ?? enumValue.ToString(), 
-                        Description: descriptionAttributes[0].GetDescription() ?? string.Empty));
-                }
-            }
-
-            return result;
-        }
-
-
         private static List<PropertyInfo> GetInheritedProperties(PropertyInfo prop)
         {
             var result = new List<PropertyInfo>() { prop };
@@ -320,10 +250,16 @@ namespace A5Soft.CARMA.Domain.Reflection
 
         private static List<PropertyInfo> GetInterfaceProperties(Type interfaceType, string propName)
         {
-            var result = new List<PropertyInfo>(interfaceType.GetProperties().Where(p => p.Name == propName));
+            var result = new List<PropertyInfo>(interfaceType.GetProperties()
+                .Where(p => p.Name == propName));
 
-            if (null != interfaceType.BaseType) 
+            if (null != interfaceType.BaseType)
                 result.AddRange(GetInterfaceProperties(interfaceType.BaseType, propName));
+
+            foreach (var inheritedInterface in interfaceType.GetInterfaces())
+            {
+                result.AddRange(GetInterfaceProperties(inheritedInterface, propName));
+            }
 
             return result;
         }
@@ -340,71 +276,26 @@ namespace A5Soft.CARMA.Domain.Reflection
 
         private static List<Type> GetAllInterfaces(Type type)
         {
-            if (type.IsInterface) return GetInheritedInterfaces(type);
-
             var result = new List<Type>();
+
+            if (type.IsInterface) result.Add(type);
 
             foreach (var interfaceType in type.GetInterfaces())
             {
-                result.AddRange(GetInheritedInterfaces(interfaceType));
+                result.Add(interfaceType);
             }
 
-            return result;
+            return result.Distinct().ToList();
         }
 
         private static List<Type> GetInheritedInterfaces(Type interfaceType)
         {
-            var result = new List<Type>(){ interfaceType };
-
-            if (null != interfaceType.BaseType)
-                result.AddRange(GetInheritedInterfaces(interfaceType.BaseType));
-
-            return result;
-        }
-
-        private static string GetEnumDisplayProperty<TEnum>(this TEnum value, Func<DisplayAttribute, string> propGetter, 
-            Func<TEnum, string> defaultValueGetter)
-        {
-            Type enumType = null;
-            if (typeof(TEnum).IsEnum) enumType = typeof(TEnum);
-            if (null == enumType) enumType = Nullable.GetUnderlyingType(typeof(TEnum));
-            if (null == enumType || !enumType.IsEnum) throw new InvalidOperationException(
-                "Method GetEnumDisplayProperty is only applicable for Enum types.");
-
-            if (null == value) return defaultValueGetter(value);
-
-            if (enumType.IsDefined(typeof(FlagsAttribute), false))
+            var result = new List<Type> { interfaceType };
+            foreach (var inheritedInterface in interfaceType.GetInterfaces())
             {
-                var result = new List<string>();
-                foreach (var flagValue in value.ToString()
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim()))
-                {
-                    var fieldInfo = enumType.GetField(flagValue);
-                    var descriptionAttributes = fieldInfo.GetCustomAttributes(
-                        typeof(DisplayAttribute), false) as DisplayAttribute[];
-
-                    if (null != descriptionAttributes && descriptionAttributes.Length > 0 &&
-                        !propGetter(descriptionAttributes[0]).IsNullOrWhiteSpace())
-                        result.Add(propGetter(descriptionAttributes[0]));
-                    else result.Add(flagValue);
-                }
-
-                return string.Join(", ", result);            }
-            else
-            {
-                var fieldInfo = enumType.GetField(value.ToString());
-
-                var descriptionAttributes = fieldInfo.GetCustomAttributes(
-                typeof(DisplayAttribute), false) as DisplayAttribute[];
-
-                if (null == descriptionAttributes || descriptionAttributes.Length < 1 ||
-                    propGetter(descriptionAttributes[0]).IsNullOrWhiteSpace())
-                    return defaultValueGetter(value);
-
-                var result = propGetter(descriptionAttributes[0]);
-
-                return result.IsNullOrWhiteSpace() ? defaultValueGetter(value) : result;
+                result.AddRange(GetInheritedInterfaces(inheritedInterface));
             }
+            return result;
         }
 
         private static string LookupResource(Type resourceManagerProvider, string resourceKey)
@@ -422,5 +313,179 @@ namespace A5Soft.CARMA.Domain.Reflection
             return resourceKey; // Fallback with the key name
         }
 
+
+        #region Enum Localization
+
+        /// <summary>
+        /// Gets a localized name of an enum value. (see <see cref="DisplayAttribute.Name"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
+        public static string GetEnumDisplayName<TEnum>(this TEnum value)
+        {
+            if (value == null) return string.Empty;
+
+            var metadata = GetEnumMetadata<TEnum>();
+            return GetDisplayValue(metadata, value, m => m.GetDisplayName());
+        }
+
+        /// <summary>
+        /// Gets a localized short name of an enum value. (see <see cref="DisplayAttribute.ShortName"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
+        public static string GetEnumDisplayShortName<TEnum>(this TEnum value)
+        {
+            if (value == null) return string.Empty;
+
+            var metadata = GetEnumMetadata<TEnum>();
+            return GetDisplayValue(metadata, value, m => m.GetShortName());
+        }
+
+        /// <summary>
+        /// Gets a localized description of an enum value. (see <see cref="DisplayAttribute.Description"/>)
+        /// </summary>
+        /// <typeparam name="TEnum">type of enum (could be nullable)</typeparam>
+        /// <param name="value"></param>
+        public static string GetEnumDisplayDescription<TEnum>(this TEnum value)
+        {
+            if (value == null) return string.Empty;
+
+            var metadata = GetEnumMetadata<TEnum>();
+            return GetDisplayValue(metadata, value, m => m.GetDescription()) ?? string.Empty;
+        }
+
+
+        private static readonly ConcurrentDictionary<Type, EnumMetadata> _enumCache =
+            new ConcurrentDictionary<Type, EnumMetadata>();
+
+        private static EnumMetadata GetEnumMetadata<TEnum>()
+        {
+            var enumType = typeof(TEnum);
+            var underlyingType = Nullable.GetUnderlyingType(enumType) ?? enumType;
+
+            if (null != underlyingType && underlyingType.IsEnum)
+                return _enumCache.GetOrAdd(underlyingType, type => new EnumMetadata(type));
+
+            if (enumType.IsEnum) return _enumCache.GetOrAdd(enumType, type => new EnumMetadata(type));
+
+            throw new ArgumentException($"Type {enumType.Name} is not an enum type.");
+        }
+
+        private static string GetDisplayValue<TEnum>(EnumMetadata metadata, TEnum value, Func<EnumMemberMetadata, string> selector)
+        {
+            if (metadata.IsFlags) return GetFlagsDisplayValue(metadata, value, selector);
+            return GetSingleDisplayValue(metadata, value, selector);
+        }
+
+        private static string GetSingleDisplayValue<TEnum>(EnumMetadata metadata, TEnum value,
+            Func<EnumMemberMetadata, string> selector)
+        {
+            var valueName = value.ToString();
+
+            if (metadata.Members.TryGetValue(valueName, out var memberMetadata))
+            {
+                return selector(memberMetadata) ?? valueName;
+            }
+
+            return valueName;
+        }
+
+        private static string GetFlagsDisplayValue<TEnum>(EnumMetadata metadata, TEnum value,
+            Func<EnumMemberMetadata, string> selector)
+        {
+            var enumValue = Convert.ToInt64(value);
+            var parts = new List<string>();
+
+            // Handle zero value
+            if (enumValue == 0)
+            {
+                var zeroMember = metadata.Members.Values.FirstOrDefault(m => m.Value == 0);
+                if (zeroMember != null)
+                {
+                    return selector(zeroMember) ?? zeroMember.Name;
+                }
+                return value.ToString();
+            }
+
+            // Check each flag
+            foreach (var member in metadata.Members.Values)
+            {
+                if (member.Value == 0)
+                    continue;
+
+                if ((enumValue & member.Value) == member.Value)
+                {
+                    var displayValue = selector(member) ?? member.Name;
+                    parts.Add(displayValue);
+                }
+            }
+
+            return parts.Count > 0 ? string.Join(", ", parts) : value.ToString();
+        }
+
+        private class EnumMetadata
+        {
+            public bool IsFlags { get; }
+            public ConcurrentDictionary<string, EnumMemberMetadata> Members { get; }
+
+            public EnumMetadata(Type enumType)
+            {
+                IsFlags = enumType.GetCustomAttribute<FlagsAttribute>() != null;
+                Members = new ConcurrentDictionary<string, EnumMemberMetadata>();
+
+                foreach (var field in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
+                {
+                    var memberMetadata = new EnumMemberMetadata(field);
+
+                    Members[field.Name] = memberMetadata;
+                }
+            }
+        }
+
+        private class EnumMemberMetadata
+        {
+            public EnumMemberMetadata(FieldInfo forField)
+            {
+                Name = forField.Name;
+                Value = Convert.ToInt64(forField.GetValue(null));
+
+                var descriptionAttributes = forField.GetCustomAttributes(
+                    typeof(DisplayAttribute), false) as DisplayAttribute[];
+
+                if (null == descriptionAttributes || descriptionAttributes.Length < 1)
+                    DisplayAttribute = null;
+                else DisplayAttribute = descriptionAttributes[0];
+            }
+
+
+            public long Value { get; }
+
+            public string Name { get; }
+
+            public DisplayAttribute DisplayAttribute { get; }
+
+
+            public string GetDisplayName()
+            {
+                var result = DisplayAttribute?.GetName();
+                if (!string.IsNullOrWhiteSpace(result)) return result;
+                return Name;
+            }
+
+            public string GetShortName()
+            {
+                var result = DisplayAttribute?.GetShortName();
+                if (!string.IsNullOrWhiteSpace(result)) return result;
+                return Name;
+            }
+
+            public string GetDescription()
+            {
+                return DisplayAttribute?.GetDescription() ?? string.Empty;
+            }
+        }
+
+        #endregion
     }
 }
