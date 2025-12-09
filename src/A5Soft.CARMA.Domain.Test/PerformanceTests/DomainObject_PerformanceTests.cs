@@ -4,11 +4,19 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace A5Soft.CARMA.Domain.Test.PerformanceTests
 {
     public class DomainObject_PerformanceTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public DomainObject_PerformanceTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void CreateManyEntities_ShouldComplete()
         {
@@ -43,6 +51,9 @@ namespace A5Soft.CARMA.Domain.Test.PerformanceTests
             }
 
             var duration = DateTime.UtcNow - startTime;
+
+            _output.WriteLine($"Property update 10000 iterations in {duration.TotalMilliseconds} ms");
+            _output.WriteLine($"Time per iteration: {(duration.TotalMilliseconds/10000):F6}ms ({1000 * duration.TotalMilliseconds / 10000:F3}µs)");
 
             // Assert
             duration.TotalMilliseconds.Should().BeLessThan(1000,

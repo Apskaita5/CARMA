@@ -23,6 +23,5 @@ namespace A5Soft.CARMA.Domain
         {
             RemovingItem = removingItem;
         }
-
     }
 }

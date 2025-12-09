@@ -4,9 +4,11 @@ using System.ComponentModel;
 
 namespace A5Soft.CARMA.Domain
 {
+    /// <summary>
+    /// Child changed event arguments.
+    /// </summary>
     public class ChildChangedEventArgs : EventArgs
     {
-        
         /// <summary>
         /// Gets a reference to the changed child object.
         /// </summary>
@@ -19,7 +21,7 @@ namespace A5Soft.CARMA.Domain
         public PropertyChangedEventArgs PropertyChangedArgs { get; private set; }
         
         /// <summary>
-        /// Gets the NotifyCollectionChangedEventArgs object from the  child's CollectionChanged event,
+        /// Gets the NotifyCollectionChangedEventArgs object from the child's CollectionChanged event,
         /// if the child is an ObservableCollection.
         /// </summary>
         public NotifyCollectionChangedEventArgs CollectionChangedArgs { get; private set; }
@@ -66,6 +68,5 @@ namespace A5Soft.CARMA.Domain
         {
             this.CollectionChangedArgs = listArgs;
         }
-
     }
 }

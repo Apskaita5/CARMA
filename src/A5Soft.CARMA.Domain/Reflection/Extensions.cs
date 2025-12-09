@@ -55,10 +55,6 @@ namespace A5Soft.CARMA.Domain.Reflection
 
             var result = new List<TAttribute>();
 
-            var selfAttributes = prop.GetCustomAttributes(typeof(TAttribute), false);
-            if (null != selfAttributes && selfAttributes.Length > 0)
-                result.AddRange(selfAttributes.Cast<TAttribute>());
-
             foreach (var iProp in GetInheritedProperties(prop))
             {
                 var attributes = iProp.GetCustomAttributes(typeof(TAttribute), false);

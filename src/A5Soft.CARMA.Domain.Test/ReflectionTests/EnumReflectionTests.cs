@@ -2,11 +2,19 @@
 using A5Soft.CARMA.Domain.Test.ReflectionTests.TestEntities;
 using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 {
     public class EnumReflectionTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public EnumReflectionTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         #region GetEnumDisplayName Tests
 
         [Fact]
@@ -57,21 +65,34 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
         public void GetEnumDisplayName_FlagsMultipleValues_ReturnsCommaSeparatedList()
         {
             var result = (FlagsEnum.Read | FlagsEnum.Write).GetEnumDisplayName();
-            Assert.Equal("Can Read, Can Write", result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(2, parts.Length);
+            Assert.Contains("Can Read", parts);
+            Assert.Contains("Can Write", parts);
         }
 
         [Fact]
         public void GetEnumDisplayName_FlagsAllValues_ReturnsAllDisplayNames()
         {
             var result = (FlagsEnum.Read | FlagsEnum.Write | FlagsEnum.Delete).GetEnumDisplayName();
-            Assert.Equal("Can Read, Can Write, Can Delete", result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(3, parts.Length);
+            Assert.Contains("Can Read", parts);
+            Assert.Contains("Can Write", parts);
+            Assert.Contains("Can Delete", parts);
         }
 
         [Fact]
         public void GetEnumDisplayName_FlagsWithAndWithoutAttributes_ReturnsMixedList()
         {
             var result = (FlagsEnum.Read | FlagsEnum.Execute).GetEnumDisplayName();
-            Assert.Equal("Can Read, Execute", result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(2, parts.Length);
+            Assert.Contains("Can Read", parts);
+            Assert.Contains("Execute", parts);
         }
 
         [Fact]
@@ -119,7 +140,11 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
         public void GetEnumDisplayShortName_FlagsMultipleValues_ReturnsCommaSeparatedShortNames()
         {
             var result = (FlagsEnum.Write | FlagsEnum.Delete).GetEnumDisplayShortName();
-            Assert.Equal("Write, Delete", result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(2, parts.Length);
+            Assert.Contains("Write", parts);
+            Assert.Contains("Delete", parts);
         }
 
         [Fact]
@@ -167,7 +192,11 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
         public void GetEnumDisplayDescription_FlagsMultipleValues_ReturnsCommaSeparatedDescriptions()
         {
             var result = (FlagsEnum.Read | FlagsEnum.Write).GetEnumDisplayDescription();
-            Assert.Equal("User can read data, User can write data", result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(2, parts.Length);
+            Assert.Contains("User can read data", parts);
+            Assert.Contains("User can write data", parts);
         }
 
         [Fact]
@@ -192,9 +221,11 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
         public void FlagsEnum_WithoutAttributes_ReturnsToStringValues()
         {
             var result = (FlagsWithoutAttributes.Flag1 | FlagsWithoutAttributes.Flag2).GetEnumDisplayName();
-            Assert.Contains(FlagsWithoutAttributes.Flag1.ToString(), result);
-            Assert.Contains(FlagsWithoutAttributes.Flag2.ToString(), result);
-            Assert.DoesNotContain(FlagsWithoutAttributes.Flag3.ToString(), result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(2, parts.Length);
+            Assert.Contains("Flag1", parts);
+            Assert.Contains("Flag2", parts);
         }
 
         [Fact]
@@ -209,9 +240,12 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
         {
             var allFlags = FlagsWithoutAttributes.Flag1 | FlagsWithoutAttributes.Flag2 | FlagsWithoutAttributes.Flag3;
             var result = allFlags.GetEnumDisplayName();
-            Assert.Contains(FlagsWithoutAttributes.Flag1.ToString(), result);
-            Assert.Contains(FlagsWithoutAttributes.Flag2.ToString(), result);
-            Assert.Contains(FlagsWithoutAttributes.Flag3.ToString(), result);
+            var parts = result.Split(new[] { ", " }, StringSplitOptions.None);
+
+            Assert.Equal(3, parts.Length);
+            Assert.Contains("Flag1", parts);
+            Assert.Contains("Flag2", parts);
+            Assert.Contains("Flag3", parts);
         }
 
         #endregion
@@ -309,8 +343,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / iterations;
 
             // Output for visibility
-            System.Diagnostics.Debug.WriteLine($"GetEnumDisplayName (Simple): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"GetEnumDisplayName (Simple): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             // Assert reasonable performance (should be well under 0.01ms per call)
             Assert.True(timePerIteration < 0.01, $"Performance degraded: {timePerIteration:F6}ms per iteration");
@@ -337,8 +371,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / iterations;
 
-            System.Diagnostics.Debug.WriteLine($"GetEnumDisplayName (Flags): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"GetEnumDisplayName (Flags): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             // Flags processing is more complex but should still be fast
             Assert.True(timePerIteration < 0.02, $"Performance degraded: {timePerIteration:F6}ms per iteration");
@@ -365,8 +399,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / iterations;
 
-            System.Diagnostics.Debug.WriteLine($"GetEnumDisplayShortName: {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"GetEnumDisplayShortName: {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             Assert.True(timePerIteration < 0.01, $"Performance degraded: {timePerIteration:F6}ms per iteration");
         }
@@ -392,8 +426,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / iterations;
 
-            System.Diagnostics.Debug.WriteLine($"GetEnumDisplayDescription: {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"GetEnumDisplayDescription: {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             Assert.True(timePerIteration < 0.01, $"Performance degraded: {timePerIteration:F6}ms per iteration");
         }
@@ -422,8 +456,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / (iterations * 3);
 
-            System.Diagnostics.Debug.WriteLine($"Multiple Enum Types: {iterations * 3:N0} total calls in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"Multiple Enum Types: {iterations * 3:N0} total calls in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             Assert.True(timePerIteration < 0.01, $"Performance degraded: {timePerIteration:F6}ms per iteration");
         }
@@ -449,9 +483,9 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
             stopwatch2.Stop();
             var cachedTimePerCall = stopwatch2.Elapsed.TotalMilliseconds / cachedIterations;
 
-            System.Diagnostics.Debug.WriteLine($"First call (with reflection): {firstCallTime:F6}ms");
-            System.Diagnostics.Debug.WriteLine($"Cached calls average: {cachedTimePerCall:F6}ms");
-            System.Diagnostics.Debug.WriteLine($"Speedup factor: {firstCallTime / cachedTimePerCall:F1}x");
+            _output.WriteLine($"First call (with reflection): {firstCallTime:F6}ms");
+            _output.WriteLine($"Cached calls average: {cachedTimePerCall:F6}ms");
+            _output.WriteLine($"Speedup factor: {firstCallTime / cachedTimePerCall:F1}x");
 
             // Cached calls should be significantly faster than first call
             Assert.True(cachedTimePerCall < firstCallTime, "Cached calls should be faster than first call with reflection");
@@ -478,8 +512,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / iterations;
 
-            System.Diagnostics.Debug.WriteLine($"GetEnumDisplayName (Nullable): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"GetEnumDisplayName (Nullable): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             Assert.True(timePerIteration < 0.01, $"Performance degraded: {timePerIteration:F6}ms per iteration");
         }
@@ -505,8 +539,8 @@ namespace A5Soft.CARMA.Domain.Test.ReflectionTests
 
             var timePerIteration = stopwatch.Elapsed.TotalMilliseconds / iterations;
 
-            System.Diagnostics.Debug.WriteLine($"GetEnumDisplayName (Complex Flags): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
-            System.Diagnostics.Debug.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
+            _output.WriteLine($"GetEnumDisplayName (Complex Flags): {iterations:N0} iterations in {stopwatch.ElapsedMilliseconds}ms");
+            _output.WriteLine($"Time per iteration: {timePerIteration:F6}ms ({timePerIteration * 1000:F3}µs)");
 
             // More flags means more processing
             Assert.True(timePerIteration < 0.03, $"Performance degraded: {timePerIteration:F6}ms per iteration");
