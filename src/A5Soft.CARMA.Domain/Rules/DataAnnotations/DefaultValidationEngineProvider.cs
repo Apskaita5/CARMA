@@ -1,7 +1,6 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain.Metadata;
+using System;
 using System.Collections.Concurrent;
-using A5Soft.CARMA.Domain.Metadata;
-using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 {
@@ -11,17 +10,16 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
     [DefaultServiceImplementation(typeof(IValidationEngineProvider))]
     public class DefaultValidationEngineProvider : IValidationEngineProvider
     {
-        private static readonly ConcurrentDictionary<Type, DefaultValidationEngine> _Cache
-            = new ConcurrentDictionary<Type, DefaultValidationEngine>();
-        private static readonly ConcurrentDictionary<Type, DefaultValidationEngine> _CacheForDefaultValidationEngines
-            = new ConcurrentDictionary<Type, DefaultValidationEngine>();
-
+        private static readonly ConcurrentDictionary<Type, EntityRulesMetadata> _cache
+            = new ConcurrentDictionary<Type, EntityRulesMetadata>();
         private readonly IMetadataProvider _metadataProvider;
+        private readonly IRuleProvider _ruleProvider;
 
 
-        public DefaultValidationEngineProvider(IMetadataProvider metadataProvider)
+        public DefaultValidationEngineProvider(IMetadataProvider metadataProvider, IRuleProvider ruleProvider)
         {
             _metadataProvider = metadataProvider ?? throw new ArgumentNullException(nameof(metadataProvider));
+            _ruleProvider = ruleProvider ?? throw new ArgumentNullException(nameof(ruleProvider));
         }
 
 
@@ -29,8 +27,10 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         public IValidationEngine GetValidationEngine(Type entityType)
         {
             if (null == entityType) throw new ArgumentNullException(nameof(entityType));
-            return _Cache.GetOrAdd(entityType, t => new DefaultValidationEngine(
+
+            var metadata = _cache.GetOrAdd(entityType, t => new EntityRulesMetadata(
                 _metadataProvider.GetEntityMetadata(t)));
+            return new DefaultValidationEngine(metadata, t => _ruleProvider.ResolveRule(t));
         }
 
         /// <inheritdoc cref="IValidationEngineProvider.GetValidationEngine{T}" />
@@ -38,19 +38,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         {
             return GetValidationEngine(typeof(T));
         }
-
-
-        internal static IValidationEngine GetDefaultValidationEngine(Type entityType)
-        {
-            if (null == entityType) throw new ArgumentNullException(nameof(entityType));
-            return _CacheForDefaultValidationEngines.GetOrAdd(entityType, t => new DefaultValidationEngine(
-                DefaultMetadataProvider.GetDefaultEntityMetadata(t)));
-        }
-
-        internal static IValidationEngine GetDefaultValidationEngine<T>()
-        {
-            return GetDefaultValidationEngine(typeof(T));
-        }
-
     }
 }
