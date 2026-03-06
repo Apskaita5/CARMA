@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 {
@@ -19,8 +20,26 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         RuleSeverity Severity { get; }
 
         /// <summary>
+        /// Whether a null value is always considered as valid.
+        /// </summary>
+        bool NullIsValid { get; }
+
+        /// <summary>
+        /// A name of a bool property that determines whether the rule is checked. (if any)
+        /// </summary>
+        /// <remarks>the property should be of type <see cref="bool"/></remarks>
+        string EnabledProperty { get; }
+
+        /// <summary>
+        /// Whether <see cref="EnabledProperty"/> value needs to be inversed,
+        /// i.e. rule is only checked when <see cref="EnabledProperty"/> is false.
+        /// </summary>
+        bool EnabledInversed { get; }
+
+
+        /// <summary>
         /// Gets the list of property names that this rule depends on.
         /// </summary>
-        string[] RelatedProperties { get; }
+        HashSet<string> GetRelatedProperties();
     }
 }

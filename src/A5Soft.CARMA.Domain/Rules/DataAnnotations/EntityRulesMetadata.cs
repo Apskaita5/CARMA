@@ -56,7 +56,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
                 {
                     if (!requiredRules.Contains(rule.RuleType)) requiredRules.Add(rule.RuleType);
 
-                    foreach (var dependencySource in rule.RelatedProperties)
+                    foreach (var dependencySource in rule.GetRelatedProperties())
                     {
                         if (!_reverseDependencyMap.TryGetValue(dependencySource, out var dependants))
                         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 using System.Reflection;
 using A5Soft.CARMA.Domain.Reflection;
 
@@ -12,6 +13,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
     {
         private readonly PropertyInfo _propertyInfo;
         private readonly DisplayAttribute _displayAttribute;
+        private readonly Func<object, object> _getter;
 
 
         internal PropertyMetadata(PropertyInfo propInfo)
@@ -19,6 +21,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
             _propertyInfo = propInfo ?? throw new ArgumentNullException(nameof(propInfo));
             IsReadOnly = (null == propInfo.GetSetMethod(false));
             _displayAttribute = propInfo.GetCustomAttributeWithInheritance<DisplayAttribute>();
+            _getter = CreateGetter(propInfo);
         }
 
 
@@ -104,14 +107,28 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetValue" />
         public object GetValue(object instance)
         {
-            if (instance.IsNull()) throw new ArgumentNullException(nameof(instance));
+            if (object.ReferenceEquals(instance, null)) throw new ArgumentNullException(nameof(instance));
 
             if (!EntityType.IsAssignableFrom(instance.GetType())) throw new ArgumentException(
                 $"Instance of type {instance.GetType().FullName} is not assignable to entity type {EntityType.FullName}.",
                     nameof(instance));
 
-            return _propertyInfo.GetValue(instance);
+            return _getter(instance);
         }
 
+
+        private static Func<object, object> CreateGetter(PropertyInfo propertyInfo)
+        {
+            // Parameter: (object instance)
+            var instanceParam = Expression.Parameter(typeof(object), "instance");
+            // Convert instance to declaring type
+            var typedInstance = Expression.Convert(instanceParam, propertyInfo.DeclaringType);
+            // Access property
+            var propertyAccess = Expression.Property(typedInstance, propertyInfo);
+            // Box value type -> object
+            var boxed = Expression.Convert(propertyAccess, typeof(object));
+            // Compile lambda: (object instance) => (object)instance.Property
+            return Expression.Lambda<Func<object, object>>(boxed, instanceParam).Compile();
+        }
     }
 }

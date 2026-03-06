@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 {
@@ -11,11 +12,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         private static readonly string[] emptyProps = new string[] { };
 
         /// <summary>
-        /// Gets related prop names, i.e. props which values influence the validation.
-        /// </summary>
-        string[] IRuleMetadata.RelatedProperties => emptyProps;
-
-        /// <summary>
         /// The type of IEntityValidationRule to resolve from DI.
         /// </summary>
         public Type RuleType { get; }
@@ -25,15 +21,29 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         /// </summary>
         public RuleSeverity Severity { get; }
 
+        /// <inheritdoc cref="IRuleMetadata.NullIsValid"/>
+        public bool NullIsValid => false;
+
+        /// <inheritdoc cref="IRuleMetadata.EnabledProperty"/>
+        public string EnabledProperty { get; set; } = string.Empty;
+
+        /// <inheritdoc cref="IRuleMetadata.EnabledInversed"/>
+        public bool EnabledInversed { get; set; } = false;
+
 
         protected EntityValidationAttribute(Type ruleType, RuleSeverity severity)
         {
-            if (ruleType == null) throw new ArgumentNullException(nameof(ruleType));
+            RuleType = ruleType ?? throw new ArgumentNullException(nameof(ruleType));
+            Severity = severity;
+
             if (!typeof(IValidationRule).IsAssignableFrom(ruleType))
                 throw new ArgumentException($"Rule type must implement IValidationRule", nameof(ruleType));
+        }
 
-            RuleType = ruleType;
-            Severity = severity;
+
+        public HashSet<string> GetRelatedProperties()
+        {
+            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

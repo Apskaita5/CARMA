@@ -109,18 +109,7 @@ namespace A5Soft.CARMA.Domain
         private IValidationEngineProvider _validationEngineProvider;
 
 
-        protected IValidationEngineProvider ValidationEngineProvider {
-            get
-            {
-                if (_validationEngineProvider.IsNull())
-                {
-                    _validationEngineProvider = new DefaultValidationEngineProvider(
-                        new DefaultMetadataProvider());
-                }
-
-                return _validationEngineProvider;
-            }
-        }
+        protected IValidationEngineProvider ValidationEngineProvider => _validationEngineProvider;
 
         /// <inheritdoc cref="ITrackState.SetValidationEngine" />
         public void SetValidationEngine(IValidationEngineProvider validationEngineProvider)
