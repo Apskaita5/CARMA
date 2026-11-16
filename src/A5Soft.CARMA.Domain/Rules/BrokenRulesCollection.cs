@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace A5Soft.CARMA.Domain.Rules
 {
@@ -7,15 +8,15 @@ namespace A5Soft.CARMA.Domain.Rules
     /// Encapsulates a list of <see cref="BrokenRule"/> as a result of POCO or custom validation.
     /// See <see cref="Extensions.ValidatePoco{T}"/>.
     /// </summary>
+    [Serializable]
     public class BrokenRulesCollection : BrokenRules
     {
         /// <inheritdoc />
-        public BrokenRulesCollection(List<BrokenRule> brokenRules) : base()
+        public BrokenRulesCollection(IEnumerable<BrokenRule> brokenRules) : base()
         {
             if (null != brokenRules)
             {
-                _brokenRules.AddRange(brokenRules);
-                ResetCount();
+                AddRange(brokenRules.Where(r => null != r));
             }
         }
 
@@ -24,8 +25,7 @@ namespace A5Soft.CARMA.Domain.Rules
         {
             if (null == brokenRule) throw new ArgumentNullException(nameof(brokenRule));
 
-            _brokenRules.Add(brokenRule);
-            ResetCount();
+            Add(brokenRule);
         }
 
         /// <inheritdoc />
@@ -34,27 +34,10 @@ namespace A5Soft.CARMA.Domain.Rules
         {
             if (description.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(description));
 
-            _brokenRules.Add(new BrokenRule(string.Empty, property, description, severity));
-            ResetCount();
+            Add(new BrokenRule(string.Empty, property, description, severity));
         }
 
         /// <inheritdoc />
         public BrokenRulesCollection() : base() { }
-
-
-        /// <summary>
-        /// Adds a custom broken rule to the collection.
-        /// </summary>
-        /// <param name="property">property affected by the rule (if any)</param>
-        /// <param name="description">description of the broken rule (localized error message, required)</param>
-        /// <param name="severity">severity of the broken rule</param>
-        public void AddCustomBrokenRule(string description, string property = null, 
-            RuleSeverity severity = RuleSeverity.Error)
-        {
-            if (description.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(description));
-
-            _brokenRules.Add(new BrokenRule(string.Empty, property, description, severity));
-            ResetCount();
-        }
     }
 }

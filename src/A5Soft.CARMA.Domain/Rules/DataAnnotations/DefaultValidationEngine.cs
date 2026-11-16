@@ -25,7 +25,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             if (null == resolveValidationRule) throw new ArgumentNullException(nameof(resolveValidationRule));
 
             _rulesMetadata = rulesMetadata ?? throw new ArgumentNullException(nameof(rulesMetadata));
-            _rules = rulesMetadata.RequiredRules.ToDictionary(t => t, t => resolveValidationRule(t));
+            _rules = rulesMetadata.RequiredRules.ToDictionary(t => t, t => Resolve(t, resolveValidationRule));
         }
 
         #endregion
@@ -36,7 +36,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
 
         /// <inheritdoc cref="IValidationEngine.GetBrokenRules(object, string)" />
-        public List<BrokenRule> GetBrokenRules(object instance, string propName)
+        public IReadOnlyCollection<BrokenRule> GetBrokenRules(object instance, string propName)
         {
             EnsureInstanceIsValid(instance);
             EnsurePropertyIsValid(propName);
@@ -45,7 +45,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         }
 
         /// <inheritdoc cref="IValidationEngine.GetBrokenRules(object, string, bool)" />
-        public List<BrokenRule> GetBrokenRules(object instance, string propName, bool includeDependentProps)
+        public IReadOnlyCollection<BrokenRule> GetBrokenRules(object instance, string propName, bool includeDependentProps)
         {
             EnsureInstanceIsValid(instance);
             EnsurePropertyIsValid(propName);
@@ -66,7 +66,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         }
 
         /// <inheritdoc cref="IValidationEngine.GetBrokenRules(object)" />
-        public List<BrokenRule> GetBrokenRules(object instance)
+        public IReadOnlyCollection<BrokenRule> GetBrokenRules(object instance)
         {
             EnsureInstanceIsValid(instance);
 
@@ -87,7 +87,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         }
 
         /// <inheritdoc cref="IValidationEngine.GetAllBrokenRules" />
-        public List<BrokenRule> GetAllBrokenRules(object instance)
+        public IReadOnlyCollection<BrokenRule> GetAllBrokenRules(object instance)
         {
             EnsureInstanceIsValid(instance);
 
@@ -104,13 +104,25 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         }
 
         /// <inheritdoc cref="IValidationEngine.GetDependentPropertyNames" />
-        public string[] GetDependentPropertyNames(string propName)
+        public HashSet<string> GetDependentPropertyNames(string propName)
         {
             if (propName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propName));
 
-            return _rulesMetadata.GetDependantPropertiesFor(propName);
+            return _rulesMetadata.GetDependantPropertiesFor(propName).ToHashSet();
         }
 
+
+        private IValidationRule Resolve(Type ruleType, Func<Type, IValidationRule> resolveValidationRule)
+        {
+            var rule = resolveValidationRule(ruleType) ?? throw new InvalidOperationException(
+                $"Validation rule of type {ruleType.FullName} required by " +
+                $"{_rulesMetadata.EntityMetadata.EntityType.FullName} is not configured.");
+
+            if (!ruleType.IsInstanceOfType(rule)) throw new InvalidOperationException(
+                $"Validation rule resolved for {ruleType.FullName} is of incompatible type {rule.GetType().FullName}.");
+
+            return rule;
+        }
 
         private List<BrokenRule> GetBrokenRulesForProperty(object instance, string propName)
         {
@@ -133,22 +145,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             }
 
             return result;
-        }
-
-        private void ValidateRecursive(object instance, string propertyName,
-            List<BrokenRule> brokenRules, HashSet<string> visited)
-        {
-            if (!visited.Add(propertyName))
-                return; // prevent cycles
-
-            // Validate the requested property
-            brokenRules.AddRange(GetBrokenRulesForProperty(instance, propertyName));
-
-            // Find dependants
-            foreach (var dependant in _rulesMetadata.GetDependantPropertiesFor(propertyName))
-            {
-                ValidateRecursive(instance, dependant, brokenRules, visited);
-            }
         }
 
         private void EnsureInstanceIsValid(object instance)

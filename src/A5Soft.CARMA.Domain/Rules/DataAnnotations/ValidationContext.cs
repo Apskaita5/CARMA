@@ -32,7 +32,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         public ValidationContext(object instance, IEntityMetadata entityMetadata, IRuleMetadata ruleMetadata,
             IPropertyMetadata propertyMetadata) : this(instance, entityMetadata, ruleMetadata)
         {
-            PropertyMetadata = propertyMetadata ?? throw new ArgumentNullException(nameof(PropertyMetadata));
+            PropertyMetadata = propertyMetadata ?? throw new ArgumentNullException(nameof(propertyMetadata));
             if (EntityMetadata.EntityType != PropertyMetadata.EntityType) throw new ArgumentException(
                 $"EntityMetadata is for entity of type {EntityMetadata.EntityType.FullName} " +
                     $"while the PropertyMetadata is for entity of type {PropertyMetadata.EntityType.FullName}.", nameof(propertyMetadata));

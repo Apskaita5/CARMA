@@ -14,9 +14,10 @@ namespace A5Soft.CARMA.Domain.Rules
     /// external code, such as a UI, to display the list of broken rules
     /// to the user.
     /// </remarks>
+    [Serializable]
     public abstract class BrokenRules
     {
-        protected readonly List<BrokenRule> _brokenRules = new List<BrokenRule>();
+        private readonly List<BrokenRule> _brokenRules = new List<BrokenRule>();
 
         protected BrokenRules() { }
 
@@ -53,7 +54,8 @@ namespace A5Soft.CARMA.Domain.Rules
         /// </returns>
         public BrokenRule GetFirstBrokenRule(string property, RuleSeverity severity = RuleSeverity.Error)
         {
-            return _brokenRules.FirstOrDefault(c => c.Property == property && c.Severity == severity);
+            var propName = property?.Trim() ?? string.Empty;
+            return _brokenRules.FirstOrDefault(c => c.Property == propName && c.Severity == severity);
         }
 
 
@@ -85,13 +87,7 @@ namespace A5Soft.CARMA.Domain.Rules
         /// <returns>The text of all broken rule descriptions.</returns>
         public string ToString(string separator)
         {
-            StringBuilder result = new StringBuilder();
-            foreach (BrokenRule item in _brokenRules)
-            {
-                if (result.Length > 0) result.Append(separator);
-                result.Append(item.Description);
-            }
-            return result.ToString();
+            return Join(separator ?? " ", _ => true);
         }
 
         /// <summary>
@@ -102,13 +98,7 @@ namespace A5Soft.CARMA.Domain.Rules
         /// <returns>The text of all broken rule descriptions matching the specified severtiy.</returns>
         public string ToString(string separator, RuleSeverity severity)
         {
-            StringBuilder result = new StringBuilder();
-            foreach (BrokenRule item in _brokenRules.Where(r => r.Severity == severity))
-            {
-                if (result.Length > 0) result.Append(separator);
-                result.Append(item.Description);
-            }
-            return result.ToString();
+            return Join(separator ?? " ", r => r.Severity == severity);
         }
 
         /// <summary>
@@ -120,14 +110,8 @@ namespace A5Soft.CARMA.Domain.Rules
         /// <returns>The text of all broken rule descriptions  matching the specified severtiy.</returns>
         public string ToString(string separator, RuleSeverity severity, string propertyName)
         {
-            StringBuilder result = new StringBuilder();
-            foreach (BrokenRule item in _brokenRules
-                .Where(r => r.Property == propertyName && r.Severity == severity))
-            {
-                if (result.Length > 0) result.Append(separator);
-                result.Append(item.Description);
-            }
-            return result.ToString();
+            var propName = propertyName?.Trim() ?? string.Empty;
+            return Join(separator ?? " ", r => r.Property == propName && r.Severity == severity);
         }
 
         /// <summary>
@@ -149,31 +133,94 @@ namespace A5Soft.CARMA.Domain.Rules
             return _brokenRules.Where(c => c.Severity == severity).Select(c => c.Description).ToArray();
         }
 
-        internal BrokenRule[] ToBrokenRuleArray()
-            => _brokenRules.ToArray();
-
-
-        protected void ResetCount()
+        /// <summary>
+        /// Gets a readonly collection of the broken rules.
+        /// </summary>
+        /// <returns>a readonly collection of the broken rules</returns>
+        public IReadOnlyCollection<BrokenRule> ToCollection()
         {
-            ErrorCount = WarningCount = InformationCount = 0;
-            foreach (var brokenRule in _brokenRules)
-            {
-                switch (brokenRule.Severity)
-                {
-                    case RuleSeverity.Error:
-                        ErrorCount += 1;
-                        break;
-                    case RuleSeverity.Warning:
-                        WarningCount += 1;
-                        break;
-                    case RuleSeverity.Information:
-                        InformationCount += 1;
-                        break;
-                    default:
-                        throw new NotImplementedException("unhandled severity=" + brokenRule.Severity);
-                }
-            }
+            return _brokenRules.ToArray();
         }
 
+
+        /// <summary>Adds a broken rule and updates the counts.</summary>
+        protected void Add(BrokenRule rule)
+        {
+            if (null == rule) throw new ArgumentNullException(nameof(rule));
+            _brokenRules.Add(rule);
+            Recount();
+        }
+
+        /// <summary>Adds broken rules and updates the counts.</summary>
+        protected void AddRange(IEnumerable<BrokenRule> rules)
+        {
+            var items = Materialize(rules);
+            if (items.Length < 1) return;
+            _brokenRules.AddRange(items);
+            Recount();
+        }
+
+        /// <summary>
+        /// Removes all rules matching <paramref name="removeMatch"/>, adds <paramref name="newRules"/>
+        /// and updates the counts once.
+        /// </summary>
+        protected void Replace(Predicate<BrokenRule> removeMatch, IEnumerable<BrokenRule> newRules)
+        {
+            if (null == removeMatch) throw new ArgumentNullException(nameof(removeMatch));
+            var items = Materialize(newRules); // validate before any mutation
+
+            _brokenRules.RemoveAll(removeMatch);
+            _brokenRules.AddRange(items);
+            Recount();
+        }
+
+        /// <summary>Replaces all broken rules and updates the counts.</summary>
+        protected void ReplaceAll(IEnumerable<BrokenRule> newRules)
+        {
+            var items = Materialize(newRules);
+            _brokenRules.Clear();
+            _brokenRules.AddRange(items);
+            Recount();
+        }
+
+        /// <summary>Removes all broken rules.</summary>
+        protected void Clear()
+        {
+            _brokenRules.Clear();
+            ErrorCount = WarningCount = InformationCount = 0;
+        }
+
+
+        private static BrokenRule[] Materialize(IEnumerable<BrokenRule> rules)
+        {
+            if (null == rules) return Array.Empty<BrokenRule>();
+            var result = rules.ToArray();
+            if (result.Any(r => null == r))
+                throw new ArgumentException("Broken rules collection cannot contain null items.", nameof(rules));
+            return result;
+        }
+
+        private void Recount()
+        {
+            int errors = 0, warnings = 0, infos = 0;
+            foreach (var rule in _brokenRules)
+            {
+                switch (rule.Severity)
+                {
+                    case RuleSeverity.Error: errors++; break;
+                    case RuleSeverity.Warning: warnings++; break;
+                    case RuleSeverity.Information: infos++; break;
+                    default:
+                        throw new InvalidOperationException($"Unhandled severity: {rule.Severity}.");
+                }
+            }
+            // assign only after a successful pass, so an exception doesn't leave partial counts
+            ErrorCount = errors;
+            WarningCount = warnings;
+            InformationCount = infos;
+        }
+
+        private string Join(string separator, Func<BrokenRule, bool> filter)
+            => string.Join(separator ?? string.Empty, _brokenRules.Where(filter).Select(r => r.Description));
     }
 }

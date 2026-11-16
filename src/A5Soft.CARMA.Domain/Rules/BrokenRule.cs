@@ -19,9 +19,9 @@ namespace A5Soft.CARMA.Domain.Rules
         {
             if (description.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(description));
 
-            RuleName = ruleName ?? string.Empty;
-            Property = property ?? string.Empty;
-            Description = description;
+            RuleName = ruleName?.Trim() ?? string.Empty;
+            Property = property?.Trim() ?? string.Empty;
+            Description = description.Trim();
             Severity = severity;
         }
 

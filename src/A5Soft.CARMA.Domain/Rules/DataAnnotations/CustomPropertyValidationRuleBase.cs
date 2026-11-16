@@ -19,12 +19,20 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             if (null == context) throw new ArgumentNullException(nameof(context));
             if (null == context.PropertyMetadata) throw new ArgumentException("PropertyMetadata cannot be null.",
                 nameof(context));
+            if (null == context.RuleMetadata) throw new ArgumentException("RuleMetadata cannot be null.",
+                nameof(context));
+            if (null == context.Instance) throw new ArgumentException("Instance cannot be null.",
+                nameof(context));
+            if (null == context.EntityMetadata) throw new ArgumentException("EntityMetadata cannot be null.",
+                nameof(context));
             if (!typeof(TMetadata).IsAssignableFrom(context.RuleMetadata.GetType()))
                 throw new ArgumentException($"RuleMetadata property ({context.RuleMetadata.GetType().FullName})" +
                     $" is not of type {typeof(TMetadata).FullName}.", nameof(context));
             if (!typeof(TInstance).IsAssignableFrom(context.Instance.GetType()))
                 throw new ArgumentException($"Entity instance ({context.Instance.GetType().FullName})" +
                     $" is not of type {typeof(TInstance).FullName}.", nameof(context));
+
+            if (!RuleEnabledHelper.IsEnabled(context)) return null;
 
             return GetValidationResult((TInstance)context.Instance, context.EntityMetadata, context.PropertyMetadata,
                 (TMetadata)context.RuleMetadata);
@@ -57,8 +65,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         /// <param name="propertyMetadata">metadata for the property the rule is set for (not null)</param>
         /// <param name="ruleMetadata">rule metadata (not null)</param>
         /// <returns>a localized broken rule description if the property value is invalid; null otherwise</returns>
-        /// <remarks><see cref="IRuleMetadata.EnabledProperty"/> and <see cref="IRuleMetadata.NullIsValid"/>
-        /// are NOT handled at this point (because property value access is expensive)</remarks>
+        /// <remarks><see cref="IRuleMetadata.NullIsValid"/> is NOT handled at this point
+        /// (because property value access is expensive)</remarks>
         protected abstract string GetErrorDescription(TInstance instance, IEntityMetadata entityMetadata,
             IPropertyMetadata propertyMetadata, TMetadata ruleMetadata);
     }

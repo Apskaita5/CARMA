@@ -17,6 +17,11 @@ namespace A5Soft.CARMA.Domain.Rules
     [Serializable]
     public class BrokenRulesTreeNode
     {
+        /// <summary>
+        /// Default separator between entity names in a child entity path, e.g. "Invoice line 3 > Tax".
+        /// </summary>
+        public const string DefaultPathSeparator = " > ";
+
         private readonly List<BrokenRule> _brokenRules;
         private readonly List<BrokenRulesTreeNode> _childEntitiesBrokenRules = new List<BrokenRulesTreeNode>();
 
@@ -26,7 +31,7 @@ namespace A5Soft.CARMA.Domain.Rules
         /// </summary>
         /// <param name="entityDisplayName">a (localized) name of the entity</param>
         /// <param name="brokenRules">a collection of the broken rules for the entity</param>
-        public BrokenRulesTreeNode(string entityDisplayName, BrokenRule[] brokenRules)
+        public BrokenRulesTreeNode(string entityDisplayName, IEnumerable<BrokenRule> brokenRules)
         {
             if (null == brokenRules) throw new ArgumentNullException(nameof(brokenRules));
 
@@ -48,6 +53,8 @@ namespace A5Soft.CARMA.Domain.Rules
         public void AddBrokenRulesForChild(BrokenRulesTreeNode brokenRules)
         {
             if (brokenRules.IsNull()) throw new ArgumentNullException(nameof(brokenRules));
+            if (ReferenceEquals(this, brokenRules)) throw new ArgumentException(
+                "Cannot add itself.", nameof(brokenRules));
             _childEntitiesBrokenRules.Add(brokenRules);
         }
 
@@ -111,43 +118,58 @@ namespace A5Soft.CARMA.Domain.Rules
         /// <returns>a description of all broken rules with the severity specified
         /// using the specified separator as line separator</returns>
         public string ToString(RuleSeverity severity, string separator)
+            => ToString(severity, separator, DefaultPathSeparator);
+
+        /// <summary>
+        /// Gets a description of all broken rules with the severity specified.
+        /// Rules of child entities are prefixed by a header containing the path to the child entity.
+        /// </summary>
+        /// <param name="severity">severity of the broken rules to get a description for</param>
+        /// <param name="separator">a line separator to use</param>
+        /// <param name="pathSeparator">a separator between entity names in a child entity path</param>
+        public string ToString(RuleSeverity severity, string separator, string pathSeparator)
         {
-            if (Count(severity) < 1) return string.Empty;
-
-            if (null == separator) separator = string.Empty;
-
             var result = new StringBuilder();
-
-            foreach (var brokenRule in _brokenRules.Where(r => r.Severity == severity))
-            {
-                if (result.Length > 0) result.Append(separator);
-                result.Append(brokenRule.Description);
-            }
-            foreach (var childEntityBrokenRule in _childEntitiesBrokenRules)
-            {
-                childEntityBrokenRule.AddChildDescription(result, severity, separator);
-            }
-
+            AppendDescriptions(result, severity, separator ?? string.Empty,
+                pathSeparator ?? string.Empty, null);
             return result.ToString();
         }
 
 
-        private void AddChildDescription(StringBuilder builder, RuleSeverity severity, string separator)
+        private void AppendDescriptions(StringBuilder builder, RuleSeverity severity,
+            string separator, string pathSeparator, string path)
         {
-            if (Count(severity) < 1) return;
+            // root (path == null) and nameless nodes get no header line
+            var headerPending = !string.IsNullOrEmpty(path);
 
-            if (builder.Length > 0) builder.Append(separator);
-            builder.Append(EntityDisplayName);
-            builder.Append(":");
             foreach (var brokenRule in _brokenRules.Where(r => r.Severity == severity))
             {
-                builder.Append(separator);
-                builder.Append(brokenRule.Description);
+                if (headerPending)
+                {
+                    AppendLine(builder, separator, path + ":");
+                    headerPending = false;
+                }
+                AppendLine(builder, separator, brokenRule.Description);
             }
-            foreach (var childEntityBrokenRule in _childEntitiesBrokenRules)
+
+            foreach (var child in _childEntitiesBrokenRules)
             {
-                childEntityBrokenRule.AddChildDescription(builder, severity, separator);
+                child.AppendDescriptions(builder, severity, separator, pathSeparator,
+                    CombinePath(path, child.EntityDisplayName, pathSeparator));
             }
+        }
+
+        private static string CombinePath(string path, string name, string pathSeparator)
+        {
+            if (string.IsNullOrEmpty(name)) return path;
+            if (string.IsNullOrEmpty(path)) return name;
+            return path + pathSeparator + name;
+        }
+
+        private static void AppendLine(StringBuilder builder, string separator, string text)
+        {
+            if (builder.Length > 0) builder.Append(separator);
+            builder.Append(text);
         }
     }
 }

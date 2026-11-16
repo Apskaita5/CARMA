@@ -18,7 +18,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// </summary>
         /// <param name="length">string length (that is valid)</param>
         /// <param name="severity">a value indicating severity of broken rule</param>
-        protected ExactLengthAttribute(int length, RuleSeverity severity = RuleSeverity.Error)
+        public ExactLengthAttribute(int length, RuleSeverity severity = RuleSeverity.Error)
             : base(typeof(IExactLengthRule), severity)
         {
             LengthLimit = length;

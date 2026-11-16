@@ -5,7 +5,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
     /// <summary>
     /// Interface for validation rule provider for use in dependency injection.
     /// </summary>
-    [Service(ServiceLifetime.Singleton)]
+    [Service(ServiceLifetime.Scoped)]
     public interface IRuleProvider
     {
         /// <summary>

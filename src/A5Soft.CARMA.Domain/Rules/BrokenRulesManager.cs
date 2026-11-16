@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Rules.DataAnnotations;
 
@@ -18,10 +19,13 @@ namespace A5Soft.CARMA.Domain.Rules
 
         public BrokenRulesManager(T parent, IValidationEngineProvider validationProvider)
         {
+            if (null == validationProvider) throw new ArgumentNullException(nameof(validationProvider));
+
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            _engine = validationProvider?.GetValidationEngine(parent.GetType())
-                ?? throw new ArgumentNullException(nameof(validationProvider));
-            if (null == _engine.EntityMetadata) throw new InvalidOperationException("Engine must include entity metadata.");
+            _engine = validationProvider.GetValidationEngine(parent.GetType())
+                ?? throw new InvalidOperationException($"Validation provider returned null engine for domain object type {typeof(T).FullName}.");
+            if (null == _engine.EntityMetadata) throw new InvalidOperationException(
+                $"Engine for domain object type {typeof(T).FullName} does not include entity metadata.");
         }
 
         private BrokenRulesManager(T forNewParent, IValidationEngine validationEngine)
@@ -34,41 +38,30 @@ namespace A5Soft.CARMA.Domain.Rules
         public IEntityMetadata Metadata => _engine.EntityMetadata;
 
 
-        public string[] CheckPropertyRules(string propertyName)
+        public HashSet<string> CheckPropertyRules(string propertyName)
         {
             if (propertyName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(propertyName));
 
-            var result = new List<string>() { propertyName };
-            result.AddRange(_engine.GetDependentPropertyNames(propertyName));
+            var result = new HashSet<string>(StringComparer.Ordinal) { propertyName };
+            foreach (var dependantProp in _engine.GetDependentPropertyNames(propertyName))
+            {
+                _ = result.Add(dependantProp);
+            }
 
-            ClearBrokenRulesForProperties(result);
+            Replace(r => result.Contains(r.Property),
+                _engine.GetBrokenRules(_parent, propertyName, true));
 
-            _brokenRules.AddRange(_engine.GetBrokenRules(_parent, propertyName, true));
-
-            ResetCount();
-
-            return result.ToArray();
+            return result;
         }
 
         public void CheckObjectRules()
         {
-            _brokenRules.Clear();
-            _brokenRules.AddRange(_engine.GetAllBrokenRules(_parent));
-            ResetCount();
+            ReplaceAll(_engine.GetAllBrokenRules(_parent));
         }
 
-        public BrokenRulesManager<T> GetCopy(T forNewParent)
+        public BrokenRulesManager<T> CreateForParent(T forNewParent)
         {
              return new BrokenRulesManager<T>(forNewParent, _engine);
-        }
-
-
-        private void ClearBrokenRulesForProperties(List<string> propertyNames)
-        {
-            for (int i = _brokenRules.Count - 1; i > - 1; i--)
-            {
-                 if (propertyNames.Contains(_brokenRules[i].Property)) _brokenRules.RemoveAt(i);
-            }
         }
     }
 }

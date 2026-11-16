@@ -61,6 +61,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         {
             if (!string.IsNullOrWhiteSpace(EnabledProperty))
                 relatedProperties.Add(EnabledProperty.Trim());
+            if (this is IRefPropertyRuleMetadata refRule && !string.IsNullOrWhiteSpace(refRule.ReferenceProperty))
+                relatedProperties.Add(refRule.ReferenceProperty.Trim());
             if (null != RelatedProperties)
             {
                 foreach (var relatedProp in RelatedProperties.Where(v => !string.IsNullOrWhiteSpace(v)))

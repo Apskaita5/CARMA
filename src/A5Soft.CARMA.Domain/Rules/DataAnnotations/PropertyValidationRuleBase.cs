@@ -16,35 +16,28 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             if (null == context) throw new ArgumentNullException(nameof(context));
             if (null == context.PropertyMetadata) throw new ArgumentException("PropertyMetadata cannot be null.",
                 nameof(context));
+            if (null == context.RuleMetadata) throw new ArgumentException("RuleMetadata cannot be null.",
+                nameof(context));
+            if (null == context.Instance) throw new ArgumentException("Instance cannot be null.",
+                nameof(context));
+            if (null == context.EntityMetadata) throw new ArgumentException("EntityMetadata cannot be null.",
+                nameof(context));
             if (!typeof(TMetadata).IsAssignableFrom(context.RuleMetadata.GetType()))
                 throw new ArgumentException($"RuleMetadata property ({context.RuleMetadata.GetType().FullName})" +
                     $" is not of type {typeof(TMetadata).FullName}.", nameof(context));
 
+            if (!RuleEnabledHelper.IsEnabled(context)) return null;
+
             var value = context.PropertyMetadata.GetValue(context.Instance);
-            if (null == value || value == DBNull.Value)
+            if (value == DBNull.Value) value = null;
+            if (null == value)
             {
                 if (context.RuleMetadata.NullIsValid) return null;
             }
-            else if (context.PropertyMetadata.PropertyType.IsAssignableFrom(value.GetType()))
+            else if (!context.PropertyMetadata.PropertyType.IsAssignableFrom(value.GetType()))
             {
                 throw new ArgumentException($"Actual property value type ({value.GetType()}) " +
                     $"does not match metadata ({context.PropertyMetadata.PropertyType.FullName}).", nameof(context));
-            }
-
-            if (!string.IsNullOrWhiteSpace(context.RuleMetadata.EnabledProperty))
-            {
-                var enabledProp = context.EntityMetadata.GetPropertyMetadata(
-                    context.RuleMetadata.EnabledProperty);
-                if (null == enabledProp) throw new ArgumentException($"No metadata for property {context.RuleMetadata.EnabledProperty} " +
-                    $"on type {context.EntityMetadata.EntityType.FullName}.", nameof(context));
-                var enabledValue = enabledProp.GetValue(context.Instance);
-                if (enabledValue is bool enabled)
-                {
-                    if (context.RuleMetadata.EnabledInversed) enabled = !enabled;
-                    if (!enabled) return null;
-                }
-                else throw new ArgumentException($"EnabledProperty {context.RuleMetadata.EnabledProperty} " +
-                    $"on type {context.EntityMetadata.EntityType.FullName} is not bool.", nameof(context));
             }
 
             return GetValidationResult(context.Instance, value, context.EntityMetadata,

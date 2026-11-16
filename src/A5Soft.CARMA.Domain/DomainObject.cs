@@ -49,7 +49,7 @@ namespace A5Soft.CARMA.Domain
             if (objectToCopy.IsNull()) throw new ArgumentNullException(nameof(objectToCopy));
 
             Initialize();
-            _brokenRules = objectToCopy._brokenRules.GetCopy((T)this);
+            _brokenRules = objectToCopy._brokenRules.CreateForParent((T)this);
             _childrenManager = new ChildrenManager<T>((T)this);
         }
 
@@ -84,7 +84,7 @@ namespace A5Soft.CARMA.Domain
         private BrokenRulesManager<T> RulesManager {
             get
             {
-                if (_brokenRules.IsNull())
+                if (null == _brokenRules)
                 {
                     _brokenRules = new BrokenRulesManager<T>((T)this, null);
                 }
@@ -245,10 +245,13 @@ namespace A5Soft.CARMA.Domain
             if (null == propertyNames || propertyNames.Length < 1)
                 throw new ArgumentNullException(nameof(propertyNames));
 
-            var affectedProps = new List<string>();
+            var affectedProps = new HashSet<string>(StringComparer.Ordinal);
             foreach (var propertyName in propertyNames)
             {
-                affectedProps.AddRange(RulesManager.CheckPropertyRules(propertyName));
+                foreach (var affectedProp in RulesManager.CheckPropertyRules(propertyName))
+                {
+                    _ = affectedProps.Add(affectedProp);
+                }
             }
             OnPropertiesChanged(affectedProps.Distinct().ToArray());
         }
@@ -373,7 +376,7 @@ namespace A5Soft.CARMA.Domain
                     : RulesManager.Metadata.GetDisplayNameForOld();
             }
 
-            var result = new BrokenRulesTreeNode(description, RulesManager.ToBrokenRuleArray());
+            var result = new BrokenRulesTreeNode(description, RulesManager.ToCollection());
             _childrenManager.AddChildrenBrokenRules(result);
 
             return result;

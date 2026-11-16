@@ -5,7 +5,7 @@ namespace A5Soft.CARMA.Domain.Rules
     /// <summary>
     /// Common interface for validation providers (services) for use in dependency injection.
     /// </summary>
-    [Service(ServiceLifetime.Singleton)]
+    [Service(ServiceLifetime.Scoped)]
     public interface IValidationEngineProvider
     {
 

@@ -15,10 +15,10 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         #region Fields
 
         private static readonly string[] _noDependants = new string[] { };
-        private static readonly List<IRuleMetadata> _noRules = new List<IRuleMetadata>();
+        private static readonly IRuleMetadata[] _noRules = Array.Empty<IRuleMetadata>();
         private readonly ReadOnlyDictionary<string, List<IRuleMetadata>> _propertyValidationRules;
         private readonly Dictionary<string, HashSet<string>> _reverseDependencyMap =
-            new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
         #endregion
 
@@ -58,9 +58,14 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
                     foreach (var dependencySource in rule.GetRelatedProperties())
                     {
+                        if (string.Equals(dependencySource, propInfo.Name, StringComparison.Ordinal)) continue;
+                        if (!EntityMetadata.Properties.ContainsKey(dependencySource))
+                            throw new InvalidOperationException($"Rule {rule.RuleType.Name} on {EntityMetadata.EntityType.Name}." +
+                                $"{propInfo.Name} references unknown property {dependencySource}.");
+
                         if (!_reverseDependencyMap.TryGetValue(dependencySource, out var dependants))
                         {
-                            dependants = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                            dependants = new HashSet<string>(StringComparer.Ordinal);
                             _reverseDependencyMap[dependencySource] = dependants;
                         }
 
