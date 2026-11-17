@@ -9,7 +9,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public abstract class EntityValidationAttribute : Attribute, IRuleMetadata
     {
-        private static readonly string[] emptyProps = new string[] { };
+        private static readonly HashSet<string> emptyProps = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// The type of IEntityValidationRule to resolve from DI.
@@ -43,7 +43,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
         public HashSet<string> GetRelatedProperties()
         {
-            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            return emptyProps;
         }
     }
 }

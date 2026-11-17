@@ -16,7 +16,8 @@ namespace A5Soft.CARMA.Domain
     /// </summary>
     /// <typeparam name="T">type of the domain entity implementation</typeparam>
     /// <remarks>inherit from this class for entities that have no identity
-    /// (only one instance per domain, e.g. some common settings) and no auditing functionality</remarks>
+    /// (only one instance per domain, e.g. some common settings) and no auditing functionality
+    /// Domain objects cannot contain new-hidden properties</remarks>
     [Serializable]
     public abstract class DomainObject<T>
         : BindableBase, ITrackState, IChildInternal, IBindableChildInt, INotifyChildChanged, IDataErrorInfo
@@ -29,12 +30,14 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainObject(IValidationEngineProvider validationEngineProvider)
+        protected DomainObject(IApplicationContext context)
         {
-            if (validationEngineProvider.IsNull()) throw new ArgumentNullException(nameof(validationEngineProvider));
+            if (null == context) throw new ArgumentNullException(nameof(context));
+
+            BindingMode = context.BindingMode;
 
             Initialize();
-            _brokenRules = new BrokenRulesManager<T>((T)this, validationEngineProvider);
+            _brokenRules = new BrokenRulesManager<T>((T)this, context.ValidationProvider);
             _childrenManager = new ChildrenManager<T>((T)this);
         }
 
@@ -46,7 +49,9 @@ namespace A5Soft.CARMA.Domain
         [DebuggerStepThrough]
         protected DomainObject(T objectToCopy)
         {
-            if (objectToCopy.IsNull()) throw new ArgumentNullException(nameof(objectToCopy));
+            if (null == objectToCopy) throw new ArgumentNullException(nameof(objectToCopy));
+
+            BindingMode = objectToCopy.BindingMode;
 
             Initialize();
             _brokenRules = objectToCopy._brokenRules.CreateForParent((T)this);
@@ -491,7 +496,7 @@ namespace A5Soft.CARMA.Domain
         protected virtual void SetParent(IDomainObject parent)
         {
             _parent = parent;
-            if (!parent.IsNull()) MarkAsChild();
+            if (null != parent) MarkAsChild();
         }
 
         /// <inheritdoc cref="IChildInternal.SetParent" />
@@ -633,7 +638,7 @@ namespace A5Soft.CARMA.Domain
         /// <param name="e">change event arguments</param>
         internal virtual void ChildHasChanged(string fieldName, object sender, ChildChangedEventArgs e)
         {
-            if (e.ListChangedArgs.IsNull() || e.ListChangedArgs.ListChangedType != ListChangedType.ItemChanged)
+            if (null == e.ListChangedArgs || e.ListChangedArgs.ListChangedType != ListChangedType.ItemChanged)
                 OnChildChanged(e);
         }
 

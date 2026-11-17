@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 {
@@ -47,8 +48,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
             var validationRules = new Dictionary<string, List<IRuleMetadata>>();
             foreach (var propInfo in relevantProperties)
             {
-                var rulesForProperty = propInfo.GetCustomAttributesWithInheritance<PropertyValidationAttribute>()
-                    .Select(a => (IRuleMetadata)a).ToList();
+                var rulesForProperty = ReadPropertyRules(EntityMetadata.EntityType, propInfo);
 
                 validationRules.Add(propInfo.Name, rulesForProperty);
 
@@ -76,6 +76,21 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
             _propertyValidationRules = new ReadOnlyDictionary<string, List<IRuleMetadata>>(validationRules);
             RequiredRules = requiredRules.ToArray();
+        }
+
+        private static List<IRuleMetadata> ReadPropertyRules(Type entityType, PropertyInfo propInfo)
+        {
+            try
+            {
+                return propInfo.GetCustomAttributesWithInheritance<PropertyValidationAttribute>()
+                    .Select(a => (IRuleMetadata)a).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Invalid validation attribute on {entityType.FullName}.{propInfo.Name}: " +
+                    $"{(ex.InnerException ?? ex).Message}", ex);
+            }
         }
 
         #endregion

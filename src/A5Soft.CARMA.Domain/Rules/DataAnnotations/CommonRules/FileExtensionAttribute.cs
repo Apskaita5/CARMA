@@ -1,7 +1,6 @@
 ﻿using A5Soft.CARMA.Domain.Files;
 using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
 using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -11,9 +10,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class FileExtensionAttribute : PropertyValidationAttribute, IFileExtensionRuleMetadata
     {
-        private readonly static Type[] _supportedValueTypes = new Type[] { typeof(string) };
-
-
         /// <summary>
         /// (allowed) file extension rule
         /// </summary>
@@ -30,11 +26,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         /// <inheritdoc cref="IFileExtensionRuleMetadata.AllowedTypes"/>
         public FileType[] AllowedTypes { get; }
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-        }
     }
 }

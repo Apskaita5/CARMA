@@ -13,18 +13,8 @@
         int SignificantDigits { get; }
 
         /// <summary>
-        /// Gets a value indicating wheteher an integer value is expected (otherwise decimal, double or float).
+        /// Gets a limiting value (min/max/etc).
         /// </summary>
-        public bool ExpectedIntValue { get; }
-
-        /// <summary>
-        /// Gets a limiting integer value (min/max/etc).
-        /// </summary>
-        public int IntValueLimit { get; }
-
-        /// <summary>
-        /// Gets a limiting double (decimal, float) value (min/max/etc).
-        /// </summary>
-        public double DblValueLimit { get; }
+        public double ValueLimit { get; }
     }
 }

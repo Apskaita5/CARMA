@@ -19,9 +19,9 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
             if (value is string url)
             {
                 if (url.IsNullOrWhiteSpace() ||
-                url.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
-                || url.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase)
-                || url.StartsWith("ftp://", StringComparison.InvariantCultureIgnoreCase)) return null;
+                url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                || url.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase)) return null;
 
                 return GetLocalizedErrorMessageFor(propertyMetadata.GetDisplayName());
             }

@@ -10,6 +10,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
         /// <summary>
         /// Gets a list of allowed file types.
         /// </summary>
-        FileType[] AllowedTypes { get; set; }
+        FileType[] AllowedTypes { get; }
     }
 }

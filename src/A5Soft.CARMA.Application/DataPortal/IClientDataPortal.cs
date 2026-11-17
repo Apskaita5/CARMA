@@ -12,7 +12,7 @@ namespace A5Soft.CARMA.Application.DataPortal
     /// Enable remote method execution using single entry point at server.
     /// </summary>
     [Service(ServiceLifetime.Singleton)]
-    public interface IClientDataPortal 
+    public interface IClientDataPortal
     {
         /// <summary>
         /// Gets a value indicating whether the data portal implementation is configured

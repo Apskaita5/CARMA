@@ -25,7 +25,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
                 var fileType = extension.GetFileType();
 
                 if (!ruleMetadata.AllowedTypes.Any(t => t == fileType)) return GetLocalizedErrorMessageFor(
-                    extension, string.Join(", ", ruleMetadata.AllowedTypes.Select(t => t.ToString().ToLower())));
+                    extension, string.Join(", ", ruleMetadata.AllowedTypes.Select(t => t.ToString().ToLowerInvariant())));
             }
 
             return null;

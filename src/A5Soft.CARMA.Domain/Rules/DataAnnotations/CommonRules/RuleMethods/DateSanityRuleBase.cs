@@ -19,9 +19,10 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
 
             if (value is DateTime validatedDate)
             {
-                if (validatedDate.Date > DateTime.UtcNow.Date)
+                var today = DateTime.Today;
+                if (validatedDate.Date > today)
                     return GetInFutureLocalizedErrorMessageFor(propertyMetadata.GetDisplayName());
-                if (validatedDate.Date < DateTime.Today.AddYears(-20).Date)
+                if (validatedDate.Date < today.AddYears(-20))
                     return GetTooOldLocalizedErrorMessageFor(propertyMetadata.GetDisplayName());
             }
 

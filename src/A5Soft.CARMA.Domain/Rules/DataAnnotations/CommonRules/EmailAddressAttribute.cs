@@ -1,6 +1,5 @@
 ﻿using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
 using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -20,11 +19,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         /// <inheritdoc cref="IEmailAddressRuleMetadata.AllowMultipleAddresses"/>
         public bool AllowMultipleAddresses { get; set; } = false;
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-        }
     }
 }

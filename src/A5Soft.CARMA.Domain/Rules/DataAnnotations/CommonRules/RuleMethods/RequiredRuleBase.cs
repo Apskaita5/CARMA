@@ -1,8 +1,4 @@
-﻿using A5Soft.CARMA.Domain.Math;
-using A5Soft.CARMA.Domain.Metadata;
-using A5Soft.CARMA.Domain.Orm;
-using System;
-using System.Collections;
+﻿using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
 {
@@ -15,58 +11,10 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
         protected override string GetErrorDescription(object instance, object value, IEntityMetadata entityMetadata,
             IPropertyMetadata propertyMetadata, IRequiredRuleMetadata ruleMetadata)
         {
-            if (null == value) return GetLocalizedErrorMessageFor(propertyMetadata.GetDisplayName()); // handles nullable types that does not have a value as well
-
-            bool isValid = true;
-            if (ruleMetadata.IsKeyReference)
-            {
-                if (value is string val) isValid = val.IsValidKey();
-                else if (value is int intVal) isValid = intVal.IsValidKey();
-                else if (value is long longVal) isValid = longVal.IsValidKey();
-                else if (value is Guid guidVal) isValid = guidVal.IsValidKey();
-                else throw new NotSupportedException(
-                    $"Reference key type {value.GetType().FullName} is not supported by {this.GetType().FullName}.");
-            }
-            else if (value is string val)
-            {
-                isValid = !val.IsNullOrWhiteSpace();
-            }
-            else if (value is decimal decimalValue)
-            {
-                if (ruleMetadata.AllowNegative) isValid = decimalValue.AccountingRound(ruleMetadata.SignificantDigits) != 0.0m;
-                else isValid = decimalValue.AccountingRound(ruleMetadata.SignificantDigits) > 0.0m;
-            }
-            else if (value is double doubleValue)
-            {
-                if (ruleMetadata.AllowNegative) isValid = !doubleValue.EqualsTo(0.0, ruleMetadata.SignificantDigits);
-                else isValid = doubleValue.GreaterThan(0.0, ruleMetadata.SignificantDigits);
-            }
-            else if (value is byte byteValue)
-            {
-                if (ruleMetadata.AllowNegative) isValid = byteValue != 0;
-                else isValid = byteValue > 0;
-            }
-            else if (value is short int16Value)
-            {
-                if (ruleMetadata.AllowNegative) isValid = int16Value != 0;
-                else isValid = int16Value > 0;
-            }
-            else if (value is int intValue)
-            {
-                if (ruleMetadata.AllowNegative) isValid = intValue != 0;
-                else isValid = intValue > 0;
-            }
-            else if (value is long longValue)
-            {
-                if (ruleMetadata.AllowNegative) isValid = longValue != 0;
-                else isValid = longValue > 0;
-            }
-            else if (value is IList list)
-            {
-                isValid = list.Count > 0;
-            }
-
-            if (isValid) return null;
+            if (ValueHelpers.IsValidValue(value, ruleMetadata.IsKeyReference,
+                ruleMetadata.AllowNegative, ruleMetadata.SignificantDigits,
+                ruleMetadata.AllowEmptyStrings))
+                return null;
 
             return GetLocalizedErrorMessageFor(propertyMetadata.GetDisplayName());
         }

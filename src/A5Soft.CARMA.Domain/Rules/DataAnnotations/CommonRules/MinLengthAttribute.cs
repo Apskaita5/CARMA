@@ -1,11 +1,12 @@
 ﻿using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
-using System.Collections.Generic;
+using System;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
     /// <summary>
     /// An attribute that adds a min string length validation rule.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class MinLengthAttribute : PropertyValidationAttribute, IStringLengthRuleMetadata
     {
         /// <summary>
@@ -16,6 +17,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         public MinLengthAttribute(int minLength, RuleSeverity severity = RuleSeverity.Error)
             : base(typeof(IMinLengthRule), severity)
         {
+            if (minLength < 1) throw new ArgumentOutOfRangeException(nameof(minLength),
+                minLength, "Minimum length must be a positive number (use no rule for 0).");
             LengthLimit = minLength;
             NullIsValid = true;
         }
@@ -23,11 +26,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         /// <inheritdoc cref="IStringLengthRuleMetadata.LengthLimit"/>
         public int LengthLimit { get; }
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-        }
     }
 }

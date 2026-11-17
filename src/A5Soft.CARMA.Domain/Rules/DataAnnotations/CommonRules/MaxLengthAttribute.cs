@@ -1,6 +1,5 @@
 ﻿using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
 using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -18,6 +17,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         public MaxLengthAttribute(int maximumLength, RuleSeverity severity = RuleSeverity.Error)
             : base(typeof(IMaxLengthRule), severity)
         {
+            if (maximumLength < 1) throw new ArgumentOutOfRangeException(nameof(maximumLength),
+                maximumLength, "Maximum length must be a positive number.");
             LengthLimit = maximumLength;
             NullIsValid = true;
         }
@@ -25,11 +26,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         /// <inheritdoc cref="IStringLengthRuleMetadata.LengthLimit"/>
         public int LengthLimit { get; }
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-        }
     }
 }

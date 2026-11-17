@@ -15,23 +15,19 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
         {
             if (null == value) return null;
 
-            if (value is int intSize)
+            long size;
+            switch (value)
             {
-                if (intSize > ruleMetadata.MaxSizeMB * 1024 * 1024)
-                    return GetLocalizedErrorMessageFor(ToMB(intSize), ruleMetadata.MaxSizeMB);
-            }
-            else if (value is long longSize)
-            {
-                if (longSize > ruleMetadata.MaxSizeMB * 1024 * 1024)
-                    return GetLocalizedErrorMessageFor(ToMB(longSize), ruleMetadata.MaxSizeMB);
-            }
-            else
-            {
-                if (propertyMetadata.PropertyType != typeof(string)) throw new ArgumentException(
-                $"Cannot handle non string values ({propertyMetadata.Name}: {propertyMetadata.PropertyType.FullName}).",
-                nameof(propertyMetadata));
+                case int intSize: size = intSize; break;
+                case long longSize: size = longSize; break;
+                default:
+                    throw new InvalidOperationException(
+               $"Max file size rule is only applicable for int or long properties " +
+               $"({propertyMetadata.Name}: {propertyMetadata.PropertyType.FullName}).");
             }
 
+            var maxBytes = ruleMetadata.MaxSizeMB * 1024L * 1024L;
+            if (size > maxBytes) return GetLocalizedErrorMessageFor(ToMB(size), ruleMetadata.MaxSizeMB);
             return null;
         }
 

@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Domain.Metadata;
 using System;
+using System.Linq;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
 {
@@ -39,14 +40,18 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods
         {
             if (allowMultiple)
             {
-                foreach (var emailAddressItem in emailAddress.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                var anyValidInList = false;
+                foreach (var emailAddressItem in emailAddress.Split(';')
+                    .Select(s => s.Trim())
+                    .Where(s => s.Length > 0))
                 {
                     if (!IsValidEmailAddress(emailAddressItem.Trim()))
                     {
                         return false;
                     }
+                    anyValidInList = true;
                 }
-                return true;
+                return anyValidInList;
             }
             else return IsValidEmailAddress(emailAddress);
         }

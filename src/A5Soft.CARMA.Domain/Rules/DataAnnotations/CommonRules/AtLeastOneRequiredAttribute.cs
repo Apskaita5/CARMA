@@ -1,6 +1,5 @@
 ﻿using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
 using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -10,6 +9,9 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class AtLeastOneRequiredAttribute : PropertyValidationAttribute, IAtLeastOneRequiredRuleMetadata
     {
+        private int _significantDigits = 2;
+
+
         /// <summary>
         /// Creates a new instance of AtLeastOneRequired rule.
         /// </summary>
@@ -18,7 +20,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             : base(typeof(IAtLeastOneRequiredRule), severity)
         {
             if (referenceProperty.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(referenceProperty));
-            ReferenceProperty = referenceProperty;
+            ReferenceProperty = referenceProperty.Trim();
             NullIsValid = false;
         }
 
@@ -43,13 +45,15 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         /// Gets or sets significant digits when evaluating numeric property value.
         /// Only applicable for numeric properties. Default is 2.
         /// </summary>
-        public int SignificantDigits { get; set; } = 2;
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
+        public int SignificantDigits
         {
-            base.AddRelatedProperties(relatedProperties);
-            relatedProperties.Add(ReferenceProperty.Trim());
+            get => _significantDigits;
+            set
+            {
+                if (value < 0 || value > 15) throw new ArgumentOutOfRangeException(nameof(SignificantDigits), value,
+                    "Significant digits must be between 0 and 15.");
+                _significantDigits = value;
+            }
         }
     }
 }

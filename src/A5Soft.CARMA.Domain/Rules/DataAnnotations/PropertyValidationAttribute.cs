@@ -22,7 +22,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         public string[] RelatedProperties { get; set; } = null;
 
         /// <inheritdoc cref="IRuleMetadata.NullIsValid"/>
-        public bool NullIsValid { get; set; } = true;
+        public bool NullIsValid { get; protected set; } = true;
 
         /// <inheritdoc cref="IRuleMetadata.EnabledProperty"/>
         public string EnabledProperty { get; set; } = string.Empty;
@@ -47,7 +47,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         /// <returns>a list of property names that the evaluated property validation depends upon</returns>
         public HashSet<string> GetRelatedProperties()
         {
-            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var result = new HashSet<string>(StringComparer.Ordinal);
             AddRelatedProperties(result);
             return result;
         }

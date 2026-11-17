@@ -101,7 +101,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IEntityMetadata.GetDisplayNameForNew" />
         public string GetDisplayNameForNew()
         {
-            if (_displayAttribute.IsNull()) return EntityType.Name.SplitCamelCase();
+            if (null == _displayAttribute) return EntityType.Name.SplitCamelCase();
 
             var value = _displayAttribute.GetNameForNew();
             return value.IsNullOrWhiteSpace() ? EntityType.Name.SplitCamelCase() : value;
@@ -110,7 +110,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IEntityMetadata.GetDisplayNameForOld" />
         public string GetDisplayNameForOld()
         {
-            if (_displayAttribute.IsNull()) return string.Empty;
+            if (null == _displayAttribute) return string.Empty;
 
             var value = _displayAttribute.GetNameForOld();
             return value.IsNullOrWhiteSpace() ? EntityType.Name.SplitCamelCase() : value;
@@ -119,7 +119,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IEntityMetadata.GetHelpUri" />
         public string GetHelpUri()
         {
-            if (_displayAttribute.IsNull()) return string.Empty;
+            if (null == _displayAttribute) return string.Empty;
 
             return _displayAttribute.GetHelpUri() ?? string.Empty;
         }

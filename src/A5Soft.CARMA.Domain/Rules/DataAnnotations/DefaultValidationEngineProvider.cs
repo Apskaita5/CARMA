@@ -20,8 +20,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
         // per scope (provider instance)
         private readonly ConcurrentDictionary<Type, IValidationEngine> _engines
             = new ConcurrentDictionary<Type, IValidationEngine>();
-        private readonly ConcurrentDictionary<Type, EntityRulesMetadata> _metadataCache
-            = new ConcurrentDictionary<Type, EntityRulesMetadata>();
+        private readonly ConcurrentDictionary<Type, EntityRulesMetadata> _metadataCache;
         private readonly IMetadataProvider _metadataProvider;
         private readonly IRuleProvider _ruleProvider;
 

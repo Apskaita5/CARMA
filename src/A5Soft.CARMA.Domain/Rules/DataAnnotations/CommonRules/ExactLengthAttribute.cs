@@ -1,6 +1,5 @@
 ﻿using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
 using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -10,9 +9,6 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class ExactLengthAttribute : PropertyValidationAttribute, IStringLengthRuleMetadata
     {
-        private readonly static Type[] _supportedValueTypes = new Type[] { typeof(string) };
-
-
         /// <summary>
         ///  exact string length rule
         /// </summary>
@@ -21,6 +17,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         public ExactLengthAttribute(int length, RuleSeverity severity = RuleSeverity.Error)
             : base(typeof(IExactLengthRule), severity)
         {
+            if (length < 1) throw new ArgumentOutOfRangeException(nameof(length),
+                length, "Exact length must be a positive number.");
             LengthLimit = length;
             NullIsValid = true;
         }
@@ -28,11 +26,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         /// <inheritdoc cref="IStringLengthRuleMetadata.LengthLimit"/>
         public int LengthLimit { get; }
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-        }
     }
 }

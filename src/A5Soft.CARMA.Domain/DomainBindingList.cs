@@ -677,14 +677,14 @@ namespace A5Soft.CARMA.Domain
             if (ReferenceEquals(this[index], item)) return;
 
             var child = this[index];
-            if (!child.IsNull())
+            if (null != child)
             {
                 if (child is IChildInternal ciOld) ciOld.SetParent(null, null);
                 OnRemoveEventHooks(child);
                 DeleteChild(child);
             }
 
-            if (!item.IsNull())
+            if (null != item)
             {
                 OnAddEventHooks(item);
                 if (item is IChildInternal ciNew) ciNew.SetParent(this, null);
@@ -770,10 +770,10 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnAddEventHooks(TChild item)
         {
-            if (item is INotifyPropertyChanged npc && !npc.IsNull())
+            if (item is INotifyPropertyChanged npc && null != npc)
                 npc.PropertyChanged += Child_PropertyChanged;
 
-            if (item is INotifyChildChanged ncc && !ncc.IsNull())
+            if (item is INotifyChildChanged ncc && null != ncc)
                 ncc.ChildChanged += Child_Changed;
 
             if (item is IBindable bindableItem)
@@ -791,10 +791,10 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnRemoveEventHooks(TChild item)
         {
-            if (item is INotifyPropertyChanged npc && !npc.IsNull())
+            if (item is INotifyPropertyChanged npc && null != npc)
                 npc.PropertyChanged -= Child_PropertyChanged;
 
-            if (item is INotifyChildChanged ncc && !ncc.IsNull())
+            if (item is INotifyChildChanged ncc && null != ncc)
                 ncc.ChildChanged -= Child_Changed;
         }
 
@@ -882,7 +882,7 @@ namespace A5Soft.CARMA.Domain
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void Child_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (_deserialized && RaiseListChangedEvents && !e.IsNull())
+            if (_deserialized && RaiseListChangedEvents && null != e)
             {
                 for (int index = 0; index < Count; index++)
                 {
@@ -941,7 +941,7 @@ namespace A5Soft.CARMA.Domain
         {
             _parent = parent;
             _parentPropertyName = parentPropertyName ?? string.Empty;
-            if (!parent.IsNull()) MarkAsChild();
+            if (null != parent) MarkAsChild();
         }
 
         void IChildInternal.SetParent(IDomainObject parent, string parentPropertyName)

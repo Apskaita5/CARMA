@@ -11,7 +11,8 @@ namespace A5Soft.CARMA.Domain
     /// A base class for all domain entities that have an identity (i.e. more than one entity
     /// of the type exists in the domain) yet have no auditing functionality.
     /// </summary>
-    /// <typeparam name="T">a type of the domain entity implementation</typeparam> 
+    /// <typeparam name="T">a type of the domain entity implementation</typeparam>
+    /// <remarks>Domain entities cannot contain new-hidden properties</remarks>
     [Serializable]
     public abstract class DomainEntity<T> : DomainObject<T>, IDomainEntity<T>
         where T : DomainEntity<T>
@@ -23,23 +24,23 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainEntity(IValidationEngineProvider validationEngineProvider)
-            : base(validationEngineProvider) {}
+        protected DomainEntity(IApplicationContext context)
+            : base(context) {}
 
         /// <summary>
         /// Creates a new instance of the object.
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainEntity(DomainEntityIdentity<T> identity, IValidationEngineProvider validationEngineProvider, 
-            bool allowNewIdentity = false) : base(validationEngineProvider)
+        protected DomainEntity(DomainEntityIdentity<T> identity, IApplicationContext context,
+            bool allowNewIdentity = false) : base(context)
         {
             if (!allowNewIdentity && null == identity)
             {
                 throw new InvalidOperationException("Cannot set new (null) identity for an existing entity.");
             }
 
-            if (!identity.IsNull()) identity.EnsureValidIdentityFor<T>();
+            if (null != identity) identity.EnsureValidIdentityFor<T>();
 
             Id = identity;
 

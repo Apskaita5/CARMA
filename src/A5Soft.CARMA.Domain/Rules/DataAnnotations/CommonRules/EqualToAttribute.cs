@@ -10,6 +10,9 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class EqualToAttribute : PropertyValidationAttribute, IEqualToRuleMetadata
     {
+        private int _significantDigits = 2;
+
+
         /// <summary>
         /// (property) values equal rule
         /// </summary>
@@ -18,7 +21,7 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
             : base(typeof(IEqualToRule), severity)
         {
             if (referenceProperty.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(referenceProperty));
-            ReferenceProperty = referenceProperty;
+            ReferenceProperty = referenceProperty.Trim();
             NullIsValid = false;
         }
 
@@ -27,16 +30,18 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         public string ReferenceProperty { get; }
 
         /// <inheritdoc cref="IEqualToRuleMetadata.SignificantDigits"/>
-        public int SignificantDigits { get; set; } = 2;
+        public int SignificantDigits
+        {
+            get => _significantDigits;
+            set
+            {
+                if (value < 0 || value > 15) throw new ArgumentOutOfRangeException(nameof(SignificantDigits), value,
+                    "Significant digits must be between 0 and 15.");
+                _significantDigits = value;
+            }
+        }
 
         /// <inheritdoc cref="IEqualToRuleMetadata.StringComparison"/>
         public StringComparison StringComparison { get; set; } = StringComparison.CurrentCulture;
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-            relatedProperties.Add(ReferenceProperty.Trim());
-        }
     }
 }

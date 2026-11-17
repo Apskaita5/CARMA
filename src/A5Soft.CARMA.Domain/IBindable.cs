@@ -35,6 +35,5 @@ namespace A5Soft.CARMA.Domain
         [ScaffoldColumn(false)]
         [IgnorePropertyMetadata]
         BindingMode BindingMode { get; set; }
-
     }
 }

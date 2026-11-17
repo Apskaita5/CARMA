@@ -1,6 +1,5 @@
 ﻿using A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules.RuleMethods;
 using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 {
@@ -18,6 +17,8 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
         public MaxFileSizeAttribute(int maxSizeMB, RuleSeverity severity = RuleSeverity.Error)
             : base(typeof(IMaxFileSizeRule), severity)
         {
+            if (maxSizeMB < 1) throw new ArgumentOutOfRangeException(nameof(maxSizeMB),
+                maxSizeMB, "Max file size must be a positive number of MB.");
             MaxSizeMB = maxSizeMB;
             NullIsValid = true;
         }
@@ -25,11 +26,5 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations.CommonRules
 
         /// <inheritdoc cref="IMaxFileSizeRuleMetadata.MaxSizeMB"/>
         public int MaxSizeMB { get; }
-
-
-        protected override void AddRelatedProperties(HashSet<string> relatedProperties)
-        {
-            base.AddRelatedProperties(relatedProperties);
-        }
     }
 }

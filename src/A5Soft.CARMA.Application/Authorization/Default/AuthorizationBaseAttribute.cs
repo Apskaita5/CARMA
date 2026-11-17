@@ -30,7 +30,7 @@ namespace A5Soft.CARMA.Application.Authorization.Default
         public bool IsAuthorized(Type useCaseType, ClaimsIdentity identity,
             ILogger logger, bool throwOnUnauthorized = false)
         {
-            if (identity.IsNull()) throw new ArgumentNullException(nameof(identity));
+            if (null == identity) throw new ArgumentNullException(nameof(identity));
             if (null == useCaseType) throw new ArgumentNullException(nameof(useCaseType));
             if (null != useCaseType && null != UseCaseType && !UseCaseType.IsAssignableFrom(useCaseType)
                 && !useCaseType.IsAssignableFrom(UseCaseType))
