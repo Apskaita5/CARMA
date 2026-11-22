@@ -52,7 +52,7 @@ namespace A5Soft.CARMA.Domain.Rules
         /// <param name="brokenRules">child entity broken rules</param>
         public void AddBrokenRulesForChild(BrokenRulesTreeNode brokenRules)
         {
-            if (brokenRules.IsNull()) throw new ArgumentNullException(nameof(brokenRules));
+            if (null == brokenRules) throw new ArgumentNullException(nameof(brokenRules));
             if (ReferenceEquals(this, brokenRules)) throw new ArgumentException(
                 "Cannot add itself.", nameof(brokenRules));
             _childEntitiesBrokenRules.Add(brokenRules);

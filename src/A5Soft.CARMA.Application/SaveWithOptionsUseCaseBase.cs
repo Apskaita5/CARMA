@@ -46,7 +46,7 @@ namespace A5Soft.CARMA.Application
         /// <returns>a domain entity that has been saved (persisted)</returns>
         public async Task<TDomObject> SaveAsync(TDomInterface domainDto, TOptions options)
         {
-            if (domainDto.IsNull()) throw new ArgumentNullException(nameof(domainDto));
+            if (null == domainDto) throw new ArgumentNullException(nameof(domainDto));
 
             Logger.LogMethodEntry(this.GetType(), nameof(SaveAsync), domainDto, options);
 

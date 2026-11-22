@@ -99,7 +99,7 @@ namespace A5Soft.CARMA.Application.Navigation
                         .Select(p => p.MenuGroupName.Trim().ToLowerInvariant()).Distinct())
                     {
                         var menuItem = result.GetMenuGroup(menuKey);
-                        if (menuItem.IsNull()) throw new InvalidOperationException(
+                        if (null == menuItem) throw new InvalidOperationException(
                             $"Plugin error - cannot find a base menu group (submenu) by name {menuKey}.");
 
                         menuItem.AddSeparator();

@@ -1,5 +1,3 @@
-using A5Soft.CARMA.Domain.Rules;
-
 namespace A5Soft.CARMA.Domain
 {
     /// <summary>
@@ -21,18 +19,18 @@ namespace A5Soft.CARMA.Domain
         /// <summary>
         /// Creates a domain object instance from the data of this DTO.
         /// </summary>
-        /// <param name="validationEngineProvider">a validation engine provider for the new
-        /// instance; the local one, so that a domain object never carries the rules of the
-        /// side it came from</param>
+        /// <param name="context">the application context of the side that builds the instance,
+        /// so that a domain object never carries the rules, metadata or binding mode of the side
+        /// it came from</param>
         /// <returns>a new domain object instance with the data and the state of this DTO</returns>
         /// <remarks>Implement as a single line that calls the domain object constructor taking
         /// the DTO: <c>=&gt; new Invoice(this, validationEngineProvider);</c>. Together with
         /// <see cref="IDtoSerializable{TDto}.ToDto"/> on the domain object, this makes both
         /// directions of the mapping a compile time requirement.</remarks>
-        new T ToEntity(IValidationEngineProvider validationEngineProvider);
+        new T ToEntity(IApplicationContext context);
 
         /// <inheritdoc cref="IDomainObjectDto.ToEntity"/>
-        object IDomainObjectDto.ToEntity(IValidationEngineProvider validationEngineProvider)
-            => ToEntity(validationEngineProvider);
+        object IDomainObjectDto.ToEntity(IApplicationContext context)
+            => ToEntity(context);
     }
 }

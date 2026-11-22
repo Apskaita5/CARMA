@@ -28,7 +28,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IUseCaseMetadata.GetButtonTitle" />
         public string GetButtonTitle()
         {
-            if (_displayAttribute.IsNull()) return UseCaseType.Name.SplitCamelCase();
+            if (null == _displayAttribute) return UseCaseType.Name.SplitCamelCase();
 
             var value = _displayAttribute.GetButtonTitle();
             return value.IsNullOrWhiteSpace() ? UseCaseType.Name.SplitCamelCase() : value;
@@ -37,7 +37,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IUseCaseMetadata.GetMenuTitle" />
         public string GetMenuTitle()
         {
-            if (_displayAttribute.IsNull()) return UseCaseType.Name.SplitCamelCase();
+            if (null == _displayAttribute) return UseCaseType.Name.SplitCamelCase();
 
             var value = _displayAttribute.GetMenuTitle();
             return value.IsNullOrWhiteSpace() ? UseCaseType.Name.SplitCamelCase() : value;

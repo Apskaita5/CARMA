@@ -41,7 +41,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayName" />
         public string GetDisplayName()
         {
-            if (_displayAttribute.IsNull()) return Name.SplitCamelCase();
+            if (null == _displayAttribute) return Name.SplitCamelCase();
 
             var value = _displayAttribute.GetName();
             return value.IsNullOrWhiteSpace() ? Name.SplitCamelCase() : value;
@@ -50,7 +50,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayShortName" />
         public string GetDisplayShortName()
         {
-            if (_displayAttribute.IsNull()) return Name.SplitCamelCase();
+            if (null == _displayAttribute) return Name.SplitCamelCase();
 
             var value = _displayAttribute.GetShortName();
             return value.IsNullOrWhiteSpace() ? Name.SplitCamelCase() : value;
@@ -59,7 +59,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayDescription" />
         public string GetDisplayDescription()
         {
-            if (_displayAttribute.IsNull()) return string.Empty;
+            if (null == _displayAttribute) return string.Empty;
 
             return _displayAttribute.GetDescription() ?? string.Empty;
         }
@@ -67,7 +67,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayPrompt" />
         public string GetDisplayPrompt()
         {
-            if (_displayAttribute.IsNull()) return string.Empty;
+            if (null == _displayAttribute) return string.Empty;
 
             return _displayAttribute.GetPrompt() ?? string.Empty;
         }
@@ -75,7 +75,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayGroupName" />
         public string GetDisplayGroupName()
         {
-            if (_displayAttribute.IsNull()) return string.Empty;
+            if (null == _displayAttribute) return string.Empty;
 
             return _displayAttribute.GetGroupName() ?? string.Empty;
         }
@@ -83,7 +83,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayOrder" />
         public int GetDisplayOrder()
         {
-            if (_displayAttribute.IsNull()) return -1;
+            if (null == _displayAttribute) return -1;
 
             return _displayAttribute.GetOrder() ?? 100000;
         }
@@ -91,7 +91,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetDisplayAutoGenerate" />
         public bool GetDisplayAutoGenerate(bool defaultValue = true)
         {
-            if (_displayAttribute.IsNull()) return defaultValue;
+            if (null == _displayAttribute) return defaultValue;
 
             return _displayAttribute.GetAutoGenerateField() ?? defaultValue;
         }
@@ -99,7 +99,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IPropertyMetadata.GetAutoGenerateFilter" />
         public bool GetAutoGenerateFilter(bool defaultValue = true)
         {
-            if (_displayAttribute.IsNull()) return defaultValue;
+            if (null == _displayAttribute) return defaultValue;
 
             return _displayAttribute.GetAutoGenerateFilter() ?? defaultValue;
         }

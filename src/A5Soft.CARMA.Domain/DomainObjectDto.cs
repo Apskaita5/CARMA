@@ -1,5 +1,4 @@
 using System;
-using A5Soft.CARMA.Domain.Rules;
 
 namespace A5Soft.CARMA.Domain
 {
@@ -40,6 +39,6 @@ namespace A5Soft.CARMA.Domain
 
 
         /// <inheritdoc />
-        public abstract T ToEntity(IValidationEngineProvider validationEngineProvider);
+        public abstract T ToEntity(IApplicationContext context);
     }
 }

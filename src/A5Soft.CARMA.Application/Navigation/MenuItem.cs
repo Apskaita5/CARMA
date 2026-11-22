@@ -342,7 +342,7 @@ namespace A5Soft.CARMA.Application.Navigation
                 foreach (var item in Items)
                 {
                     result = item.GetMenuGroup(name);
-                    if (!result.IsNull()) return result;
+                    if (null != result) return result;
                 }
             }
 

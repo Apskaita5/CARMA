@@ -74,7 +74,7 @@ namespace A5Soft.CARMA.Application
                 {
                     result = GetValueFromLocalCache<TLookup, TEntity>();
 
-                    if (!result.IsNull())
+                    if (null != result)
                     {
                         _logger?.LogMethodExit(this.GetType(), nameof(FetchAsync), result);
 

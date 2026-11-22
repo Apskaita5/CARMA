@@ -56,7 +56,7 @@ namespace A5Soft.CARMA.Application.Navigation
             foreach (var topItem in TopItems)
             {
                 result = topItem.GetMenuGroup(name);
-                if (!result.IsNull()) return result;
+                if (null != result) return result;
             }
 
             return null;

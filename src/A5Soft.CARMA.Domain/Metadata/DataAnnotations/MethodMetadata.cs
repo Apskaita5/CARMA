@@ -32,7 +32,7 @@ namespace A5Soft.CARMA.Domain.Metadata.DataAnnotations
         /// <inheritdoc cref="IMethodMetadata.GetDisplayName" />
         public string GetDisplayName()
         {
-            if (_displayAttribute.IsNull()) return Name.SplitCamelCase();
+            if (null == _displayAttribute) return Name.SplitCamelCase();
 
             var value = _displayAttribute.GetName();
             return value.IsNullOrWhiteSpace() ? Name.SplitCamelCase() : value;

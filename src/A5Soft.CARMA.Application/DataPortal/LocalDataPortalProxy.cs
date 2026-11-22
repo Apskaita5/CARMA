@@ -1,33 +1,28 @@
-﻿using A5Soft.CARMA.Domain;
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using A5Soft.CARMA.Domain;
 
 namespace A5Soft.CARMA.Application.DataPortal
 {
     /// <summary>
-    /// Null implementation of IRemoteClientPortal for use by DI whn no remote server is required.
+    /// The null transport: use cases run in process, so the data portal is never called.
     /// </summary>
     [DefaultServiceImplementation(typeof(IDataPortalProxy))]
     public class LocalDataPortalProxy : IDataPortalProxy
     {
+        /// <inheritdoc />
+        public bool IsRemote => false;
 
-        /// <inheritdoc cref="IDataPortalProxy.IsRemote" />
-        public bool IsRemote 
-            => false;
+        /// <inheritdoc />
+        public Task<DataPortalResponse> SendAsync(DataPortalRequest request,
+            CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException(
+                "The data portal is not remote; use cases should run in process.");
 
-        public Task<Stream> DownloadAsync(string request, CancellationToken ct = default)
-        {
-            throw new NotSupportedException("Local data portal cannot be invoked.");
-        }
-
-
-        /// <inheritdoc cref="IDataPortalProxy.GetResponseAsync" />
-        public Task<string> GetResponseAsync(string request, CancellationToken ct = default)
-        {
-            throw new NotSupportedException("Local data portal cannot be invoked.");
-        }
-
+        /// <inheritdoc />
+        public Task<ServerSettings> GetServerSettingsAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException(
+                "The data portal is not remote; there is no server to get the settings of.");
     }
 }
