@@ -34,7 +34,7 @@ namespace A5Soft.CARMA.Domain.IoC
         public string Path { get; }
 
         /// <summary>
-        /// a configuration of the app build (client/server/any) that the unmanaged assembly is meant for
+        /// the roles of the app builds (see <see cref="BuildConfiguration"/>) that the implementation is meant for
         /// </summary>
         public BuildConfiguration ForBuildConfiguration { get; }
     }

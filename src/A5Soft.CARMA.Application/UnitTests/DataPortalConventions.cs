@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.IoC;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Files;

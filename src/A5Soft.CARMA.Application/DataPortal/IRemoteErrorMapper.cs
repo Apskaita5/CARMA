@@ -1,3 +1,4 @@
+using A5Soft.CARMA.Domain;
 using System;
 
 namespace A5Soft.CARMA.Application.DataPortal
@@ -7,6 +8,7 @@ namespace A5Soft.CARMA.Application.DataPortal
     /// exceptions on the client. Implemented by the application, because its business
     /// exceptions (and their localized messages) are application types.
     /// </summary>
+    [Service(ServiceLifetime.Singleton)]
     public interface IRemoteErrorMapper
     {
         /// <summary>

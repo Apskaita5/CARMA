@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Application.Authorization;
 using A5Soft.CARMA.Application.DataPortal;
+using A5Soft.CARMA.Domain;
 
 namespace A5Soft.CARMA.Application
 {
@@ -7,6 +8,7 @@ namespace A5Soft.CARMA.Application
     /// A container interface for app wide settings and services.
     /// </summary>
     /// <remarks>Inherit the interface and implement the container subject to the app service requirements.</remarks>
+    [Service(ServiceLifetime.Scoped)]
     public interface IApplicationContext : Domain.IApplicationContext
     {
         /// <summary>

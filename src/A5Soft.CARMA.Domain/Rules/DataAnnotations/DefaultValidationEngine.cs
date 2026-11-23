@@ -114,7 +114,19 @@ namespace A5Soft.CARMA.Domain.Rules.DataAnnotations
 
         private IValidationRule Resolve(Type ruleType, Func<Type, IValidationRule> resolveValidationRule)
         {
-            var rule = resolveValidationRule(ruleType) ?? throw new InvalidOperationException(
+            IValidationRule rule;
+            try
+            {
+                rule = resolveValidationRule(ruleType);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // e.g. a tenant scoped rule in a scope without a tenant: say which entity needed which rule
+                throw new InvalidOperationException($"Validation rule of type {ruleType.FullName} required by " +
+                    $"{_rulesMetadata.EntityMetadata.EntityType.FullName} cannot be resolved in this scope: {ex.Message}", ex);
+            }
+
+            if (null == rule) throw new InvalidOperationException(
                 $"Validation rule of type {ruleType.FullName} required by " +
                 $"{_rulesMetadata.EntityMetadata.EntityType.FullName} is not configured.");
 

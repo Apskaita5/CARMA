@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
+using A5Soft.CARMA.Domain.Internal;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;

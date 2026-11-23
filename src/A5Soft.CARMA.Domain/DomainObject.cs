@@ -1,4 +1,6 @@
-﻿using A5Soft.CARMA.Domain.Math;
+﻿using A5Soft.CARMA.Domain.ChildrenManager;
+using A5Soft.CARMA.Domain.Internal;
+using A5Soft.CARMA.Domain.Math;
 using A5Soft.CARMA.Domain.Metadata;
 using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 using A5Soft.CARMA.Domain.Rules;

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using A5Soft.CARMA.Application.DataPortal.Protocol;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 

@@ -14,9 +14,10 @@ namespace A5Soft.CARMA.Application
         public abstract Type InterfaceType { get; }
 
         /// <summary>
-        /// A root (parent) section of a configuration where the config data is located (if any).
+        /// Gets the configuration section the class is bound from: by default the class name (e.g. a
+        /// <c>PluginsConfiguration</c> section). Override only to bind from another section.
         /// </summary>
-        public virtual string RootSection { get; } = string.Empty;
+        public virtual string RootSection => GetType().Name;
 
         /// <summary>
         /// The app build configurations (client, server or both) this configuration is for. A configuration

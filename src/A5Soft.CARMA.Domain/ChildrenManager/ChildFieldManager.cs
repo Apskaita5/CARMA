@@ -1,8 +1,9 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain.Internal;
+using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace A5Soft.CARMA.Domain
+namespace A5Soft.CARMA.Domain.ChildrenManager
 {
     /// <summary>
     /// A class that manages a child field binding and events.

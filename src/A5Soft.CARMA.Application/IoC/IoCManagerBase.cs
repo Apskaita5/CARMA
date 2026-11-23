@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using A5Soft.CARMA.Application.DataPortal;
-using A5Soft.CARMA.Application.IoC.Tenants;
+using A5Soft.CARMA.Application.DataPortal.Protocol;
+using A5Soft.CARMA.Application.IoC.Plugins;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.IoC;
 using A5Soft.CARMA.Domain.UnitTests;
@@ -26,6 +28,8 @@ namespace A5Soft.CARMA.Application.IoC
     /// <item><see cref="IsDevelopment"/>, and optionally <see cref="AppPath"/>;</item>
     /// <item><see cref="LoadUnmanagedAssembly"/>: loads a native library (e.g. with <c>NativeLibrary.Load</c>);
     /// only called if an assembly declares one;</item>
+    /// /// <item>optionally <see cref="CreateHttpMessageHandler"/>: the connection settings of the HTTP data portal
+    /// transport, the only place they can be set.</item>
     /// </list>
     /// <para>Loading assemblies and native libraries is left to the app because neither
     /// <c>AssemblyLoadContext</c> nor <c>NativeLibrary</c> is part of .NET Standard 2.1.</para>
@@ -65,23 +69,29 @@ namespace A5Soft.CARMA.Application.IoC
         /// or <see cref="BuildConfiguration.Server"/></param>
         /// <param name="isDevelopment">whether the app runs in the development environment; passed to
         /// <see cref="ConfigurationBase.Init"/></param>
+        /// <param name="bindingMode">the binding mode of the app's UI framework (e.g. WinForms, WPF, Blazor), for
+        /// every domain object the app creates (<see cref="IDomainSettings"/>)</param>
         /// <param name="appPath">the app base path: the app's unmanaged assembly paths are relative to it, and it is
         /// passed to <see cref="ConfigurationBase.Init"/>; null for <see cref="AppContext.BaseDirectory"/></param>
         /// <exception cref="ArgumentException">the build configuration is <see cref="BuildConfiguration.Any"/>, or the
         /// app path is not a valid path</exception>
         /// <exception cref="DirectoryNotFoundException">the app path does not exist</exception>
-        protected IoCManagerBase(BuildConfiguration buildConfiguration, bool isDevelopment, string appPath = null)
+        protected IoCManagerBase(BuildConfiguration buildConfiguration, bool isDevelopment, BindingMode bindingMode,
+            string appPath = null)
         {
-            if (buildConfiguration == BuildConfiguration.Any) throw new ArgumentException(
-                "The build configuration must be either client or server.", nameof(buildConfiguration));
+            if (!buildConfiguration.IsAppBuild()) throw new ArgumentException(
+                $"The build configuration {buildConfiguration} is not an app build: use Server, Client | Server, " +
+                "Client or Client | Local.", nameof(buildConfiguration));
 
             BuildConfiguration = buildConfiguration;
             IsDevelopment = isDevelopment;
+            BindingMode = bindingMode;
             AppPath = Path.GetFullPath(string.IsNullOrWhiteSpace(appPath) ? AppContext.BaseDirectory : appPath);
 
             if (!Directory.Exists(AppPath)) throw new DirectoryNotFoundException($"App path {AppPath} does not exist.");
         }
 
+        #region Properties
 
         /// <summary>Gets the build configuration of the app.</summary>
         public BuildConfiguration BuildConfiguration { get; }
@@ -91,6 +101,12 @@ namespace A5Soft.CARMA.Application.IoC
         /// <see cref="ConfigurationBase.Init"/>.
         /// </summary>
         public bool IsDevelopment { get; }
+
+        /// <summary>
+        /// Gets the binding mode of the app's UI framework, for every domain object the app creates; added to the
+        /// container as <see cref="IDomainSettings"/>.
+        /// </summary>
+        public BindingMode BindingMode { get; }
 
         /// <summary>
         /// Gets the app base path: the app's unmanaged assembly paths are relative to it, and it is passed to
@@ -112,12 +128,15 @@ namespace A5Soft.CARMA.Application.IoC
         /// <summary>Gets the plugins accepted.</summary>
         public IReadOnlyList<PluginAssembly> Plugins => _plugins;
 
+        #endregion
+
+        #region Implementation Overrides
+
         /// <summary>
         /// Gets the app's own assemblies to scan. The framework's (A5Soft.CARMA.Domain and
         /// A5Soft.CARMA.Application) are added automatically; plugins come from <see cref="LoadPlugins"/>.
         /// </summary>
         protected abstract IEnumerable<Assembly> AppAssemblies { get; }
-
 
         /// <summary>
         /// Loads a plugin library into the app, e.g. into its own <c>AssemblyLoadContext</c> resolving its dependencies
@@ -133,6 +152,29 @@ namespace A5Soft.CARMA.Application.IoC
         /// startup, as for a refused plugin. Default: nothing.
         /// </summary>
         protected virtual void OnPluginAccepted(PluginAssembly plugin) { }
+
+        /// <summary>
+        /// Adds the app's system services, e.g. ones that depend on which plugins are loaded. Called once, after every
+        /// plugin is accepted. A system service cannot be overridden: an interface that the framework, the app or a
+        /// plugin implements as well stops startup (unless it allows multiple implementations); and it is app wide,
+        /// never tenant scoped. Default: none.
+        /// </summary>
+        /// <param name="plugins">the plugins accepted, in identifier order</param>
+        /// <param name="services">the collection to add the system services to</param>
+        protected virtual void AddSystemServices(IReadOnlyList<PluginAssembly> plugins, SystemServiceCollection services) { }
+
+        /// <summary>
+        /// Creates the message handler every HTTP data portal call is sent through: the only place the app configures
+        /// the HTTP connection, e.g. on .NET 5 a <c>SocketsHttpHandler</c> with a <c>PooledConnectionLifetime</c> (so
+        /// that DNS changes are picked up), a longer <c>Expect100ContinueTimeout</c>, a proxy server or a client
+        /// certificate. Called once, at the start of <see cref="Initialize"/>. Default: null, for the platform's handler.
+        /// </summary>
+        /// <returns>a new handler, owned by the HTTP transport from then on (never disposed); null for the platform's</returns>
+        /// <remarks>Only the connection can be configured: headers, authorization and timeouts belong to each request
+        /// and are set by the transport, so a delegating handler must not add or change any request header. Not in a
+        /// browser (Blazor WebAssembly), whose own handler must stay. The handler is set once per process: a second IoC
+        /// manager in the same process (e.g. in tests) must return null.</remarks>
+        protected virtual HttpMessageHandler CreateHttpMessageHandler() => null;
 
         /// <summary>
         /// Adds a service to the container.
@@ -187,6 +229,7 @@ namespace A5Soft.CARMA.Application.IoC
             return Path.GetFullPath(Path.Combine(basePath, descriptor.Path + extension));
         }
 
+        #endregion
 
         /// <summary>
         /// Scans the assemblies, loads and validates the plugins, and adds every service to the container through
@@ -205,6 +248,10 @@ namespace A5Soft.CARMA.Application.IoC
                 throw new InvalidOperationException("No app assemblies to init.");
 
             _initialized = true;
+
+            // the HTTP connection settings, before anything could send a call
+            var httpHandler = CreateHttpMessageHandler();
+            if (null != httpHandler) DataPortal.Http.HttpDataPortalProxy.ConfigureHandler(httpHandler);
 
             var frameworkScans = FrameworkAssemblies.Select(AssemblyScan.Of).ToList();
             var appScans = AppAssemblies
@@ -231,6 +278,12 @@ namespace A5Soft.CARMA.Application.IoC
                 appScans, composition, names);
 
             var (services, tenantServices) = composition.Build();
+
+            // the app's system services: after the plugins, so that none of them can replace one
+            var system = new SystemServiceCollection();
+            AddSystemServices(_plugins, system);
+            AddSystemServicesTo(services, tenantServices, system.Services);
+
             ValidateDependencies(services, tenantServices);
 
             var configurations = frameworkScans.Concat(appScans).Concat(pluginScans)
@@ -250,6 +303,8 @@ namespace A5Soft.CARMA.Application.IoC
                 new RemoteUseCaseRegistry(names.UseCases, names.TrustedWireTypes)));
             services.Add(Singleton(typeof(PluginCatalog), catalog));
             services.Add(Singleton(typeof(TenantServiceMap), tenantMap));
+            services.Add(Singleton(typeof(IDomainSettings), new DomainSettings(BindingMode)));
+            services.Add(Singleton(typeof(IBuildInfo), new BuildInfo(BuildConfiguration)));
 
             _services = services;
             _tenantServices = tenantServices;
@@ -265,11 +320,13 @@ namespace A5Soft.CARMA.Application.IoC
             }
         }
 
+        #region Init Workflow Private Methods
+
         private static ApplicationServiceInfo Singleton(Type type, object instance)
             => new ApplicationServiceInfo(type, instance, ServiceLifetime.Singleton, false, BuildConfiguration.Any);
 
         private static Assembly[] FrameworkAssemblies
-            => new[] { typeof(IDomainObject).Assembly, typeof(IoCManagerBase).Assembly };
+            => new[] { typeof(IDomainObject).Assembly, typeof(IoCManagerBase).Assembly }.Distinct().ToArray();
 
         /// <summary>
         /// Loads every plugin folder, checks the identifiers, then validates and adds the plugins in identifier order:
@@ -338,6 +395,38 @@ namespace A5Soft.CARMA.Application.IoC
         }
 
         /// <summary>
+        /// Adds the system services; an interface already implemented (by the framework, the app, a plugin or another
+        /// system service) stops startup, unless it allows multiple implementations.
+        /// </summary>
+        private static void AddSystemServicesTo(List<ApplicationServiceInfo> services,
+            List<TenantServiceInfo> tenantServices, IReadOnlyList<ApplicationServiceInfo> systemServices)
+        {
+            var violations = new List<ConventionViolation>();
+
+            foreach (var system in systemServices)
+            {
+                if (!system.AllowMultiple)
+                {
+                    var existing = services.Find(s => s.InterfaceType == system.InterfaceType);
+                    var tenant = tenantServices.Find(t => t.InterfaceType == system.InterfaceType);
+                    if (null != existing || null != tenant)
+                    {
+                        violations.Add(new ConventionViolation(system.ImplementationType, string.Empty,
+                            $"is a system service for {system.InterfaceType}, which " +
+                            $"{(existing?.ImplementationType ?? tenant.InterfaceType).FullName} already implements: " +
+                            "a system service cannot be overridden"));
+                        continue;
+                    }
+                }
+
+                services.Add(system);
+            }
+
+            if (violations.Count > 0) throw new InvalidOperationException(
+                ConventionViolation.Format("The system services cannot be added", violations));
+        }
+
+        /// <summary>
         /// An app scoped service cannot depend on a tenant scoped one: in a scope without a tenant it could not be
         /// created. Every public constructor is checked. Skipped when nothing is tenant scoped.
         /// </summary>
@@ -395,7 +484,10 @@ namespace A5Soft.CARMA.Application.IoC
 
             foreach (var service in frameworkScans.SelectMany(s => s.GetServices(BuildConfiguration)))
             {
-                if (null == service.InterfaceType || interfaces.Add(service.InterfaceType)) result.Add(service);
+                // a single service: the framework's default only where the app has none; a service with multiple
+                // implementations (e.g. the data portal transports): the framework's are kept beside the app's
+                if (service.AllowMultiple || null == service.InterfaceType || !interfaces.Contains(service.InterfaceType))
+                    result.Add(service);
             }
 
             return result;
@@ -407,7 +499,7 @@ namespace A5Soft.CARMA.Application.IoC
             if (null == descriptors) return;
 
             foreach (var descriptor in descriptors.Where(d => null != d
-                && d.ForBuildConfiguration.HasFlag(BuildConfiguration)))
+                && d.ForBuildConfiguration.Serves(BuildConfiguration)))
             {
                 var path = ResolveUnmanagedPath(basePath, descriptor);
                 if (!File.Exists(path)) throw new FileNotFoundException(
@@ -455,5 +547,7 @@ namespace A5Soft.CARMA.Application.IoC
                 RemoteUseCaseRegistry.Merge(TrustedWireTypes, scan.TrustedWireTypes, (existing, type) => onClash("types", existing, type));
             }
         }
+
+        #endregion
     }
 }

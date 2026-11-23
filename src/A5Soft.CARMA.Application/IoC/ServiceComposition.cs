@@ -1,4 +1,4 @@
-﻿using A5Soft.CARMA.Application.IoC.Tenants;
+﻿using A5Soft.CARMA.Application.IoC.Plugins;
 using A5Soft.CARMA.Domain.UnitTests;
 using System;
 using System.Collections.Generic;

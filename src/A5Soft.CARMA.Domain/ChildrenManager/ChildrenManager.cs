@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace A5Soft.CARMA.Domain
+namespace A5Soft.CARMA.Domain.ChildrenManager
 {
     /// <summary>
     /// Handles the management of child fields for a given TClass.

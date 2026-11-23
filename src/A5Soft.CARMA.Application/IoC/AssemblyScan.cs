@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.HealthChecks;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.IoC;
@@ -125,13 +126,13 @@ namespace A5Soft.CARMA.Application.IoC
         {
             foreach (var implementation in ServiceImplementations)
             {
-                if (implementation.ForBuildConfiguration.HasFlag(forBuildConfiguration))
+                if (implementation.ForBuildConfiguration.Serves(forBuildConfiguration))
                     yield return implementation;
             }
 
             foreach (var healthCheck in HealthChecks)
             {
-                if (healthCheck.ForBuildConfiguration.HasFlag(forBuildConfiguration))
+                if (healthCheck.ForBuildConfiguration.Serves(forBuildConfiguration))
                     yield return healthCheck;
             }
 
@@ -139,7 +140,7 @@ namespace A5Soft.CARMA.Application.IoC
             {
                 foreach (var descriptor in ExternalDependencies.ExternalServices)
                 {
-                    if (descriptor.ForBuildConfiguration.HasFlag(forBuildConfiguration))
+                    if (descriptor.ForBuildConfiguration.Serves(forBuildConfiguration))
                         yield return new ApplicationServiceInfo(descriptor);
                 }
             }
@@ -149,7 +150,7 @@ namespace A5Soft.CARMA.Application.IoC
         /// Gets the configuration types found for the build configuration given.
         /// </summary>
         public IEnumerable<ApplicationServiceInfo> GetConfigurations(BuildConfiguration forBuildConfiguration)
-            => Configurations.Where(t => t.ForBuildConfiguration.HasFlag(forBuildConfiguration));
+            => Configurations.Where(t => t.ForBuildConfiguration.Serves(forBuildConfiguration));
 
 
         /// <summary>
@@ -221,7 +222,7 @@ namespace A5Soft.CARMA.Application.IoC
         /// entity types from two different assemblies)</exception>
         private static void AddName(Dictionary<string, Type> into, Type type)
         {
-            var name = DataPortal.RemoteUseCaseDescriptor.GetName(type);
+            var name = RemoteUseCaseDescriptor.GetName(type);
             if (into.TryGetValue(name, out var existing))
             {
                 if (existing != type) throw new InvalidOperationException(

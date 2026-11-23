@@ -14,7 +14,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Internal
     /// <remarks>The converter is stateless: what it does depends on the <see cref="FileTransfer"/>
     /// placed in the serializer's streaming context for the call. Without one, it refuses to handle
     /// a file at all, so a file can never be serialized by accident.</remarks>
-    public sealed class FileContentConverter : JsonConverter
+    internal sealed class FileContentConverter : JsonConverter
     {
         private const string RefProperty = "fileRef";
 

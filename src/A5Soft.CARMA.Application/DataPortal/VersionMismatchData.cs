@@ -1,3 +1,4 @@
+using A5Soft.CARMA.Application.DataPortal.Client;
 using System;
 
 namespace A5Soft.CARMA.Application.DataPortal

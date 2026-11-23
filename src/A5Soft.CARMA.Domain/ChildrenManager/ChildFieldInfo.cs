@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace A5Soft.CARMA.Domain
+namespace A5Soft.CARMA.Domain.ChildrenManager
 {
     /// <summary>
     /// Represents a collection of information for a child field as well as compiled lambda expressions for access.

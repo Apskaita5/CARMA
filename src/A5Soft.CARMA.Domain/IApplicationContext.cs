@@ -6,6 +6,7 @@ namespace A5Soft.CARMA.Domain
     /// <summary>
     /// A container interface for app wide settings and services.
     /// </summary>
+    [Service(ServiceLifetime.Scoped)]
     public interface IApplicationContext
     {
         /// <summary>
@@ -24,6 +25,6 @@ namespace A5Soft.CARMA.Domain
         /// raised per range of changed properties, while for WPF binding schema an event per
         /// each property in range should be raised.
         /// </summary>
-        BindingMode BindingMode { get; set; }
+        BindingMode BindingMode { get; }
     }
 }

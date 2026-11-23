@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 
-namespace A5Soft.CARMA.Domain
+namespace A5Soft.CARMA.Domain.ChildrenManager
 {
     /// <summary>
     /// Defines a generic class storing information related to child fields of type TClass.
