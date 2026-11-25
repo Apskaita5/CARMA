@@ -32,7 +32,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainObject(IApplicationContext context)
+        protected DomainObject(IDomainContext context)
         {
             if (null == context) throw new ArgumentNullException(nameof(context));
 

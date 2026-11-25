@@ -113,7 +113,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// <param name="serializer">the data portal serializer</param>
         /// <param name="context">the local application context, for the domain objects built</param>
         /// <exception cref="RemoteCallRejectedException">the value does not match the signature</exception>
-        internal object Read(JsonReader reader, JsonSerializer serializer, Domain.IApplicationContext context)
+        internal object Read(JsonReader reader, JsonSerializer serializer, Domain.IDomainContext context)
         {
             object result;
             try

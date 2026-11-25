@@ -1,453 +1,176 @@
-﻿using System;
+﻿using A5Soft.CARMA.Domain;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using A5Soft.CARMA.Application.Authorization;
-using A5Soft.CARMA.Domain;
-using A5Soft.CARMA.Domain.Metadata;
-using A5Soft.CARMA.Domain.Metadata.DataAnnotations;
 
 namespace A5Soft.CARMA.Application.Navigation
 {
-    [Serializable]
-    public class MenuItem
+    /// <summary>
+    /// An item of the main menu: a group (submenu), a separator, a use case or an action of the GUI app.
+    /// </summary>
+    /// <remarks>Built by the menu builders (<see cref="MenuBuilder"/>, <see cref="PluginMenuBuilder"/>,
+    /// <see cref="GuiMenuBuilder"/>). The display name is read on every access, in the current UI culture, so a language
+    /// switch needs no rebuild; <see cref="MainMenu.Refresh"/> sorts the plugins' groups again.</remarks>
+    public sealed class MenuItem
     {
-        #region Member Fields
+        private readonly Func<string> _displayName;
+        private readonly List<MenuItem> _items;
 
-        private IUseCaseMetadata _metadata;
-        private readonly LocalizableString _displayName = new LocalizableString("Name");
-        [NonSerialized]
-        private Action<MenuItem> _onClick;
-        [NonSerialized]
-        private object _tag;
 
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// overload to create a separator menu item
-        /// </summary>
-        protected MenuItem()
+        private MenuItem(MenuItemType itemType, string name, Func<string> displayName, string icon,
+            Type useCaseType, Action<MenuItem> onClick, object tag)
         {
-            Name = string.Empty;
-            ResourceType = null;
-            Icon = string.Empty;
-            IsEnabled = false;
-            UseCaseType = null;
-            Items = null;
-            ItemType = MenuItemType.Separator;
-        }
-
-        /// <summary>
-        /// overload for common leaf menu item
-        /// </summary>
-        /// <param name="metadataProvider">a metadata provider for use case localized description</param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        /// <param name="useCaseType">A type of the (main) use case that handles action
-        /// associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
-        private MenuItem(IMetadataProvider metadataProvider, Type useCaseType, string icon = "")
-        {
-            Name = useCaseType.FullName;
-            UseCaseType = useCaseType ?? throw new ArgumentNullException(nameof(useCaseType));
-            _metadata = metadataProvider.GetUseCaseMetadata(useCaseType) ?? throw new InvalidOperationException(
-                $"No metadata for use case type {useCaseType.FullName}.");
+            ItemType = itemType;
+            Name = name ?? string.Empty;
+            _displayName = displayName ?? (() => string.Empty);
             Icon = icon ?? string.Empty;
-
-            IsEnabled = true;
-            UseCaseType = useCaseType ?? throw new ArgumentNullException(nameof(useCaseType));
-            Items = null;
-            ItemType = MenuItemType.UseCase;
-        }
-
-        /// <summary>
-        /// overload for group menu item
-        /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="GetDisplayName"/></param>
-        /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="GetDisplayName"/></param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        private MenuItem(string name, string displayName, Type resourceType, string icon = "")
-        {
-            if (name.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(name));
-            if (displayName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(displayName));
-
-            Name = name;
-            ResourceType = resourceType ?? throw new ArgumentNullException(nameof(resourceType));
-            _displayName.Value = displayName;            
-            _displayName.ResourceType = resourceType;
-
-            Icon = icon ?? string.Empty;
-            IsEnabled = true;
-            UseCaseType = null;
-            Items = new List<MenuItem>();
-            ItemType = MenuItemType.Submenu;
-        }
-
-        /// <summary>
-        /// overload for GUI app defined leaf menu item
-        /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        /// <param name="onClick">an action that shall be executed when a user clicks the menu item</param>
-        /// <param name="tag">an arbitrary object associated with the menu item.
-        /// E.g. company info for login selector</param>
-        private MenuItem(string name, string displayName, Type resourceType,
-            Action<MenuItem> onClick, object tag = null, string icon = "")
-        {
-            if (displayName.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(displayName));
-
-            Name = name;
-            ResourceType = resourceType;
-            _displayName.Value = displayName;
-            _displayName.ResourceType = resourceType;
-
-            Icon = icon ?? string.Empty;
-            IsEnabled = true;
-            UseCaseType = null;
-            Items = null;
-            ItemType = MenuItemType.GuiAppItem; 
+            UseCaseType = useCaseType;
             OnClick = onClick;
-            _tag = tag;
+            Tag = tag;
+            IsEnabled = itemType != MenuItemType.Separator;
+            if (itemType == MenuItemType.Submenu) _items = new List<MenuItem>();
         }
 
-        #endregion
-        
+
         #region Properties
 
         /// <summary>
-        /// Gets a name of the menu item (should be unique within main menu).
+        /// Gets the name of the item: for a group, its key (unique within the menu); for a use case, the full name of
+        /// its interface; for an action, the key of its label.
         /// </summary>
-        public string Name { get; protected set; }
-               
-        /// <summary>
-        /// Gets the <see cref="System.Type"/> that contains the resources for <see cref="DisplayName"/>
-        /// and <see cref="Description"/>.
-        /// Using <see cref="ResourceType"/> along with these Key properties, allows the <see cref="GetDisplayName"/>
-        /// and <see cref="GetDescription"/> methods to return localized values.
-        /// </summary>
-        public Type ResourceType { get; }
+        public string Name { get; }
 
         /// <summary>
-        /// Icon of the menu item if exists. Optional.
+        /// Gets the localized display name of the item, in the current UI culture: for a use case, its menu title
+        /// (<see cref="Domain.Metadata.IUseCaseMetadata.GetMenuTitle"/>).
+        /// </summary>
+        public string DisplayName => _displayName();
+
+        /// <summary>
+        /// Gets the icon of the item, if any.
         /// </summary>
         public string Icon { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the menu item can be invoked by the user.
+        /// Gets the type of the item.
         /// </summary>
-        public bool IsEnabled { get; protected set; }
-
-         /// <summary>
-        /// Gets a type of the menu item.
-        /// </summary>
-        public MenuItemType ItemType { get; protected set; }
+        public MenuItemType ItemType { get; }
 
         /// <summary>
-        /// Gets a type of the (main) use case that handles action associated with the menu item.
-        /// E.g. create invoice use case handles menu item "New Invoice".
+        /// Gets a value indicating whether the item can be used: a use case item if the user may invoke its use
+        /// case; a group if any of its items is enabled; an action always.
         /// </summary>
-        public Type UseCaseType { get; protected set; }
+        public bool IsEnabled { get; internal set; }
 
         /// <summary>
-        /// Sub items of this menu item. Optional.
+        /// Gets the interface of the use case a use case item opens; null for any other item.
         /// </summary>
-        public virtual List<MenuItem> Items { get; private set; }
-                       
-        /// <summary>
-        /// Gets or sets an action that shall be executed when a user clicks the menu item.
-        /// </summary>
-        public Action<MenuItem> OnClick 
-        { get => _onClick; set => _onClick = value; }
+        /// <remarks>A plugin of the tenant may have replaced the app's use case with its own: the item keeps the
+        /// app's title.</remarks>
+        public Type UseCaseType { get; internal set; }
 
         /// <summary>
-        /// Gets or sets an arbitrary object associated with the menu item.
-        /// E.g. company info for login selector.
+        /// Gets the items of a group; empty for any other item.
         /// </summary>
-        public object Tag
-        { get => _tag; set => _tag = value; }
+        public IReadOnlyList<MenuItem> Items => (IReadOnlyList<MenuItem>)_items ?? Array.Empty<MenuItem>();
 
-        #endregion
+        /// <summary>
+        /// Gets the group that holds the item; null for a top level item.
+        /// </summary>
+        public MenuItem Parent { get; private set; }
 
-        #region Factory Methods
+        /// <summary>
+        /// Gets the action of an action item, added by the GUI app.
+        /// </summary>
+        public Action<MenuItem> OnClick { get; }
 
-        internal static MenuItem CreateMainMenuTopGroup(string name, string displayName,
-            Type resourceType, string icon = "")
-        {
-            return new MenuItem(name, displayName, resourceType, icon);
-        }
-
-        internal static MenuItem CreateMainMenuTopItem(IMetadataProvider metadataProvider,
-            Type useCaseType, string icon = "")
-        {
-            return new MenuItem(metadataProvider, useCaseType, icon);
-        }
+        /// <summary>
+        /// Gets an arbitrary object the GUI app has associated with an action item.
+        /// </summary>
+        public object Tag { get; }
 
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Gets the UI display string for DisplayName.
-        /// <para>
-        /// This can be either a literal, non-localized string provided to <see cref="DisplayName"/> or the
-        /// localized string found when <see cref="ResourceType"/> has been specified and <see cref="DisplayName"/>
-        /// represents a resource key within that resource type.
-        /// </para>
+        /// Invokes the action of an action item.
         /// </summary>
-        /// <returns>
-        /// When <see cref="ResourceType"/> has not been specified, the value of
-        /// <see cref="DisplayName"/> will be returned.
-        /// <para>
-        /// When <see cref="ResourceType"/> has been specified and <see cref="DisplayName"/>
-        /// represents a resource key within that resource type, then the localized value will be returned.
-        /// </para>
-        /// </returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// After setting both the <see cref="ResourceType"/> property and the <see cref="DisplayName"/> property,
-        /// but a public static property with a name matching the <see cref="DisplayName"/> value couldn't be found
-        /// on the <see cref="ResourceType"/>.
-        /// </exception>
-        public virtual string GetDisplayName()
-        {
-            if (null != _metadata) return _metadata.GetMenuTitle();
-            return this._displayName.GetLocalizableValue();
-        }
-
-        /// <summary>
-        /// Invokes on click action for the menu item.
-        /// Throws InvalidOperationException if <see cref="OnClick"/> handler is not set
-        /// or it is a <see cref="MenuItemType.Submenu"/> or it is a <see cref="MenuItemType.Separator"/>.
-        /// </summary>
+        /// <exception cref="InvalidOperationException">the item is not an action item</exception>
         public void InvokeOnClick()
         {
-            if (null == _onClick) throw new InvalidOperationException(
-                $"OnClick method is not set for menu item {Name}.");
-            if (ItemType == MenuItemType.Submenu) throw new InvalidOperationException(
-                $"OnClick method cannot be invoked for a menu group ({Name}).");
-            if (ItemType == MenuItemType.Separator) throw new InvalidOperationException(
-                $"OnClick method cannot be invoked for a menu group separator.");
+            if (null == OnClick) throw new InvalidOperationException($"Menu item {Name} has no action.");
+            OnClick(this);
+        }
 
-            _onClick(this);
+        /// <inheritdoc />
+        public override string ToString() => DisplayName;
+
+
+        internal static MenuItem CreateGroup(string name, Func<string> displayName, string icon)
+            => new MenuItem(MenuItemType.Submenu, name, displayName, icon, null, null, null);
+
+        internal static MenuItem CreateUseCase(Type useCaseType, Func<string> displayName, string icon)
+            => new MenuItem(MenuItemType.UseCase, useCaseType.FullName, displayName, icon, useCaseType, null, null);
+
+        internal static MenuItem CreateAction(string name, Func<string> displayName, string icon,
+            Action<MenuItem> onClick, object tag)
+            => new MenuItem(MenuItemType.GuiAppItem, name, displayName, icon, null, onClick, tag);
+
+        internal static MenuItem CreateSeparator()
+            => new MenuItem(MenuItemType.Separator, null, null, null, null, null, null);
+
+        internal void Add(MenuItem item)
+        {
+            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
+                $"Menu item {Name} is not a group.");
+
+            item.Parent = this;
+            _items.Add(item);
+        }
+
+        internal IEnumerable<MenuItem> Descendants()
+            => Items.SelectMany(i => new[] { i }.Concat(i.Descendants()));
+
+        /// <summary>
+        /// Sorts the items of a group by their display names, then by their names.
+        /// </summary>
+        /// <param name="comparer">the comparer of the display names</param>
+        internal void SortItems(StringComparer comparer)
+        {
+            if (ItemType != MenuItemType.Submenu) return;
+
+            var sorted = _items.OrderBy(i => i.DisplayName ?? string.Empty, comparer)
+                .ThenBy(i => i.Name, StringComparer.Ordinal).ToList();
+            _items.Clear();
+            _items.AddRange(sorted);
         }
 
         /// <summary>
-        /// Gets a value indicating whether it's possible to invoke <see cref="OnClick"/> handler,
-        /// i.e. it is not a <see cref="MenuItemType.Submenu"/> or a <see cref="MenuItemType.Separator"/>
-        /// and the <see cref="OnClick"/> handler is set. 
+        /// Drops the separators that separate nothing (first, last, or next to another separator), at any depth,
+        /// e.g. around the plugins' group when the tenant has no plugins.
         /// </summary>
-        /// <returns>a value indicating whether it's possible to invoke <see cref="OnClick"/> handler,
-        /// i.e. it is not a <see cref="MenuItemType.Submenu"/> or a <see cref="MenuItemType.Separator"/>
-        /// and the <see cref="OnClick"/> handler is set</returns>
-        public bool CanInvokeOnClick()
+        internal void TrimSeparators()
         {
-            return (ItemType != MenuItemType.Submenu && ItemType != MenuItemType.Separator && null != _onClick);
+            if (ItemType != MenuItemType.Submenu) return;
+
+            for (var i = _items.Count - 1; i >= 0; i--)
+            {
+                if (_items[i].ItemType != MenuItemType.Separator) _items[i].TrimSeparators();
+                else if (i == 0 || i == _items.Count - 1 || _items[i - 1].ItemType == MenuItemType.Separator)
+                    _items.RemoveAt(i);
+            }
         }
 
         /// <summary>
-        /// Adds a menu group separator to child items.
+        /// Enables a group if any of its items is enabled, from the leaves up.
         /// </summary>
-        public void AddSeparator()
+        internal void UpdateGroupState()
         {
-            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
-                $"Menu item {Name} is not a menu group.");
-            
-            if (null == Items) Items = new List<MenuItem>();
+            if (ItemType != MenuItemType.Submenu) return;
 
-            Items.Add(new MenuItem());
-        }
-
-        /// <summary>
-        /// Adds a menu group to child items.
-        /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        public MenuItem AddMenuGroup(string name, string displayName, Type resourceType,
-            string icon = "")
-        {
-            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
-                $"Menu item {Name} is not a menu group.");
-
-            if (null == Items) Items = new List<MenuItem>();
-
-            var result = new MenuItem(name, displayName, resourceType, icon);
-
-            Items.Add(result);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Adds a leaf menu item to child items.
-        /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="description">a resource key string for <see cref="Description"/></param>
-        /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/> and <see cref="Description"/></param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        /// <param name="useCaseType">A type of the (main) use case that handles action
-        /// associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
-        public void AddLeaf(IMetadataProvider metadataProvider, Type useCaseType, string icon = "")
-        {
-            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
-                $"Menu item {Name} is not a menu group.");
-
-            if (null == Items) Items = new List<MenuItem>();
-
-            Items.Add(new MenuItem(metadataProvider, useCaseType, icon));
-        }
-
-        /// <summary>
-        /// Adds a GUI app defined leaf menu item (e.g. app settings that are specific to winforms app).
-        /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="DisplayName"/></param>
-        /// <param name="resourceType"><see cref="System.Type"/> that contains the resources
-        /// for <see cref="DisplayName"/></param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        /// <param name="onClick">an action that shall be executed when a user clicks the menu item</param>
-        /// <param name="tag">an arbitrary object associated with the menu item.
-        /// E.g. company info for login selector</param>
-        public void AddGuiAppDefinedLeaf(string name, string displayName, Type resourceType,
-            Action<MenuItem> onClick, object tag = null, string icon = "")
-        {
-            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
-                $"Menu item {Name} is not a menu group.");
-
-            if (null == Items) Items = new List<MenuItem>();
-
-            Items.Add(new MenuItem(name, displayName, resourceType, onClick, tag, icon));
-
-            IsEnabled = true;
-        }
-
-        internal MenuItem GetMenuGroup(string name)
-        {
-            if (ItemType != MenuItemType.Submenu) return null;
-
-            if (Name.Trim().Equals(name, StringComparison.OrdinalIgnoreCase))
-                return this;
-
-            if (null != Items)
-            {
-                MenuItem result;
-                foreach (var item in Items)
-                {
-                    result = item.GetMenuGroup(name);
-                    if (null != result) return result;
-                }
-            }
-
-            return null;
-        }
-
-        protected internal virtual void SetAuthorization(IAuthorizationProvider authorizationProvider, ClaimsIdentity user)
-        {
-            if (ItemType == MenuItemType.Submenu)
-            {
-                if (null == Items) Items = new List<MenuItem>();
-
-                foreach (var item in Items)
-                {
-                    item.SetAuthorization(authorizationProvider, user);
-                }
-
-                IsEnabled = Items.Any(i => i.IsEnabled);
-            }
-            else if (ItemType == MenuItemType.UseCase)
-            {
-                if (null == UseCaseType) IsEnabled = false;
-                else
-                {
-                    var authorizer = authorizationProvider.GetAuthorizer(UseCaseType);
-                    IsEnabled = authorizer.IsAuthorized(user);
-                }
-            }
-        }
-
-        internal void AddPluginMenuItem(MenuItem pluginMenuItem)
-        {
-            if (ItemType != MenuItemType.Submenu) throw new InvalidOperationException(
-                $"Menu item {Name} is not a menu group.");
-            if (pluginMenuItem.ItemType == MenuItemType.Separator) throw new InvalidOperationException(
-                "Plugins cannot add separators at root level.");
-            pluginMenuItem.ValidatePluginMenuItem();
-
-            if (null == Items) Items = new List<MenuItem>();
-
-            Items.Add(pluginMenuItem);
-        }
-
-        private void ValidatePluginMenuItem()
-        {
-            if (ItemType == MenuItemType.GuiAppItem)
-            {
-                throw new InvalidOperationException("Plugins cannot add GUI app defined menu items.");
-            }
-            else if (ItemType == MenuItemType.UseCase)
-            {
-                if (null == UseCaseType) throw new InvalidOperationException(
-                    $"Plugin menu item {Name} has null use case type.");
-                if (null == ResourceType) throw new InvalidOperationException(
-                    $"Plugin menu item {Name} has null resource type (plugins shall provide localized values).");
-                if (null == _displayName.Value) throw new InvalidOperationException(
-                    $"Plugin menu item {Name} has null display name (plugins shall provide localized values).");
-            }
-            else if (ItemType == MenuItemType.Submenu)
-            {
-                if (Name.IsNullOrWhiteSpace()) throw new InvalidOperationException(
-                    $"Cannot add a menu group with a null name for a plugin.");
-                if (null == ResourceType) throw new InvalidOperationException(
-                    $"Plugin menu item {Name} has null resource type (plugins shall provide localized values).");
-                if (_displayName.Value.IsNullOrWhiteSpace()) throw new InvalidOperationException(
-                    $"Plugin menu item {Name} has null display name (plugins shall provide localized values).");
-                if (null == Items || Items.Count < 1) throw new InvalidOperationException(
-                    $"Cannot add a menu group without any items for a plugin.");
-                foreach (var item in Items)
-                {
-                    item.ValidatePluginMenuItem();
-                }
-            }
-        }
-
-        internal void ReplaceUseCase(Type baseUseCaseInterfaceType, Type pluginUseCaseInterfaceType)
-        {
-            if (ItemType == MenuItemType.UseCase)
-            {
-                if (UseCaseType == baseUseCaseInterfaceType) UseCaseType = pluginUseCaseInterfaceType;
-            }
-            else if (ItemType == MenuItemType.Submenu)
-            {
-                if (null == Items) Items = new List<MenuItem>();
-
-                foreach (var item in Items)
-                {
-                    item.ReplaceUseCase(baseUseCaseInterfaceType, pluginUseCaseInterfaceType);
-                }
-            }
-        }
-
-        internal void ResetEnabledForMenuGroups()
-        {
-            if (ItemType == MenuItemType.Submenu)
-            {
-                if (null == Items) Items = new List<MenuItem>();
-
-                foreach (var item in Items)
-                {
-                    item.ResetEnabledForMenuGroups();
-                }
-
-                IsEnabled = Items.Any(i => i.IsEnabled);
-            }
+            foreach (var item in _items) item.UpdateGroupState();
+            IsEnabled = _items.Any(i => i.ItemType != MenuItemType.Separator && i.IsEnabled);
         }
 
         #endregion

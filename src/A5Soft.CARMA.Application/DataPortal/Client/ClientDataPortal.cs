@@ -1,13 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Security.Claims;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using A5Soft.CARMA.Application.Authorization.Authorizers;
+using A5Soft.CARMA.Application.Authorization.Identity;
 using A5Soft.CARMA.Application.DataPortal.EndPoints;
 using A5Soft.CARMA.Application.DataPortal.Internal;
 using A5Soft.CARMA.Application.DataPortal.Protocol;
@@ -16,6 +8,15 @@ using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Files;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application.DataPortal.Client
 {
@@ -50,12 +51,13 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         private readonly IDataPortalConnection _connection;
         // the domain context only: the application context holds the client data portal itself, so depending
         // on it would make a circular dependency
-        private readonly Domain.IApplicationContext _context;
+        private readonly Domain.IDomainContext _context;
         private readonly IRemoteErrorMapper _errorMapper;
         private readonly IDataPortalClientOptions _options;
         private readonly IServerSettingsProvider _settingsProvider;
         private readonly IAppVersionProvider _versionProvider;
         private readonly PluginCatalog _plugins;
+        private readonly IAuthenticationStateProvider _authentication;
 
 
         /// <summary>
@@ -71,9 +73,12 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         /// server's</param>
         /// <param name="connection">the scope's data portal endpoint and its proxy</param>
         /// <param name="plugins">the plugins installed on the client, compared with the server's</param>
+        /// <param name="authentication">the scope's identity: its ticket goes with every call, and updates are
+        /// applied to it</param>
         public ClientDataPortal(IDataPortalConnection connection, RemoteUseCaseRegistry registry,
-            Domain.IApplicationContext context, IRemoteErrorMapper errorMapper, IDataPortalClientOptions options,
-            IServerSettingsProvider settingsProvider, IAppVersionProvider versionProvider, PluginCatalog plugins)
+            Domain.IDomainContext context, IRemoteErrorMapper errorMapper, IDataPortalClientOptions options,
+            IServerSettingsProvider settingsProvider, IAppVersionProvider versionProvider,
+            PluginCatalog plugins, IAuthenticationStateProvider authentication)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
@@ -83,6 +88,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _versionProvider = versionProvider ?? throw new ArgumentNullException(nameof(versionProvider));
             _plugins = plugins ?? throw new ArgumentNullException(nameof(plugins));
+            _authentication = authentication ?? throw new ArgumentNullException(nameof(authentication));
         }
 
 
@@ -93,52 +99,48 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         #region Fetch
 
         /// <inheritdoc />
-        public Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TResult>(
-            Type useCaseType, ClaimsIdentity identity)
-            => FetchCoreAsync<TResult>(useCaseType, identity, CancellationToken.None);
+        public Task<TResult> FetchAsync<TResult>(Type useCaseType, CancellationToken cancellationToken = default)
+            => FetchCoreAsync<TResult>(useCaseType, null, cancellationToken);
 
         /// <inheritdoc />
-        public Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(
-            Type useCaseType, TArg arg, ClaimsIdentity identity)
-            => FetchCoreAsync<TResult>(useCaseType, identity, CancellationToken.None, arg);
+        public Task<TResult> FetchAsync<TArg, TResult>(Type useCaseType, TArg arg,
+            CancellationToken cancellationToken = default)
+            => FetchCoreAsync<TResult>(useCaseType, null, cancellationToken, arg);
 
         /// <inheritdoc />
-        public Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg, TResult>(
-            Type useCaseType, TArg arg, Type[] genericArgs, ClaimsIdentity identity)
-            => FetchCoreAsync<TResult>(useCaseType, genericArgs, identity, CancellationToken.None, arg);
+        public Task<TResult> FetchAsync<TArg, TResult>(Type useCaseType, TArg arg, Type[] genericArgs,
+            CancellationToken cancellationToken = default)
+            => FetchCoreAsync<TResult>(useCaseType, genericArgs, cancellationToken, arg);
 
         /// <inheritdoc />
-        public Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TResult>(
-            Type useCaseType, TArg1 arg1, TArg2 arg2, ClaimsIdentity identity)
-            => FetchCoreAsync<TResult>(useCaseType, identity, CancellationToken.None, arg1, arg2);
+        public Task<TResult> FetchAsync<TArg1, TArg2, TResult>(Type useCaseType, TArg1 arg1,
+            TArg2 arg2, CancellationToken cancellationToken = default)
+            => FetchCoreAsync<TResult>(useCaseType, null, cancellationToken, arg1, arg2);
 
         /// <inheritdoc />
-        public Task<(TResult Result, ClaimsIdentity Identity)> FetchAsync<TArg1, TArg2, TArg3, TResult>(
-            Type useCaseType, TArg1 arg1, TArg2 arg2, TArg3 arg3, ClaimsIdentity identity)
-            => FetchCoreAsync<TResult>(useCaseType, identity, CancellationToken.None, arg1, arg2, arg3);
+        public Task<TResult> FetchAsync<TArg1, TArg2, TArg3, TResult>(Type useCaseType, TArg1 arg1,
+            TArg2 arg2, TArg3 arg3, CancellationToken cancellationToken = default)
+            => FetchCoreAsync<TResult>(useCaseType, null, cancellationToken, arg1, arg2, arg3);
 
         #endregion
 
         #region Invoke
 
         /// <inheritdoc />
-        public Task<ClaimsIdentity> InvokeAsync(Type useCaseType, ClaimsIdentity identity)
-            => InvokeCoreAsync(useCaseType, identity, CancellationToken.None);
+        public Task InvokeAsync(Type useCaseType)
+            => InvokeCoreAsync(useCaseType, CancellationToken.None);
 
         /// <inheritdoc />
-        public Task<ClaimsIdentity> InvokeAsync<TArg>(Type useCaseType, TArg arg,
-            ClaimsIdentity identity)
-            => InvokeCoreAsync(useCaseType, identity, CancellationToken.None, arg);
+        public Task InvokeAsync<TArg>(Type useCaseType, TArg arg)
+            => InvokeCoreAsync(useCaseType, CancellationToken.None, arg);
 
         /// <inheritdoc />
-        public Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 arg1,
-            TArg2 arg2, ClaimsIdentity identity)
-            => InvokeCoreAsync(useCaseType, identity, CancellationToken.None, arg1, arg2);
+        public Task InvokeAsync<TArg1, TArg2>(Type useCaseType, TArg1 arg1, TArg2 arg2)
+            => InvokeCoreAsync(useCaseType, CancellationToken.None, arg1, arg2);
 
         /// <inheritdoc />
-        public Task<ClaimsIdentity> InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 arg1,
-            TArg2 arg2, TArg3 arg3, ClaimsIdentity identity)
-            => InvokeCoreAsync(useCaseType, identity, CancellationToken.None, arg1, arg2, arg3);
+        public Task InvokeAsync<TArg1, TArg2, TArg3>(Type useCaseType, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+            => InvokeCoreAsync(useCaseType, CancellationToken.None, arg1, arg2, arg3);
 
         #endregion
 
@@ -149,14 +151,10 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         /// the caller must dispose it.
         /// </summary>
         /// <param name="useCaseType">a use case interface or implementation type</param>
-        /// <param name="identity">an identity of the caller, holding the token claim; null for an
-        /// anonymous call</param>
         /// <param name="cancellationToken">a token to cancel the call</param>
         /// <param name="args">the arguments, in the order of the remote method signature</param>
-        public Task<(TResult Result, ClaimsIdentity Identity)> FetchCoreAsync<TResult>(
-            Type useCaseType, ClaimsIdentity identity, CancellationToken cancellationToken,
-            params object[] args)
-            => FetchCoreAsync<TResult>(useCaseType, null, identity, cancellationToken, args);
+        public Task<TResult> FetchCoreAsync<TResult>(Type useCaseType, CancellationToken cancellationToken, params object[] args)
+            => FetchCoreAsync<TResult>(useCaseType, null, cancellationToken, args);
 
         /// <summary>
         /// Invokes a remote method that returns a value, closing a generic remote method over the generic
@@ -165,15 +163,12 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         /// <param name="useCaseType">a use case interface or implementation type</param>
         /// <param name="genericArgs">the generic arguments of a generic remote method, each of them a trusted
         /// wire type (<see cref="RemoteUseCaseRegistry.TrustedWireTypes"/>); null or empty for a method that is not generic</param>
-        /// <param name="identity">an identity of the caller, holding the token claim; null for an
-        /// anonymous call</param>
         /// <param name="cancellationToken">a token to cancel the call</param>
         /// <param name="args">the arguments, in the order of the remote method signature</param>
         /// <exception cref="NotSupportedException">the generic arguments don't fit the method, or are not
         /// trusted wire types</exception>
-        public async Task<(TResult Result, ClaimsIdentity Identity)> FetchCoreAsync<TResult>(
-            Type useCaseType, Type[] genericArgs, ClaimsIdentity identity, CancellationToken cancellationToken,
-            params object[] args)
+        public async Task<TResult> FetchCoreAsync<TResult>(Type useCaseType, Type[] genericArgs,
+            CancellationToken cancellationToken, params object[] args)
         {
             var descriptor = _registry.GetFor(useCaseType).Close(genericArgs);
 
@@ -181,10 +176,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
                 throw new InvalidOperationException(
                     $"Remote method {descriptor.Name}.{descriptor.Method.Name} does not return {typeof(TResult)}.");
 
-            var (result, refreshedIdentity) = await CallAsync(descriptor, identity, args, cancellationToken)
-                .ConfigureAwait(false);
-
-            return ((TResult)result, refreshedIdentity);
+            return (TResult)await CallAsync(descriptor, args, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -192,27 +184,34 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         /// (a downloaded file is released unread).
         /// </summary>
         /// <param name="useCaseType">a use case interface or implementation type</param>
-        /// <param name="identity">an identity of the caller, holding the token claim; null for an
-        /// anonymous call</param>
         /// <param name="cancellationToken">a token to cancel the call</param>
         /// <param name="args">the arguments, in the order of the remote method signature</param>
-        public async Task<ClaimsIdentity> InvokeCoreAsync(Type useCaseType, ClaimsIdentity identity,
-            CancellationToken cancellationToken, params object[] args)
+        public async Task InvokeCoreAsync(Type useCaseType, CancellationToken cancellationToken, params object[] args)
         {
             var descriptor = _registry.GetFor(useCaseType).Close(Type.EmptyTypes);
 
-            var (result, refreshedIdentity) = await CallAsync(descriptor, identity, args, cancellationToken)
+            var result = await CallAsync(descriptor, args, cancellationToken)
                 .ConfigureAwait(false);
 
             (result as IDisposable)?.Dispose();
-
-            return refreshedIdentity;
         }
 
-        private async Task<(object Result, ClaimsIdentity Identity)> CallAsync(
-            RemoteUseCaseDescriptor descriptor, ClaimsIdentity identity, object[] args,
+        /// <summary>
+        /// Makes a call with the ticket of the scope's identity, and applies the identity update coming back before
+        /// returning the result.
+        /// </summary>
+        /// <param name="descriptor">the remote method</param>
+        /// <param name="args">the arguments, in the order of the remote method signature</param>
+        /// <param name="cancellationToken">a token to cancel the call</param>
+        /// <returns>the result; null for a method without one</returns>
+        private async Task<object> CallAsync(RemoteUseCaseDescriptor descriptor, object[] args,
             CancellationToken cancellationToken)
         {
+            // cancelling a call that changes state would leave the client not knowing whether it was made
+            if (cancellationToken.CanBeCanceled && !descriptor.AcceptsCancellation) throw new ArgumentException(
+                $"Remote method {descriptor.Name}.{descriptor.Method.Name} changes state, so it cannot be cancelled: " +
+                $"only a method taking a {nameof(CancellationToken)} can.", nameof(cancellationToken));
+
             args = args ?? new object[] { null };
 
             if (args.Length != descriptor.Parameters.Count) throw new ArgumentException(
@@ -222,7 +221,8 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
             var settings = await GetServerSettingsAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            var request = CreateRequest(descriptor, identity, args, settings);
+            var identity = _authentication.Identity;
+            var request = CreateRequest(descriptor, identity.Ticket, args, settings);
 
             DataPortalResponse response;
             try
@@ -243,7 +243,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
             {
                 if (ex.Kind == RemoteErrorKind.BadRequest || ex.Kind == RemoteErrorKind.VersionMismatch)
                     _settingsProvider.Invalidate(_connection.Endpoint);
-                throw ToException(new RemoteError { Kind = ex.Kind }, ex);
+                throw ToException(ex);
             }
 
             if (null != request.LimitViolation)
@@ -253,7 +253,15 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
                 throw LimitExceeded(request.LimitViolation);
             }
 
-            return ReadResponse(descriptor, response, settings);
+            var (result, updatedIdentity) = ReadResponse(
+                descriptor, response, settings, _authentication.Identity);
+
+            // the identity first, so that whatever the caller does with the result sees it
+            if (null != updatedIdentity)
+                await _authentication.NotifyIdentityChangedAsync(updatedIdentity)
+                    .ConfigureAwait(false);
+
+            return result;
         }
 
         #endregion
@@ -364,7 +372,14 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
 
         #region Request
 
-        private DataPortalRequest CreateRequest(RemoteUseCaseDescriptor descriptor, ClaimsIdentity identity,
+        /// <summary>
+        /// Creates the request of a call: the call header with the ticket, the arguments as JSON and the files to upload.
+        /// </summary>
+        /// <param name="descriptor">the remote method</param>
+        /// <param name="ticket">the caller's ticket; null for an anonymous call</param>
+        /// <param name="args">the arguments, in the order of the remote method signature</param>
+        /// <param name="settings">the server's settings</param>
+        private DataPortalRequest CreateRequest(RemoteUseCaseDescriptor descriptor, string ticket,
             object[] args, ServerSettings settings)
         {
             // the parameters as JSON, with every file detached and replaced by a reference
@@ -383,16 +398,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
 
             CheckLimits(payload.Length, files.Files, settings);
 
-            string token = null;
-            if (null != identity)
-            {
-                token = identity.FindFirst(_options.TokenClaimType)?.Value;
-
-                if (string.IsNullOrEmpty(token)) throw new InvalidOperationException(
-                    $"The identity has no {_options.TokenClaimType} claim to authenticate the call with.");
-            }
-
-            var call = new DataPortalCall(descriptor.Name, descriptor.ParameterTypeNames, token,
+            var call = new DataPortalCall(descriptor.Name, descriptor.ParameterTypeNames, ticket,
                 CultureInfo.CurrentCulture.Name, CultureInfo.CurrentUICulture.Name, files.Files.Count,
                 descriptor.GenericArgumentNames, _plugins.Fingerprint);
 
@@ -448,8 +454,16 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
 
         #region Response
 
-        private (object Result, ClaimsIdentity Identity) ReadResponse(RemoteUseCaseDescriptor descriptor,
-            DataPortalResponse response, ServerSettings settings)
+        /// <summary>
+        /// Reads a response: throws its error, or gets its result and the caller's updated identity.
+        /// </summary>
+        /// <param name="descriptor">the remote method</param>
+        /// <param name="response">the response</param>
+        /// <param name="settings">the server's settings</param>
+        /// <param name="identity">the identity the call was made with, which an update applies to</param>
+        /// <returns>the result (null for none) and the updated identity (null if nothing has changed)</returns>
+        private (object Result, CarmaIdentity Identity) ReadResponse(RemoteUseCaseDescriptor descriptor,
+            DataPortalResponse response, ServerSettings settings, CarmaIdentity identity)
         {
             using (response)
             {
@@ -487,7 +501,18 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
                         throw Mismatch();
                 }
 
-                return (result, response.RefreshedIdentity?.ToIdentity());
+                CarmaIdentity updated;
+                try
+                {
+                    updated = IdentityUpdate.Apply(response.IdentityUpdate, identity, _registry.IdentityType);
+                }
+                catch (JsonException)
+                {
+                    (result as IDisposable)?.Dispose();
+                    throw Mismatch();
+                }
+
+                return (result, updated);
             }
         }
 
@@ -537,8 +562,55 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
             => ToException(new RemoteError { Kind = RemoteErrorKind.BadRequest },
                 new InvalidOperationException($"The call exceeds the data portal limits: {violation}."));
 
+        /// <summary>
+        /// Converts a transport failure to the exception to throw: a <see cref="DataPortalUnavailableException"/>,
+        /// with the app's message, if the server is unavailable; otherwise an error of the kind the proxy reports.
+        /// </summary>
+        /// <param name="exception">the transport failure</param>
+        private Exception ToException(DataPortalTransportException exception)
+            => exception.Kind == RemoteErrorKind.ServiceUnavailable
+                ? new DataPortalUnavailableException(_errorMapper.GetDataPortalUnavailableMessage(), exception)
+                : ToException(new RemoteError { Kind = exception.Kind }, exception);
+
+        /// <summary>
+        /// Converts an error response to the exception to throw: the app's mapping first
+        /// (<see cref="IRemoteErrorMapper.ToException"/>), then <see cref="NotAuthenticatedException"/> or
+        /// <see cref="NotAuthorizedException"/>, else <see cref="RemoteCallException"/>.
+        /// </summary>
+        /// <param name="error">the error</param>
+        /// <param name="innerException">the exception that caused it on the client; null for none</param>
         private Exception ToException(RemoteError error, Exception innerException = null)
-            => _errorMapper.ToException(error) ?? new RemoteCallException(error, innerException);
+        {
+            var mapped = _errorMapper.ToException(error);
+            if (null != mapped) return mapped;
+
+            switch (error.Kind)
+            {
+                case RemoteErrorKind.Unauthenticated:
+                    return string.IsNullOrEmpty(error.Message)
+                        ? new NotAuthenticatedException() : new NotAuthenticatedException(error.Message, innerException);
+                case RemoteErrorKind.Unauthorized:
+                    return string.IsNullOrEmpty(error.Message)
+                        ? new NotAuthorizedExceptionInternal() : new NotAuthorizedExceptionInternal(error.Message, innerException);
+                default:
+                    return new RemoteCallException(error, innerException);
+            }
+        }
+
+        /// <summary>
+        /// The NotAuthorizedExceptionBase forwarded from a data portal.
+        /// It already contains localized message so no need for localized exception service.
+        /// </summary>
+        private class NotAuthorizedExceptionInternal : NotAuthorizedExceptionBase
+        {
+            /// <summary>Creates the exception.</summary>
+            public NotAuthorizedExceptionInternal(string message) : base(message) { }
+
+            public NotAuthorizedExceptionInternal(string message, Exception innerException)
+                : base(message, innerException) { }
+
+            public NotAuthorizedExceptionInternal() : base() { }
+        }
 
         #endregion
     }

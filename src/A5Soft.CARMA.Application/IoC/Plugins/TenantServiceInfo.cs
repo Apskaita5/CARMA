@@ -1,4 +1,4 @@
-﻿using A5Soft.CARMA.Application.Tenancy;
+﻿using A5Soft.CARMA.Application.Authorization.Identity;
 using A5Soft.CARMA.Domain;
 using System;
 using System.Collections.Generic;
@@ -46,19 +46,21 @@ namespace A5Soft.CARMA.Application.IoC.Plugins
         /// Gets the implementation for a scope: the override of one of the tenant's plugins, else the default;
         /// null without a tenant, or if the tenant does not have the service.
         /// </summary>
+        /// <param name="identity">the scope's identity, holding the tenant (<see cref="CarmaIdentity.TenantId"/>) and its
+        /// plugins (<see cref="CarmaIdentity.TenantPlugins"/>)</param>
         /// <exception cref="InvalidOperationException">two of the tenant's plugins override the service (an
         /// assignment the server refuses when it issues the identity)</exception>
-        public ApplicationServiceInfo For(ITenantContext tenant)
+        public ApplicationServiceInfo For(CarmaIdentity identity)
         {
-            if (null == tenant) throw new ArgumentNullException(nameof(tenant));
-            if (null == tenant.TenantId) return null;
+            if (null == identity) throw new ArgumentNullException(nameof(identity));
+            if (null == identity.TenantId) return null;
 
             ApplicationServiceInfo found = null;
-            foreach (var plugin in tenant.Plugins)
+            foreach (var plugin in identity.TenantPlugins)
             {
                 if (!Overrides.TryGetValue(plugin, out var candidate)) continue;
                 if (null != found) throw new InvalidOperationException(
-                    $"Tenant {tenant.TenantId} has two plugins overriding {InterfaceType.FullName}.");
+                    $"Tenant {identity.TenantId} has two plugins overriding {InterfaceType.FullName}.");
                 found = candidate;
             }
 

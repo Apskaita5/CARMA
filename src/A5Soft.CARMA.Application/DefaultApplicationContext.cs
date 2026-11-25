@@ -12,8 +12,8 @@ namespace A5Soft.CARMA.Application
     /// </summary>
     /// <remarks>An application context should delegate to it (<c>ApplicationContextBase</c>), never replace it:
     /// a replacement depending on the client data portal would make a circular dependency.</remarks>
-    [DefaultServiceImplementation(typeof(Domain.IApplicationContext))]
-    public sealed class DefaultApplicationContext : Domain.IApplicationContext
+    [DefaultServiceImplementation(typeof(Domain.IDomainContext))]
+    public sealed class DefaultApplicationContext : Domain.IDomainContext
     {
         /// <summary>
         /// Creates a new domain context.

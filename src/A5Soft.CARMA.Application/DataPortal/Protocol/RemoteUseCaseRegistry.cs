@@ -39,8 +39,9 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// </summary>
         /// <param name="useCases">the remote service interfaces, by their wire names</param>
         /// <param name="trustedWireTypes">the types that may be named on the wire, by their wire names</param>
+        /// <param name="identityType">the app's identity type; null for none</param>
         internal RemoteUseCaseRegistry(IReadOnlyDictionary<string, Type> useCases,
-            IReadOnlyDictionary<string, Type> trustedWireTypes)
+            IReadOnlyDictionary<string, Type> trustedWireTypes, Type identityType = null)
         {
             if (null == useCases) throw new ArgumentNullException(nameof(useCases));
             if (null == trustedWireTypes) throw new ArgumentNullException(nameof(trustedWireTypes));
@@ -48,6 +49,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
             _useCases = useCases.ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
             _trustedWireTypes = trustedWireTypes.ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
             _useCaseInterfaces = new HashSet<Type>(_useCases.Values);
+            IdentityType = identityType;
         }
 
 
@@ -76,6 +78,12 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// </remarks>
         public IReadOnlyDictionary<string, Type> TrustedWireTypes => _trustedWireTypes;
 
+        /// <summary>
+        /// Gets the app's identity type (deriving from <see cref="Authorization.CarmaIdentity"/>): a refreshed identity is
+        /// read as this type. Null for a registry made of assemblies without one.
+        /// </summary>
+        public Type IdentityType { get; }
+
 
         /// <summary>
         /// Creates a registry for the remote services implemented in the assemblies given, and their trusted wire types.
@@ -98,7 +106,8 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
             var trustedWireTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
             var clashes = new List<string>();
 
-            foreach (var scan in scans)
+            var scanList = scans.ToList();
+            foreach (var scan in scanList)
             {
                 Merge(useCases, scan.RemoteServices, (existing, type) => clashes.Add(ClashMessage("use cases", existing, type)));
                 Merge(trustedWireTypes, scan.TrustedWireTypes, (existing, type) => clashes.Add(ClashMessage("types", existing, type)));
@@ -106,7 +115,11 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
 
             if (clashes.Count > 0) throw new InvalidOperationException(string.Join(" ", clashes.Distinct()));
 
-            return new RemoteUseCaseRegistry(useCases, trustedWireTypes);
+            var identityTypes = scanList.SelectMany(s => s.IdentityTypes).Distinct().ToList();
+            if (identityTypes.Count > 1) throw new InvalidOperationException(
+            $"More than one identity type: {string.Join(", ", identityTypes.Select(t => t.FullName))}.");
+
+            return new RemoteUseCaseRegistry(useCases, trustedWireTypes, identityTypes.FirstOrDefault());
         }
 
         /// <summary>

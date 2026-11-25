@@ -7,8 +7,9 @@ namespace A5Soft.CARMA.Application.DataPortal
     /// the server is unreachable, something other than the data portal answered (a gateway, a proxy,
     /// a login page), or the response is malformed.
     /// </summary>
-    /// <remarks>The client data portal reports it as a <see cref="RemoteError"/> of the
-    /// <see cref="Kind"/> given, with this exception as the cause.</remarks>
+    /// <remarks>The client data portal throws a <see cref="DataPortalUnavailableException"/> for
+    /// <see cref="RemoteErrorKind.ServiceUnavailable"/>, and reports any other kind as a <see cref="RemoteError"/>
+    /// of that kind; either way with this exception as the cause.</remarks>
     public class DataPortalTransportException : Exception
     {
         /// <summary>

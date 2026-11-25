@@ -39,6 +39,6 @@ namespace A5Soft.CARMA.Domain
 
 
         /// <inheritdoc />
-        public abstract T ToEntity(IApplicationContext context);
+        public abstract T ToEntity(IDomainContext context);
     }
 }

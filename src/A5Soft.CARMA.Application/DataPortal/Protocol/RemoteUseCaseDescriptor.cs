@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace A5Soft.CARMA.Application.DataPortal.Protocol
@@ -48,7 +49,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
                 return;
             }
 
-            (Parameters, ParameterTypeNames, Result, _taskResult) = DescribeSignature(Method, Name);
+            (Parameters, ParameterTypeNames, Result, _taskResult, AcceptsCancellation) = DescribeSignature(Method, Name);
         }
 
         private RemoteUseCaseDescriptor(RemoteUseCaseDescriptor definition, Type[] genericArguments,
@@ -61,7 +62,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
             GenericArguments = genericArguments;
             GenericArity = genericArguments.Length;
 
-            (Parameters, ParameterTypeNames, Result, _taskResult) = DescribeSignature(Method, Name);
+            (Parameters, ParameterTypeNames, Result, _taskResult, AcceptsCancellation) = DescribeSignature(Method, Name);
         }
 
 
@@ -101,6 +102,10 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// (<see cref="DataPortalCall.ParameterTypes"/>); null for an open generic method.
         /// </summary>
         public IReadOnlyList<string> ParameterTypeNames { get; }
+
+        /// <summary>Gets a value indicating whether the remote method takes a CancellationToken as its last parameter:
+        /// it does not change state, so a call may be cancelled. The token is not a wire parameter.</summary>
+        public bool AcceptsCancellation { get; }
 
 
         /// <summary>
@@ -202,21 +207,27 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
             return method;
         }
 
-        private static (IReadOnlyList<RemoteValueDescriptor>, IReadOnlyList<string>, RemoteValueDescriptor, PropertyInfo)
+        private static (IReadOnlyList<RemoteValueDescriptor>, IReadOnlyList<string>, RemoteValueDescriptor, PropertyInfo, bool)
             DescribeSignature(MethodInfo method, string name)
         {
             try
             {
-                var parameters = method.GetParameters()
-                    .Select(p => new RemoteValueDescriptor(p.ParameterType))
-                    .ToList();
+                var all = method.GetParameters();
+                // a trailing CancellationToken is not wire data; anywhere else it is a mistake
+                var acceptsCancellation = all.Length > 0 && all[all.Length - 1].ParameterType == typeof(CancellationToken);
+                var wire = acceptsCancellation ? all.Take(all.Length - 1).ToArray() : all;
+                if (wire.Any(p => p.ParameterType == typeof(CancellationToken))) throw new NotSupportedException(
+                    $"a {nameof(CancellationToken)} can only be the last parameter");
+
+                var parameters = wire.Select(p => new RemoteValueDescriptor(p.ParameterType)).ToList();
 
                 var returnType = method.ReturnType;
-                if (returnType == typeof(Task)) return (parameters, parameters.Select(p => p.WireTypeName).ToList(), null, null);
+                if (returnType == typeof(Task)) return (parameters, parameters.Select(p => p.WireTypeName).ToList(),
+                    null, null, acceptsCancellation);
 
                 return (parameters, parameters.Select(p => p.WireTypeName).ToList(),
                     new RemoteValueDescriptor(returnType.GetGenericArguments()[0]),
-                    returnType.GetProperty(nameof(Task<object>.Result)));
+                    returnType.GetProperty(nameof(Task<object>.Result)), acceptsCancellation);
             }
             catch (NotSupportedException ex)
             {

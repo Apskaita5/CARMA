@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using A5Soft.CARMA.Application.Authorization;
+using A5Soft.CARMA.Application.Authorization.Identity;
 using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.IoC;
 using A5Soft.CARMA.Domain;
@@ -25,6 +28,17 @@ namespace A5Soft.CARMA.Application.DataPortal
     /// with 10–20k use cases expect tens of seconds.</item>
     /// <item><see cref="Validate(Type)"/> for one use case, e.g. a plugin's at startup;
     /// <see cref="IoC.IoCManagerBase"/> does it for every use case and lookup type of a plugin.</item>
+    /// </list>
+    /// <para>The authorization rules of every remote interface:</para>
+    /// <list type="bullet">
+    /// <item>it carries <see cref="AuthorizeAttribute"/>, <see cref="AllowAnonymousAttribute"/> or
+    /// <see cref="AllowSecondFactorPendingAttribute"/> (a lookup service's interface: <see cref="AllowAnonymousAttribute"/>,
+    /// as the service authorizes against the requesting use case);</item>
+    /// <item>each permission type is a concrete <see cref="Permission"/> with a public parameterless constructor;</item>
+    /// <item>an app scoped use case does not require only tenant scoped permissions, which no one could hold
+    /// outside a tenant;</item>
+    /// <item>an identity type (deriving from <see cref="CarmaIdentity"/>) has a private [SerializationConstructor] and no
+    /// writable field.</item>
     /// </list>
     /// <para>The rules, at any depth of a parameter or a result:</para>
     /// <list type="bullet">
@@ -62,7 +76,11 @@ namespace A5Soft.CARMA.Application.DataPortal
 
             var violations = new List<ConventionViolation>();
             var interfaceType = FindRemoteInterface(useCaseType, violations);
-            if (null != interfaceType) new Walker(violations).ValidateUseCase(interfaceType);
+            if (null != interfaceType)
+            {
+                ValidateAuthorization(interfaceType, violations);
+                new Walker(violations).ValidateUseCase(interfaceType);
+            }
 
             return violations;
         }
@@ -116,7 +134,15 @@ namespace A5Soft.CARMA.Application.DataPortal
             var violations = new List<ConventionViolation>();
             var walker = new Walker(violations);
 
-            foreach (var useCase in scan.RemoteServices.Values) walker.ValidateUseCase(useCase);
+            foreach (var useCase in scan.RemoteServices.Values)
+            {
+                ValidateAuthorization(useCase, violations);
+                walker.ValidateUseCase(useCase);
+            }
+            foreach (var identityType in scan.IdentityTypes)
+                violations.AddRange(CarmaIdentity.GetDefects(identityType)
+                    .Select(d => new ConventionViolation(identityType, string.Empty, d)));
+
             // the lookups declared in the scanned assembly are among its trusted wire types (with their entity
             // types, which are skipped here, as they are not lookups)
             foreach (var type in scan.TrustedWireTypes.Values)
@@ -153,7 +179,6 @@ namespace A5Soft.CARMA.Application.DataPortal
                     }
         }
 
-
         private static Type FindRemoteInterface(Type useCaseType, List<ConventionViolation> violations)
         {
             if (useCaseType.IsInterface)
@@ -178,6 +203,66 @@ namespace A5Soft.CARMA.Application.DataPortal
             return null;
         }
 
+        /// <summary>
+        /// Checks the authorization attributes of a remote interface.
+        /// </summary>
+        /// <param name="interfaceType">the remote interface</param>
+        /// <param name="violations">the list the violations are added to</param>
+        private static void ValidateAuthorization(Type interfaceType, List<ConventionViolation> violations)
+        {
+            var authorize = interfaceType.GetCustomAttribute<AuthorizeAttribute>(false);
+            var anonymous = interfaceType.IsDefined(typeof(AllowAnonymousAttribute), false);
+            var secondFactorPending = interfaceType.IsDefined(typeof(AllowSecondFactorPendingAttribute), false);
+            var adminOnly = interfaceType.IsDefined(typeof(AllowAdminOnlyAttribute), false);
+            var attrCount = null == authorize ? 0 : 1;
+            if (anonymous) attrCount += 1;
+            if (secondFactorPending) attrCount += 1;
+            if (adminOnly) attrCount += 1;
+
+            if (attrCount < 1)
+            {
+                violations.Add(new ConventionViolation(interfaceType, string.Empty,
+                    $"declares no authorization: mark it with [{nameof(AuthorizeAttribute).Replace("Attribute", "")}], " +
+                    $"[{nameof(AllowAnonymousAttribute).Replace("Attribute", "")}], " +
+                    $"[{nameof(AllowSecondFactorPendingAttribute).Replace("Attribute", "")}] or" +
+                    $"[{nameof(AllowAdminOnlyAttribute).Replace("Attribute", "")}]"));
+                return;
+            }
+
+            if (attrCount > 1) violations.Add(new ConventionViolation(interfaceType, string.Empty,
+                "declares multiple authorization attributes"));
+
+            if (null == authorize || authorize.PermissionTypes.Count < 1) return;
+
+            var tenantScopedOnly = true;
+            foreach (var type in authorize.PermissionTypes)
+            {
+                if (null == type || !typeof(Permission).IsAssignableFrom(type) || type.IsAbstract
+                    || type.ContainsGenericParameters || null == type.GetConstructor(Type.EmptyTypes))
+                {
+                    violations.Add(new ConventionViolation(interfaceType, "[Authorize]",
+                        $"{type?.FullName ?? "null"} is not a concrete {nameof(Permission)} with a public parameterless constructor"));
+                    tenantScopedOnly = false;
+                    continue;
+                }
+
+                try
+                {
+                    if (!((Permission)Activator.CreateInstance(type)).IsTenantScoped) tenantScopedOnly = false;
+                }
+                catch (Exception e)
+                {
+                    violations.Add(new ConventionViolation(interfaceType, "[Authorize]",
+                        $"permission {type.FullName} cannot be created: {(e.InnerException ?? e).Message}"));
+                    tenantScopedOnly = false;
+                }
+            }
+
+            if (tenantScopedOnly && !adminOnly && !interfaceType.IsDefined(typeof(TenantScopedAttribute), false))
+                violations.Add(new ConventionViolation(interfaceType, "[Authorize]",
+                    "is app scoped but requires only tenant scoped permissions, which no one holds outside a tenant " +
+                    "(only an admin could invoke it)"));
+        }
 
         /// <summary>
         /// Walks type graphs with its own contract resolver, so that the walk is exactly what the data
@@ -221,6 +306,11 @@ namespace A5Soft.CARMA.Application.DataPortal
                     var type = parameters[i].ParameterType;
                     var path = $"parameter {i} ({parameters[i].Name})";
 
+                    if (type == typeof(CancellationToken))
+                    {
+                        if (i != parameters.Length - 1) Fail(path, "a CancellationToken can only be the last parameter");
+                        continue;
+                    }
                     if (type.IsByRef) Fail(path, "ref and out parameters cannot cross the data portal");
                     else if (!type.ContainsGenericParameters) ValidateValue(type, path, true);
                 }

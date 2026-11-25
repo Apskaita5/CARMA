@@ -26,7 +26,7 @@ namespace A5Soft.CARMA.Domain
         /// Creates a new domain entity instance.
         /// </summary>
         /// <param name="context">an app execution context</param>
-        protected DomainEntity(IApplicationContext context)
+        protected DomainEntity(IDomainContext context)
             : base(context) { }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace A5Soft.CARMA.Domain
         /// <para>Restores the own state only. Children are restored from their own DTOs,
         /// and the cascading <see cref="ITrackState.IsDirty"/> follows from them.</para>
         /// </remarks>
-        protected DomainEntity(TDto dto, IApplicationContext context)
+        protected DomainEntity(TDto dto, IDomainContext context)
             : base(context)
         {
             if (null == dto) throw new ArgumentNullException(nameof(dto));

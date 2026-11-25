@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using A5Soft.CARMA.Application.Authorization;
+using A5Soft.CARMA.Application.Authorization.Identity;
 using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.HealthChecks;
+using A5Soft.CARMA.Application.Navigation;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.IoC;
 
@@ -17,8 +20,7 @@ namespace A5Soft.CARMA.Application.IoC
     /// configuration types (for the app configuration) and unmanaged assemblies (for loading).
     /// </summary>
     /// <remarks>
-    /// <para>One scan serves <see cref="IoC"/>, <see cref="IoCManager"/>,
-    /// <see cref="Configuration.Extensions.AddAppConfiguration(IAppConfigurationProvider, Assembly[])"/> and
+    /// <para>One scan serves <see cref="IoCManagerBase"/>, the app configuration and
     /// <see cref="DataPortal.DataPortalConventions"/>, so an assembly's types are enumerated once however
     /// many of them use it. An application with 10–20k use cases pays for it once.</para>
     /// <para>Scans are kept in a <see cref="ConditionalWeakTable{TKey,TValue}"/>, so a plugin assembly
@@ -30,6 +32,13 @@ namespace A5Soft.CARMA.Application.IoC
             = new ConditionalWeakTable<Assembly, AssemblyScan>();
 
 
+        /// <summary>
+        /// Scans types: default implementations, remote services, trusted wire types, health checks, configurations,
+        /// permissions, identity types and the assembly dependencies.
+        /// </summary>
+        /// <param name="source">a description of what is scanned, for messages</param>
+        /// <param name="types">the types to scan</param>
+        /// <param name="forAssembly">whether the types are those of one assembly, which may declare its dependencies</param>
         private AssemblyScan(string source, IEnumerable<Type> types, bool forAssembly)
         {
             Source = source;
@@ -39,6 +48,9 @@ namespace A5Soft.CARMA.Application.IoC
             var configurations = new List<ApplicationServiceInfo>();
             var remoteServices = new Dictionary<string, Type>(StringComparer.Ordinal);
             var trustedWireTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
+            var permissionTypes = new List<Type>();
+            var identityTypes = new List<Type>();
+            var pluginMenuTypes = new List<Type>();
             IAssemblyDependencies dependencies = null;
 
             foreach (var type in types)
@@ -49,6 +61,12 @@ namespace A5Soft.CARMA.Application.IoC
                 ProcessLookup(type, trustedWireTypes);
                 if (IsDomainObject(type)) AddName(trustedWireTypes, type);
                 ProcessConfiguration(type, configurations);
+
+                if (typeof(Permission).IsAssignableFrom(type)) permissionTypes.Add(type);
+                // the framework's anonymous identity is not an app's identity type
+                if (typeof(CarmaIdentity).IsAssignableFrom(type) && type.Assembly != typeof(CarmaIdentity).Assembly)
+                    identityTypes.Add(type);
+                if (typeof(IPluginMenu).IsAssignableFrom(type)) pluginMenuTypes.Add(type);
 
                 if (forAssembly && typeof(IAssemblyDependencies).IsAssignableFrom(type))
                 {
@@ -65,6 +83,9 @@ namespace A5Soft.CARMA.Application.IoC
             RemoteServices = remoteServices;
             TrustedWireTypes = trustedWireTypes;
             Configurations = configurations;
+            PermissionTypes = permissionTypes;
+            IdentityTypes = identityTypes;
+            PluginMenuTypes = pluginMenuTypes;
         }
 
 
@@ -80,6 +101,18 @@ namespace A5Soft.CARMA.Application.IoC
         /// <summary>Gets the concrete classes for <see cref="IHealthCheck"/>.</summary>
         public IReadOnlyList<ApplicationServiceInfo> HealthChecks { get; }
 
+        /// <summary>Gets the concrete permission types (deriving from <see cref="Permission"/>).</summary>
+        public IReadOnlyList<Type> PermissionTypes { get; }
+
+        /// <summary>Gets the concrete identity types (deriving from <see cref="CarmaIdentity"/>).</summary>
+        public IReadOnlyList<Type> IdentityTypes { get; }
+
+        /// <summary>
+        /// Gets the concrete classes implementing <see cref="IPluginMenu"/>: a plugin's part of the main menu. A plugin
+        /// may have one; the app and the framework none.
+        /// </summary>
+        public IReadOnlyList<Type> PluginMenuTypes { get; }
+
         /// <summary>Gets the project assembly dependencies if declared by a <see cref="IAssemblyDependencies"/> implementation.</summary>
         public IAssemblyDependencies ExternalDependencies { get; }
 
@@ -94,7 +127,7 @@ namespace A5Soft.CARMA.Application.IoC
         /// Gets the types found here that are trusted to move by wire, by their wire names: every implementation of
         /// a remote service, every concrete domain object (deriving from <see cref="DomainObject{T}"/>, entities
         /// included), every lookup type and its entity type (which may be declared in another assembly).
-        /// See <see cref="DataPortal.RemoteUseCaseRegistry.TrustedWireTypes"/>.
+        /// See <see cref="DataPortal.Protocol.RemoteUseCaseRegistry.TrustedWireTypes"/>.
         /// </summary>
         public IReadOnlyDictionary<string, Type> TrustedWireTypes { get; }
 

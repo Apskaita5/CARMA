@@ -1,4 +1,5 @@
-﻿using A5Soft.CARMA.Application.Authorization;
+﻿using A5Soft.CARMA.Application.Authorization.Authorizers;
+using A5Soft.CARMA.Application.Authorization.Identity;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
 
@@ -9,16 +10,36 @@ namespace A5Soft.CARMA.Application
     /// </summary>
     /// <remarks>Inherit the interface and implement the container subject to the app service requirements.</remarks>
     [Service(ServiceLifetime.Scoped)]
-    public interface IApplicationContext : Domain.IApplicationContext
+    public interface IApplicationContext : Domain.IDomainContext
     {
         /// <summary>
-        /// Metadata provider.
+        /// Gets the authorization rules of the use cases.
         /// </summary>
-        public IAuthorizationProvider AuthorizationProvider { get; }
+        IAuthorizationProvider AuthorizationProvider { get; }
 
         /// <summary>
-        /// Client data portal for remote use case invocations.
+        /// Gets the client data portal for remote use case invocations.
         /// </summary>
-        public IClientDataPortal DataPortal { get; }
+        IClientDataPortal DataPortal { get; }
+
+        /// <summary>
+        /// Gets the logger.
+        /// </summary>
+        ILogger Logger { get; }
+
+        /// <summary>
+        /// Gets the scope's identity.
+        /// </summary>
+        IAuthenticationStateProvider Authentication { get; }
+
+        /// <summary>
+        /// Gets the lookup service; null if the app has none.
+        /// </summary>
+        ILookupService Lookups { get; }
+
+        /// <summary>
+        /// Gets the app's factory of the business exceptions the use case boundary needs.
+        /// </summary>
+        IBusinessExceptionFactory BusinessExceptions { get; }
     }
 }

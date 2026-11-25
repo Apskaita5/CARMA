@@ -17,11 +17,12 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// <summary>Somebody else has changed the data.</summary>
         Concurrency = 3,
 
-        /// <summary>The caller is not authenticated or is not allowed to invoke the use case.</summary>
+        /// <summary>The caller has logged in, but is not allowed to invoke the use case.</summary>
         Unauthorized = 4,
 
-        /// <summary>An external service was still unavailable after the server side retries,
-        /// or the client could not reach the server at all.</summary>
+        /// <summary>A service behind the server (a database, a mail server) is temporarily unavailable: the
+        /// app's error mapper reports a <see cref="Retry.TransiantException"/> so. The client's own failure to
+        /// reach the server is not a remote error: it is thrown as <see cref="DataPortalUnavailableException"/>.</summary>
         ServiceUnavailable = 5,
 
         /// <summary>The call was rejected before execution: a malformed call, a payload or upload over
@@ -34,6 +35,11 @@ namespace A5Soft.CARMA.Application.DataPortal
         /// before the call is sent; the <see cref="RemoteError.Data"/> holds a
         /// <see cref="VersionMismatchData"/>. The user must update (reload) the client.
         /// </summary>
-        VersionMismatch = 7
+        VersionMismatch = 7,
+
+        /// <summary>
+        /// The caller has not logged in, or the session has ended (logout, expiry, a server restart): log in again.
+        /// </summary>
+        Unauthenticated = 8
     }
 }

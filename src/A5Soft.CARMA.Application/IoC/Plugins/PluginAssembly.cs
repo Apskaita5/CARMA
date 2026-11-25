@@ -1,3 +1,4 @@
+using A5Soft.CARMA.Application.Navigation;
 using A5Soft.CARMA.Domain.IoC;
 using System;
 using System.IO;
@@ -39,6 +40,12 @@ namespace A5Soft.CARMA.Application.IoC.Plugins
         /// identities and the plugin fingerprint.
         /// </summary>
         public string Id { get; }
+
+        /// <summary>
+        /// Gets the plugin's part of the main menu; null if it adds nothing to the menu. Set when the plugin is accepted,
+        /// from its assembly scan.
+        /// </summary>
+        public IPluginMenu Menu { get; internal set; }
 
 
         /// <inheritdoc />

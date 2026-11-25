@@ -23,16 +23,16 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// <param name="useCase">a name of the use case interface to invoke</param>
         /// <param name="parameterTypes">the wire type names of the remote method parameters,
         /// in signature order</param>
-        /// <param name="token">the caller's token; null for an anonymous call</param>
+        /// <param name="ticket">the caller's session ticket (<see cref="Authorization.CarmaIdentity.Ticket"/>); null for
+        /// an anonymous call</param>
         /// <param name="culture">a name of the caller's culture; null to keep the server's</param>
         /// <param name="uiCulture">a name of the caller's UI culture; null to keep the server's</param>
-        /// <param name="fileCount">the number of files the call carries</param>/// <param name="genericArguments">the wire names of the generic arguments of a generic remote
-        /// method; null or empty for a method that is not generic</param>
+        /// <param name="fileCount">the number of files the call carries</param>
         /// <param name="genericArguments">the wire names of the generic arguments of a generic remote
         /// method; null or empty for a method that is not generic</param>
         /// <param name="pluginFingerprint">the caller's plugin fingerprint
-        /// (<see cref="IoC.PluginCatalog.Fingerprint"/>); it must match the server's</param>
-        public DataPortalCall(string useCase, IReadOnlyList<string> parameterTypes, string token,
+        /// (<see cref="IoC.Plugins.PluginCatalog.Fingerprint"/>); it must match the server's</param>
+        public DataPortalCall(string useCase, IReadOnlyList<string> parameterTypes, string ticket,
             string culture, string uiCulture, int fileCount, IReadOnlyList<string> genericArguments = null,
             string pluginFingerprint = null)
         {
@@ -40,7 +40,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
 
             UseCase = useCase;
             ParameterTypes = parameterTypes ?? Array.Empty<string>();
-            Token = token;
+            Ticket = ticket;
             Culture = culture;
             UICulture = uiCulture;
             FileCount = fileCount;
@@ -63,10 +63,10 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         public IReadOnlyList<string> ParameterTypes { get; }
 
         /// <summary>
-        /// Gets the caller's token, taken from the identity claim
-        /// <see cref="IDataPortalClientOptions.TokenClaimType"/>; null for an anonymous call.
+        /// Gets the caller's session ticket (<see cref="Authorization.CarmaIdentity.Ticket"/>);
+        /// null for an anonymous call.
         /// </summary>
-        public string Token { get; }
+        public string Ticket { get; }
 
         /// <summary>Gets a name of the caller's culture; null or empty to keep the server's.</summary>
         public string Culture { get; }
@@ -86,7 +86,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         public IReadOnlyList<string> GenericArguments { get; }
 
         /// <summary>
-        /// Gets the caller's plugin fingerprint (<see cref="IoC.PluginCatalog.Fingerprint"/>); a call whose
+        /// Gets the caller's plugin fingerprint (<see cref="IoC.Plugins.PluginCatalog.Fingerprint"/>); a call whose
         /// fingerprint differs from the server's is refused.
         /// </summary>
         public string PluginFingerprint { get; }

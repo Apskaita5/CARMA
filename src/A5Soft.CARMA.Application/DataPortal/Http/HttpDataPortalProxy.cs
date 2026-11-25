@@ -68,7 +68,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Http
         /// <param name="endpoint">the absolute URL of the server data portal endpoint</param>
         /// <param name="options">the client data portal options</param>
         /// <param name="httpOptions">the client HTTP transport options; null for the defaults</param>
-        internal HttpDataPortalProxy(Uri endpoint, IDataPortalClientOptions options,
+        public HttpDataPortalProxy(Uri endpoint, IDataPortalClientOptions options,
             IHttpDataPortalClientOptions httpOptions = null)
         {
             _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
@@ -268,6 +268,12 @@ namespace A5Soft.CARMA.Application.DataPortal.Http
 
         #region Request
 
+        /// <summary>
+        /// Creates the headers of a call: the protocol, the use case, its parameter types and generic arguments, the
+        /// cultures, the plugin fingerprint, the file count and, for a call that is not anonymous, the ticket.
+        /// </summary>
+        /// <param name="call">the call header</param>
+        /// <exception cref="InvalidOperationException">the ticket cannot travel in an HTTP header</exception>
         private Dictionary<string, string> CreateHeaders(DataPortalCall call)
         {
             var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -286,12 +292,12 @@ namespace A5Soft.CARMA.Application.DataPortal.Http
             if (null != call.PluginFingerprint)
                 headers[DataPortalHeaders.Plugins] = DataPortalHeaderValues.EncodeText(call.PluginFingerprint);
 
-            if (null != call.Token)
+            if (null != call.Ticket)
             {
-                if (call.Token.Length < 1 || call.Token.Any(c => c < 0x21 || c > 0x7E)) throw new InvalidOperationException(
+                if (call.Ticket.Length < 1 || call.Ticket.Any(c => c < 0x21 || c > 0x7E)) throw new InvalidOperationException(
                     "The token must consist of printable ASCII characters without spaces to travel in an HTTP header; encode its fields.");
 
-                headers["Authorization"] = DataPortalHeaders.AuthorizationScheme + " " + call.Token;
+                headers["Authorization"] = DataPortalHeaders.AuthorizationScheme + " " + call.Ticket;
             }
 
             // a proxy would refuse oversized headers with a bare 400 or 431
@@ -482,11 +488,18 @@ namespace A5Soft.CARMA.Application.DataPortal.Http
             }
         }
 
-        private async Task<IdentityEnvelope> ReadIdentityAsync(HttpResponseMessage response, Stream body,
+        /// <summary>
+        /// Reads the identity update before the result: opaque bytes, which the client data portal reads.
+        /// </summary>
+        /// <param name="response">the response, whose header gives the length of the update</param>
+        /// <param name="body">the response body, positioned at the update</param>
+        /// <param name="cancellationToken">a token to cancel the operation</param>
+        /// <returns>the identity update; empty if the response has none</returns>
+        private async Task<ReadOnlyMemory<byte>> ReadIdentityAsync(HttpResponseMessage response, Stream body,
             CancellationToken cancellationToken)
         {
             var header = GetHeader(response, DataPortalHeaders.IdentityLength);
-            if (null == header) return null;
+            if (null == header) return default;
 
             var length = DataPortalHeaderValues.DecodeNumber(header);
             if (null == length || length > _options.MaxIdentityLength) throw Malformed("an identity block of invalid length");
@@ -495,20 +508,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Http
             if (!await body.ReadExactlyAsync(buffer, buffer.Length, cancellationToken).ConfigureAwait(false))
                 throw Malformed("a body shorter than its identity block");
 
-            try
-            {
-                using (var textReader = new StreamReader(new MemoryStream(buffer), Utf8))
-                using (var jsonReader = new JsonTextReader(textReader) { MaxDepth = DataPortalSerialization.PortalMessageMaxDepth })
-                {
-                    return DataPortalSerialization.CreateSerializer(DataPortalSerialization.PortalMessageMaxDepth)
-                        .Deserialize<IdentityEnvelope>(jsonReader)
-                        ?? throw Malformed("an empty identity block");
-                }
-            }
-            catch (JsonException ex)
-            {
-                throw Malformed("an identity block that is not valid", ex);
-            }
+            return buffer;
         }
 
         private async Task<RemoteError> ReadErrorAsync(Stream body, CancellationToken cancellationToken)

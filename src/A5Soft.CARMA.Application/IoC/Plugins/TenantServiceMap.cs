@@ -1,4 +1,5 @@
-﻿using A5Soft.CARMA.Application.Tenancy;
+﻿using A5Soft.CARMA.Application.Authorization;
+using A5Soft.CARMA.Application.Authorization.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,8 +40,10 @@ namespace A5Soft.CARMA.Application.IoC.Plugins
         /// Gets whether a service can be resolved in a scope: always for an app scoped service; for a tenant scoped
         /// one, only with a tenant that has an implementation.
         /// </summary>
-        public bool IsAvailable(Type interfaceType, ITenantContext tenant)
-            => !_services.TryGetValue(interfaceType, out var info) || null != info.For(tenant);
+        /// <param name="interfaceType">the service interface</param>
+        /// <param name="identity">the scope's identity, holding the tenant and its plugins</param>
+        public bool IsAvailable(Type interfaceType, CarmaIdentity identity)
+            => !_services.TryGetValue(interfaceType, out var info) || null != info.For(identity);
 
         /// <summary>Gets whether a tenant scoped service has the app's implementation, i.e. every tenant has it.</summary>
         public bool HasDefault(Type interfaceType)
@@ -71,7 +74,8 @@ namespace A5Soft.CARMA.Application.IoC.Plugins
         }
 
         /// <summary>
-        /// Resolves a tenant scoped service for the scope's tenant: the container's factory for the interface.
+        /// Resolves a tenant scoped service for the tenant of the scope's identity
+        /// (<see cref="IAuthenticationStateProvider.Identity"/>): the container's factory for the interface.
         /// </summary>
         /// <param name="services">the provider of the current scope</param>
         /// <param name="interfaceType">the tenant scoped service interface</param>
@@ -81,21 +85,21 @@ namespace A5Soft.CARMA.Application.IoC.Plugins
         {
             if (null == services) throw new ArgumentNullException(nameof(services));
 
-            var tenant = (ITenantContext)services.GetService(typeof(ITenantContext))
-                ?? throw new InvalidOperationException($"{nameof(ITenantContext)} is not registered.");
+            var identity = ((IAuthenticationStateProvider)services.GetService(typeof(IAuthenticationStateProvider))
+                ?? throw new InvalidOperationException($"{nameof(IAuthenticationStateProvider)} is not registered.")).Identity;
 
             if (!_services.TryGetValue(interfaceType, out var registration))
                 throw new InvalidOperationException($"{interfaceType.FullName} is not registered as tenant scoped.");
 
-            var implementation = registration.For(tenant) ?? throw new InvalidOperationException(
-                null == tenant.TenantId
+            var implementation = registration.For(identity) ?? throw new InvalidOperationException(
+                null == identity.TenantId
                     ? $"{interfaceType.FullName} is tenant scoped, and the current scope has no tenant."
-                    : $"{interfaceType.FullName} is not available for tenant {tenant.TenantId}.");
+                    : $"{interfaceType.FullName} is not available for tenant {identity.TenantId}.");
 
             return services.GetService(implementation.ImplementationType)
                 ?? throw new InvalidOperationException(
                     $"{implementation.ImplementationType.FullName} (implementation of {interfaceType.FullName} " +
-                    $"for tenant {tenant.TenantId}) is not registered in the container.");
+                    $"for tenant {identity.TenantId}) is not registered in the container.");
         }
     }
 }

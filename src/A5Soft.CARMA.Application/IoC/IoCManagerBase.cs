@@ -1,3 +1,12 @@
+using A5Soft.CARMA.Application.Authorization.Authorizers;
+using A5Soft.CARMA.Application.Authorization.Identity;
+using A5Soft.CARMA.Application.DataPortal;
+using A5Soft.CARMA.Application.DataPortal.Protocol;
+using A5Soft.CARMA.Application.IoC.Plugins;
+using A5Soft.CARMA.Application.Navigation;
+using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.IoC;
+using A5Soft.CARMA.Domain.UnitTests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,12 +14,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using A5Soft.CARMA.Application.DataPortal;
-using A5Soft.CARMA.Application.DataPortal.Protocol;
-using A5Soft.CARMA.Application.IoC.Plugins;
-using A5Soft.CARMA.Domain;
-using A5Soft.CARMA.Domain.IoC;
-using A5Soft.CARMA.Domain.UnitTests;
 
 namespace A5Soft.CARMA.Application.IoC
 {
@@ -134,7 +137,8 @@ namespace A5Soft.CARMA.Application.IoC
 
         /// <summary>
         /// Gets the app's own assemblies to scan. The framework's (A5Soft.CARMA.Domain and
-        /// A5Soft.CARMA.Application) are added automatically; plugins come from <see cref="LoadPlugins"/>.
+        /// A5Soft.CARMA.Application) are added automatically;
+        /// plugins come from the plugin folders (<see cref="IPluginsConfiguration"/>).
         /// </summary>
         protected abstract IEnumerable<Assembly> AppAssemblies { get; }
 
@@ -268,6 +272,14 @@ namespace A5Soft.CARMA.Application.IoC
             }
             if (clashes.Count > 0) throw new InvalidOperationException(string.Join(" ", clashes.Distinct()));
 
+            // a menu part outside a plugin would never be used
+            var strayMenus = frameworkScans.Concat(appScans).SelectMany(s => s.PluginMenuTypes).ToList();
+            if (strayMenus.Count > 0) throw new InvalidOperationException(
+                $"Only a plugin can have an {nameof(IPluginMenu)}; the app declares {string.Join(", ", strayMenus.Select(t => t.FullName))}. " +
+                $"The app builds its menu in its {nameof(MainMenuProviderBase)}.");
+
+            var identityType = GetIdentityType(appScans);
+
             foreach (var scan in appScans) LoadUnmanagedAssemblies(scan, AppPath);
 
             var composition = new ServiceComposition(Compose(frameworkScans, appScans));
@@ -296,15 +308,21 @@ namespace A5Soft.CARMA.Application.IoC
                 .ToList();
 
             var catalog = new PluginCatalog(_plugins);
+            // permissions are declared by the app and its plugins only: the framework has none
+            var permissions = PermissionCatalog.Create(
+                appScans.SelectMany(s => s.PermissionTypes).Select(t => (t, (string)null))
+                     .Concat(pluginScans.Zip(_plugins, (s, p) => (Scan: s, Plugin: p))
+                         .SelectMany(x => x.Scan.PermissionTypes.Select(t => (t, x.Plugin.Id)))));
             var tenantMap = new TenantServiceMap(tenantServices, composition.Exclusive, catalog);
 
             services.AddRange(configurations);
             services.Add(Singleton(typeof(RemoteUseCaseRegistry),
-                new RemoteUseCaseRegistry(names.UseCases, names.TrustedWireTypes)));
+                new RemoteUseCaseRegistry(names.UseCases, names.TrustedWireTypes, identityType)));
             services.Add(Singleton(typeof(PluginCatalog), catalog));
             services.Add(Singleton(typeof(TenantServiceMap), tenantMap));
             services.Add(Singleton(typeof(IDomainSettings), new DomainSettings(BindingMode)));
             services.Add(Singleton(typeof(IBuildInfo), new BuildInfo(BuildConfiguration)));
+            services.Add(Singleton(typeof(PermissionCatalog), permissions));
 
             _services = services;
             _tenantServices = tenantServices;
@@ -381,17 +399,61 @@ namespace A5Soft.CARMA.Application.IoC
 
             // the data portal conventions in depth, as a plugin is not under the app's unit tests; then names and overrides
             var violations = DataPortalConventions.Validate(scan);
+            foreach (var identityType in scan.IdentityTypes) violations.Add(
+                new ConventionViolation(identityType, string.Empty,
+                "is an identity type: only the app declares one, never a plugin"));
+
             names.Merge(scan, (what, existing, type) => violations.Add(new ConventionViolation(type, string.Empty,
                 $"has the same name as {existing.AssemblyQualifiedName}, so the data portal cannot tell them apart")));
             violations.AddRange(composition.Add(plugin, scan.GetServices(BuildConfiguration)));
 
+            var menu = CreatePluginMenu(scan, violations);
+
             if (violations.Count > 0) throw new InvalidOperationException(
                 ConventionViolation.Format($"Plugin {plugin} is refused", violations));
+
+            plugin.Menu = menu;
 
             // only an accepted plugin gets its native libraries loaded
             LoadUnmanagedAssemblies(scan, plugin.Folder);
             _plugins.Add(plugin);
             return scan;
+        }
+
+        /// <summary>
+        /// Creates a plugin's part of the main menu from its scan: at most one <see cref="IPluginMenu"/>, with a public
+        /// parameterless constructor.
+        /// </summary>
+        /// <returns>the menu part; null if the plugin has none, or it is not valid (added to the violations)</returns>
+        private static IPluginMenu CreatePluginMenu(AssemblyScan scan, List<ConventionViolation> violations)
+        {
+            if (scan.PluginMenuTypes.Count < 1) return null;
+
+            if (scan.PluginMenuTypes.Count > 1)
+            {
+                foreach (var type in scan.PluginMenuTypes) violations.Add(new ConventionViolation(type, string.Empty,
+                    $"is one of {scan.PluginMenuTypes.Count} {nameof(IPluginMenu)} implementations: a plugin has at most one"));
+                return null;
+            }
+
+            var menuType = scan.PluginMenuTypes[0];
+            if (null == menuType.GetConstructor(Type.EmptyTypes))
+            {
+                violations.Add(new ConventionViolation(menuType, string.Empty,
+                    "needs a public parameterless constructor: the framework creates it"));
+                return null;
+            }
+
+            try
+            {
+                return (IPluginMenu)Activator.CreateInstance(menuType);
+            }
+            catch (TargetInvocationException ex)
+            {
+                violations.Add(new ConventionViolation(menuType, string.Empty,
+                    $"cannot be created: its constructor throws {ex.InnerException?.GetType().Name}: {ex.InnerException?.Message}"));
+                return null;
+            }
         }
 
         /// <summary>
@@ -491,6 +553,26 @@ namespace A5Soft.CARMA.Application.IoC
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// The app's identity type: exactly one, declared in the app assemblies, and serializable as the data portal
+        /// needs it.
+        /// </summary>
+        /// <param name="appScans">the scans of the app assemblies</param>
+        /// <returns>the identity type</returns>
+        private static Type GetIdentityType(List<AssemblyScan> appScans)
+        {
+            var types = appScans.SelectMany(s => s.IdentityTypes).Distinct().ToList();
+            if (types.Count != 1) throw new InvalidOperationException(types.Count < 1
+                ? $"The app assemblies declare no identity type: derive exactly one class from {nameof(CarmaIdentity)}."
+                : $"The app assemblies declare more than one identity type: {string.Join(", ", types.Select(t => t.FullName))}.");
+
+            var defects = CarmaIdentity.GetDefects(types[0]);
+            if (defects.Count > 0) throw new InvalidOperationException(
+                $"Identity type {types[0].FullName} is not valid: {string.Join(" ", defects)}");
+
+            return types[0];
         }
 
         private void LoadUnmanagedAssemblies(AssemblyScan scan, string basePath)

@@ -1,41 +1,33 @@
-﻿using A5Soft.CARMA.Domain.Rules;
+﻿using A5Soft.CARMA.Domain.Metadata;
 using System;
-using A5Soft.CARMA.Domain.Metadata;
 
 namespace A5Soft.CARMA.Application
 {
     /// <summary>
-    /// A base class for all use cases.
+    /// A base class for all use cases: the scope's application context.
     /// </summary>
-    /// <remarks>
-    /// All use cases need logging.
-    /// Pretty much all use cases deal with business entities and require
-    /// validation and metadata access for that purpose.</remarks>
-    public abstract class UseCaseBase : IUseCase
+    /// <remarks>A use case that never runs remotely derives from it directly; every other one derives from
+    /// <see cref="AuthorizedUseCaseBase{TAppContext,TIdentity}"/> or one of the bases built on it.</remarks>
+    /// <typeparam name="TAppContext">the app's application context interface</typeparam>
+    public abstract class UseCaseBase<TAppContext> : IUseCase
+        where TAppContext : class, IApplicationContext
     {
         /// <summary>
-        /// validation provider
+        /// Application context and common services.
         /// </summary>
-        protected readonly IValidationEngineProvider ValidationProvider;
-        
-        /// <summary>
-        /// metadata provider
-        /// </summary>
-        protected readonly IMetadataProvider MetadataProvider;
-        
-        /// <summary>
-        /// logger
-        /// </summary>
-        protected readonly ILogger Logger;
+        protected readonly TAppContext Context;
 
 
-        protected UseCaseBase(IValidationEngineProvider validationProvider, 
-            IMetadataProvider metadataProvider, ILogger logger)
+        protected UseCaseBase(TAppContext context)
         {
-            ValidationProvider = validationProvider ??
-                throw new ArgumentNullException(nameof(validationProvider));
-            MetadataProvider = metadataProvider ?? throw new ArgumentNullException(nameof(metadataProvider));
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
+
+
+        /// <summary>
+        /// Gets the metadata of a domain type, for a form or a grid. Local: never crosses the data portal.
+        /// </summary>
+        /// <typeparam name="T">the domain type</typeparam>
+        protected IEntityMetadata GetMetadataFor<T>() => Context.MetadataProvider.GetEntityMetadata(typeof(T));
     }
 }

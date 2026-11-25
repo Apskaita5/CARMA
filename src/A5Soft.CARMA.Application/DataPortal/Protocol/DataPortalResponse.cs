@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using A5Soft.CARMA.Application.DataPortal.Internal;
 using A5Soft.CARMA.Domain.Files;
 
 namespace A5Soft.CARMA.Application.DataPortal.Protocol
@@ -14,7 +15,8 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
     /// <para>A response owns its resources: on the server the uploaded files and a downloaded file, on
     /// the client the transport connection behind a downloaded file. Dispose it once it has been
     /// handled; take the file first (<see cref="TakeFile"/>) to keep it.</para>
-    /// <para>A refreshed identity accompanies any result except an error.</para>
+    /// <para>An identity update (a new ticket, or a refreshed identity) accompanies any result except an error: opaque
+    /// UTF-8 JSON that a transport carries as it is.</para>
     /// </remarks>
     public sealed class DataPortalResponse : IDisposable
     {
@@ -24,7 +26,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
 
 
         private DataPortalResponse(DataPortalResultKind kind, string resultType, ReadOnlyMemory<byte> value,
-            FileContent file, RemoteError error, IdentityEnvelope refreshedIdentity, bool refusedBeforeBody,
+            FileContent file, RemoteError error, ReadOnlyMemory<byte> identityUpdate, bool refusedBeforeBody,
             IEnumerable<IDisposable> resources)
         {
             Kind = kind;
@@ -32,7 +34,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
             Value = value;
             _file = file;
             Error = error;
-            RefreshedIdentity = refreshedIdentity;
+            IdentityUpdate = identityUpdate;
             RefusedBeforeBody = refusedBeforeBody;
             _resources = resources?.Where(r => null != r).ToList() ?? (IReadOnlyList<IDisposable>)Array.Empty<IDisposable>();
         }
@@ -62,9 +64,11 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         public RemoteError Error { get; }
 
         /// <summary>
-        /// Gets the caller's refreshed identity; null if it has not changed. Never set for an error.
+        /// Gets an update of the caller's identity as UTF-8 JSON, written and read by the data portal: a new ticket of the
+        /// session, or the refreshed identity. Empty if nothing has changed; never set for an error. A transport carries
+        /// it as it is.
         /// </summary>
-        public IdentityEnvelope RefreshedIdentity { get; }
+        public ReadOnlyMemory<byte> IdentityUpdate { get; }
 
         /// <summary>
         /// Gets a value indicating whether the call was refused before any of its data was read.
@@ -77,33 +81,34 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// <summary>Creates a response with a result value.</summary>
         /// <param name="resultType">the wire type name of the result</param>
         /// <param name="value">the result as UTF-8 JSON</param>
-        /// <param name="refreshedIdentity">a refreshed identity; null if unchanged</param>
+        /// <param name="identityUpdate">an identity update; empty if nothing has changed</param>
         /// <param name="resources">resources the response owns</param>
         public static DataPortalResponse ForValue(string resultType, ReadOnlyMemory<byte> value,
-            IdentityEnvelope refreshedIdentity, IEnumerable<IDisposable> resources = null)
+            ReadOnlyMemory<byte> identityUpdate, IEnumerable<IDisposable> resources = null)
         {
             if (string.IsNullOrEmpty(resultType)) throw new ArgumentNullException(nameof(resultType));
 
             return new DataPortalResponse(DataPortalResultKind.Value, resultType, value, null, null,
-                refreshedIdentity, false, resources);
+                identityUpdate, false, resources);
         }
 
         /// <summary>Creates a response without a result.</summary>
-        /// <param name="refreshedIdentity">a refreshed identity; null if unchanged</param>
+        /// <param name="identityUpdate">an identity update; empty if nothing has changed</param>
         /// <param name="resources">resources the response owns</param>
-        public static DataPortalResponse ForNone(IdentityEnvelope refreshedIdentity,
+        public static DataPortalResponse ForNone(ReadOnlyMemory<byte> identityUpdate,
             IEnumerable<IDisposable> resources = null)
             => new DataPortalResponse(DataPortalResultKind.None, null, default, null, null,
-                refreshedIdentity, false, resources);
+                identityUpdate, false, resources);
 
         /// <summary>Creates a response with a downloaded file, which the response owns.</summary>
         /// <param name="file">the file</param>
-        /// <param name="refreshedIdentity">a refreshed identity; null if unchanged</param>
+        /// <param name="identityUpdate">an identity update; empty if nothing has changed</param>
         /// <param name="resources">other resources the response owns</param>
-        public static DataPortalResponse ForFile(FileContent file, IdentityEnvelope refreshedIdentity,
+        public static DataPortalResponse ForFile(FileContent file, ReadOnlyMemory<byte> identityUpdate,
             IEnumerable<IDisposable> resources = null)
             => new DataPortalResponse(DataPortalResultKind.File, null, default,
-                file ?? throw new ArgumentNullException(nameof(file)), null, refreshedIdentity, false, resources);
+                file ?? throw new ArgumentNullException(nameof(file)), null,
+                identityUpdate, false, resources);
 
         /// <summary>Creates an error response.</summary>
         /// <param name="error">the error</param>

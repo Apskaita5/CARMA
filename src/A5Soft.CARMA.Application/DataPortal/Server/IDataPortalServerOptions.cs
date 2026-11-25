@@ -2,7 +2,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
 {
     /// <summary>
     /// The options of the server data portal. The limits among them are published to the clients in the
-    /// <see cref="ServerSettings"/>, so they are configured on the server only.
+    /// <see cref="Protocol.ServerSettings"/>, so they are configured on the server only.
     /// </summary>
     /// <remarks>Implemented by <see cref="DataPortalServerOptions"/>, read from the app configuration
     /// (section <c>DataPortalServerOptions</c>).</remarks>

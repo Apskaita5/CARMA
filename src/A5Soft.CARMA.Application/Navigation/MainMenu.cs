@@ -1,97 +1,168 @@
-﻿using A5Soft.CARMA.Application.Authorization;
+﻿using A5Soft.CARMA.Application.IoC.Plugins;
+using A5Soft.CARMA.Domain.Metadata;
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
-using A5Soft.CARMA.Domain;
-using A5Soft.CARMA.Domain.Metadata;
+using System.Globalization;
+using System.Linq;
+using System.Resources;
 
 namespace A5Soft.CARMA.Application.Navigation
 {
-    [Serializable]
-    public class MainMenu
+    /// <summary>
+    /// The main menu of the scope's user, built by the <see cref="IMainMenuProvider"/>: groups and items, each use
+    /// case item enabled if the user may invoke its use case.
+    /// </summary>
+    public sealed class MainMenu
     {
-
-        public List<MenuItem> TopItems { get; } = new List<MenuItem>();
+        private readonly List<MenuItem> _topItems = new List<MenuItem>();
+        private readonly Dictionary<string, (MenuItem Group, string Owner)> _groups
+            = new Dictionary<string, (MenuItem, string)>(StringComparer.Ordinal);
+        private readonly IReadOnlyDictionary<Type, Type> _replacements;
+        private readonly IReadOnlyList<PluginAssembly> _plugins;
+        private readonly IMetadataProvider _metadata;
+        private readonly Action<MainMenu> _authorize;
 
 
         /// <summary>
-        /// Adds a top menu group.
+        /// Creates an empty menu.
         /// </summary>
-        /// <param name="name">a name of the menu item (should be unique within main menu for group items)</param>
-        /// <param name="displayName">a resource key string for <see cref="MenuItem.DisplayName"/></param>
-        /// <param name="resourceType"><see cref="Type"/> that contains the resources
-        /// for <see cref="MenuItem.DisplayName"/> and <see cref="MenuItem.Description"/></param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        public MenuItem AddMainMenuTopGroup(string name, string displayName, Type resourceType, string icon = "")
+        /// <param name="metadata">the metadata provider, for the titles of the use cases</param>
+        /// <param name="replacements">the use cases the tenant's plugins replace: app use case interface → the
+        /// plugin's own</param>
+        /// <param name="plugins">the tenant's plugins that have a menu, for the plugins' group</param>
+        /// <param name="authorize">enables the items for the scope's current identity</param>
+        internal MainMenu(IMetadataProvider metadata, IReadOnlyDictionary<Type, Type> replacements,
+            IReadOnlyList<PluginAssembly> plugins, Action<MainMenu> authorize)
         {
-            var result = MenuItem.CreateMainMenuTopGroup(name, displayName, resourceType, icon);
-            TopItems.Add(result);
-            return result;
+            _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
+            _replacements = replacements ?? new Dictionary<Type, Type>();
+            _plugins = plugins ?? Array.Empty<PluginAssembly>();
+            _authorize = authorize ?? throw new ArgumentNullException(nameof(authorize));
+        }
+
+
+        /// <summary>
+        /// Gets the top level items of the menu.
+        /// </summary>
+        public IReadOnlyList<MenuItem> TopItems => _topItems;
+
+        /// <summary>
+        /// Gets a value indicating whether the app has placed the plugins' group (<see cref="MenuBuilder.PluginsGroup"/>).
+        /// </summary>
+        internal bool PluginsPlaced { get; private set; }
+
+
+        /// <summary>
+        /// Finds a group by its key, at any depth.
+        /// </summary>
+        /// <param name="key">the key of the group, e.g. a public constant of the app's menu provider, or
+        /// <see cref="MainMenuProviderBase.PluginsGroupKey"/></param>
+        /// <returns>the group; null if there is none</returns>
+        public MenuItem FindGroup(string key)
+            => !string.IsNullOrWhiteSpace(key) && _groups.TryGetValue(key.Trim(), out var group) ? group.Group : null;
+
+        /// <summary>
+        /// Adds the GUI app's own items: actions (e.g. Settings, Exit), use case items and groups, also to the app's
+        /// groups (<see cref="GuiMenuBuilder.In"/>). Only the GUI app can change the app's groups; nobody can change
+        /// the plugins' groups.
+        /// </summary>
+        /// <param name="resources">the GUI app's resources for the labels of its groups and actions</param>
+        /// <param name="build">builds the additions</param>
+        /// <returns>this menu</returns>
+        public MainMenu Extend(ResourceManager resources, Action<GuiMenuBuilder> build)
+        {
+            if (null == build) throw new ArgumentNullException(nameof(build));
+
+            build(new GuiMenuBuilder(this, null, new MenuPart("the GUI app", resources, _metadata)));
+
+            TrimSeparators();
+            Refresh();
+
+            return this;
         }
 
         /// <summary>
-        /// Adds a top leaf menu item.
+        /// Brings the menu up to date: enables the items again for the scope's current identity (e.g. after its
+        /// permissions have changed), and sorts the plugins' groups again by their labels in the current UI culture
+        /// (e.g. after a language switch).
         /// </summary>
-        /// <param name="metadataProvider">a metadata provider for use case localized descriptions</param>
-        /// <param name="icon">Icon of the menu item if exists.</param>
-        /// <param name="useCaseType">A type of the (main) use case that handles action
-        /// associated with the menu item. E.g. create invoice use case handles menu item "New Invoice".</param>
-        public void AddMainMenuTopItem(IMetadataProvider metadataProvider, Type useCaseType, string icon = "")
+        public void Refresh()
         {
-            TopItems.Add(MenuItem.CreateMainMenuTopItem(metadataProvider, useCaseType, icon));
+            SortPluginGroups();
+            _authorize(this);
+        }
+
+
+        internal Type Resolve(Type useCaseType)
+            => _replacements.TryGetValue(useCaseType, out var replacement) ? replacement : useCaseType;
+
+        internal void AddTopItem(MenuItem item) => _topItems.Add(item);
+
+        internal void RegisterGroup(MenuItem group, string owner)
+        {
+            if (_groups.TryGetValue(group.Name, out var existing)) throw new InvalidOperationException(
+                $"The menu has a group with the key '{group.Name}' already (from {existing.Owner}); {owner} cannot " +
+                "add another.");
+
+            _groups.Add(group.Name, (group, owner));
         }
 
         /// <summary>
-        /// Gets a menu group item (submenu) that has the name requested.
+        /// Places the plugins' group in a group (at the top level for null), with a group for each of the tenant's
+        /// plugins that has a menu, sorted by their labels. Places nothing if there is no such plugin.
         /// </summary>
-        /// <param name="name">a name of the menu group item (submenu) to find</param>
-        /// <returns>a menu group item (submenu) that has the name requested; null if no such menu group</returns>
-        public MenuItem GetMenuGroup(string name)
+        /// <param name="parent">the group to place it in; null for the top level</param>
+        /// <param name="app">the app's part of the menu</param>
+        /// <param name="textKey">the key of the group's label in the app's resources</param>
+        /// <param name="icon">the icon of the group, if any</param>
+        /// <exception cref="InvalidOperationException">the plugins' group has been placed already</exception>
+        internal void PlacePlugins(MenuItem parent, MenuPart app, string textKey, string icon)
         {
-            if (name.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(name));
+            if (PluginsPlaced) throw new InvalidOperationException(
+                $"The plugins' group has been placed already; {app.Owner} can place it once only.");
 
-            name = name.Trim();
+            // the label is checked even without plugins, so that a missing text shows up in any test
+            var text = app.Text(textKey);
+            PluginsPlaced = true;
 
-            MenuItem result;
-            foreach (var topItem in TopItems)
+            if (_plugins.Count < 1) return;
+
+            var pluginsGroup = MenuItem.CreateGroup(MainMenuProviderBase.PluginsGroupKey, text, icon);
+            RegisterGroup(pluginsGroup, app.Owner);
+            if (null == parent) AddTopItem(pluginsGroup);
+            else parent.Add(pluginsGroup);
+
+            foreach (var plugin in _plugins)
             {
-                result = topItem.GetMenuGroup(name);
-                if (null != result) return result;
+                var part = new MenuPart($"plugin {plugin.Id}", plugin.Menu.Resources, _metadata,
+                    plugin.Id, plugin.Assembly);
+                var group = MenuItem.CreateGroup(MainMenuProviderBase.GetPluginGroupKey(plugin.Id),
+                    part.Text(plugin.Menu.TextKey), plugin.Menu.Icon);
+
+                RegisterGroup(group, part.Owner);
+                pluginsGroup.Add(group);
+
+                plugin.Menu.Build(new PluginMenuBuilder(this, group, part));
             }
 
-            return null;
+            SortPluginGroups();
         }
 
-        /// <summary>
-        /// Resets group menus (submenus) enabled state after (if) a GUI app adds its own menu items.
-        /// </summary>
-        public void ResetEnabledForMenuGroups()
+        internal IEnumerable<MenuItem> AllItems() => _topItems.SelectMany(i => new[] { i }.Concat(i.Descendants()));
+
+        internal void TrimSeparators()
         {
-            foreach (var item in TopItems)
-            {
-                item.ResetEnabledForMenuGroups();
-            }
+            foreach (var item in _topItems) item.TrimSeparators();
         }
 
-
-        internal void SetAuthorization(IAuthorizationProvider authorizationProvider, ClaimsIdentity user)
+        internal void UpdateGroupStates()
         {
-            foreach (var item in TopItems)
-            {
-                item.SetAuthorization(authorizationProvider, user);
-            }
+            foreach (var item in _topItems) item.UpdateGroupState();
         }
 
-        internal void ReplaceUseCases(Dictionary<Type, Type> useCaseInterfaceTypesToReplace)
-        {
-            foreach (var useCaseInterfaceTypeToReplace in useCaseInterfaceTypesToReplace)
-            {
-                foreach (var item in TopItems)
-                {
-                    item.ReplaceUseCase(useCaseInterfaceTypeToReplace.Key, 
-                        useCaseInterfaceTypeToReplace.Value);
-                }
-            }
-        }
+
+        private void SortPluginGroups()
+            => FindGroup(MainMenuProviderBase.PluginsGroupKey)?.SortItems(
+                StringComparer.Create(CultureInfo.CurrentUICulture, true));
     }
 }

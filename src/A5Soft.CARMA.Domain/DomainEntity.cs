@@ -24,7 +24,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainEntity(IApplicationContext context)
+        protected DomainEntity(IDomainContext context)
             : base(context) {}
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace A5Soft.CARMA.Domain
         /// </summary>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        protected DomainEntity(DomainEntityIdentity<T> identity, IApplicationContext context,
+        protected DomainEntity(DomainEntityIdentity<T> identity, IDomainContext context,
             bool allowNewIdentity = false) : base(context)
         {
             if (!allowNewIdentity && null == identity)

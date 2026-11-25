@@ -31,6 +31,6 @@ namespace A5Soft.CARMA.Domain
         /// so that a domain object never carries the rules, metadata or binding mode of the side
         /// it came from</param>
         /// <returns>a new domain object instance with the data and the state of this DTO</returns>
-        object ToEntity(IApplicationContext context);
+        object ToEntity(IDomainContext context);
     }
 }

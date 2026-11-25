@@ -13,7 +13,6 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
     /// depend on the interface. Every property is a plain settable value (the values below are the defaults):</para>
     /// <code>
     /// "DataPortalClientOptions": {
-    ///   "TokenClaimType": "carma:token",
     ///   "AppVersionMatch": "MajorMinor",
     ///   "MaxIdentityLength": 1048576,
     ///   "MaxResponseLength": 67108864,
@@ -21,26 +20,19 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
     /// }
     /// </code>
     /// <para>The limits a call must respect are not configured here: they come from the server, in the
-    /// <see cref="ServerSettings"/>.</para>
+    /// <see cref="Protocol.ServerSettings"/>.</para>
     /// </remarks>
     public class DataPortalClientOptions : ConfigurationBase, IDataPortalClientOptions
     {
-        /// <summary>The default claim type of the identity claim that holds the caller's token.</summary>
-        public const string DefaultTokenClaimType = "carma:token";
-
-
         /// <inheritdoc />
         public override Type InterfaceType => typeof(IDataPortalClientOptions);
 
 
         /// <inheritdoc />
-        public string TokenClaimType { get; set; } = DefaultTokenClaimType;
-
-        /// <inheritdoc />
         public AppVersionMatch AppVersionMatch { get; set; } = AppVersionMatch.MajorMinor;
 
         /// <inheritdoc />
-        /// <remarks>64 KB to 16 MB; 400 claims take about 25 KB.</remarks>
+        /// <remarks>64 KB to 16 MB; an identity with 400 permissions takes about 16 KB.</remarks>
         public int MaxIdentityLength { get; set; } = (int)OptionsValidation.MB;
 
         /// <inheritdoc />
@@ -66,8 +58,6 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
 
             var v = new OptionsValidation(nameof(DataPortalClientOptions));
 
-            v.Require(!string.IsNullOrWhiteSpace(TokenClaimType) && TokenClaimType.Trim() == TokenClaimType,
-                $"{nameof(TokenClaimType)} must be set, without surrounding spaces");
             v.Require(Enum.IsDefined(typeof(AppVersionMatch), AppVersionMatch),
                 $"{nameof(AppVersionMatch)} must be one of {string.Join(", ", Enum.GetNames(typeof(AppVersionMatch)))}");
             v.Range(MaxIdentityLength, 64 * OptionsValidation.KB, 16 * OptionsValidation.MB, nameof(MaxIdentityLength));

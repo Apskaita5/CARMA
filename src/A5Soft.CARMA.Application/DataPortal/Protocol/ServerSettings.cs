@@ -13,9 +13,9 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
     /// <para>A fixed framework type: the framework decides what is safe to publish. Anyone who can reach the
     /// server can read it, before logging in: the client needs it before its first call, and logging in is a
     /// call.</para>
-    /// <para>Built by <see cref="ServerDataPortalBase.GetServerSettings"/> from the
+    /// <para>Built by <see cref="ServerDataPortal.GetServerSettings"/> from the
     /// <see cref="IDataPortalServerOptions"/> and the <see cref="IAppVersionProvider"/>; received by the
-    /// client through <see cref="IDataPortalProxy.GetServerSettingsAsync"/>. On the client every value is
+    /// client through <see cref="EndPoints.IDataPortalProxy.GetServerSettingsAsync"/>. On the client every value is
     /// data received over the wire, checked before use.</para>
     /// </remarks>
     public sealed class ServerSettings
@@ -43,7 +43,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
 
         /// <summary>
         /// Gets or sets the fingerprint of the plugins installed on the server
-        /// (<see cref="IoC.PluginCatalog.Fingerprint"/>); the client refuses a server with other plugins.
+        /// (<see cref="PluginCatalog.Fingerprint"/>); the client refuses a server with other plugins.
         /// </summary>
         public string PluginFingerprint { get; set; }
 
@@ -76,7 +76,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Protocol
         /// <summary>
         /// Gets the problems of settings received from a server; empty if they are usable.
         /// </summary>
-        internal IReadOnlyList<string> GetProblems()
+        public IReadOnlyList<string> GetProblems()
         {
             var problems = new List<string>();
 

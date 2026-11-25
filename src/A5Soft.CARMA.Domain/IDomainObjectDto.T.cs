@@ -27,10 +27,10 @@ namespace A5Soft.CARMA.Domain
         /// the DTO: <c>=&gt; new Invoice(this, validationEngineProvider);</c>. Together with
         /// <see cref="IDtoSerializable{TDto}.ToDto"/> on the domain object, this makes both
         /// directions of the mapping a compile time requirement.</remarks>
-        new T ToEntity(IApplicationContext context);
+        new T ToEntity(IDomainContext context);
 
         /// <inheritdoc cref="IDomainObjectDto.ToEntity"/>
-        object IDomainObjectDto.ToEntity(IApplicationContext context)
+        object IDomainObjectDto.ToEntity(IDomainContext context)
             => ToEntity(context);
     }
 }
