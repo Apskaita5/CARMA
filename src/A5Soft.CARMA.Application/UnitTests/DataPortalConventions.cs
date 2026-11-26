@@ -134,6 +134,18 @@ namespace A5Soft.CARMA.Application.DataPortal
             var violations = new List<ConventionViolation>();
             var walker = new Walker(violations);
 
+            // a local use case: authorized like a remote one, never called through the data portal
+            foreach (var localUseCase in scan.ServiceImplementations
+                .Select(s => s.InterfaceType)
+                .Where(i => null != i && i.IsDefined(typeof(LocalUseCaseAttribute), false))
+                .Distinct())
+            {
+                ValidateAuthorization(localUseCase, violations);
+                if (localUseCase.GetMethods().Any(m => m.IsDefined(typeof(RemoteMethodAttribute), false)))
+                    violations.Add(new ConventionViolation(localUseCase, string.Empty,
+                        "is a local use case, so it takes no [RemoteMethod]"));
+            }
+
             foreach (var useCase in scan.RemoteServices.Values)
             {
                 ValidateAuthorization(useCase, violations);
@@ -204,9 +216,9 @@ namespace A5Soft.CARMA.Application.DataPortal
         }
 
         /// <summary>
-        /// Checks the authorization attributes of a remote interface.
+        /// Checks the authorization attributes of a use case interface, remote or local.
         /// </summary>
-        /// <param name="interfaceType">the remote interface</param>
+        /// <param name="interfaceType">the use case interface</param>
         /// <param name="violations">the list the violations are added to</param>
         private static void ValidateAuthorization(Type interfaceType, List<ConventionViolation> violations)
         {
@@ -224,7 +236,7 @@ namespace A5Soft.CARMA.Application.DataPortal
                 violations.Add(new ConventionViolation(interfaceType, string.Empty,
                     $"declares no authorization: mark it with [{nameof(AuthorizeAttribute).Replace("Attribute", "")}], " +
                     $"[{nameof(AllowAnonymousAttribute).Replace("Attribute", "")}], " +
-                    $"[{nameof(AllowSecondFactorPendingAttribute).Replace("Attribute", "")}] or" +
+                    $"[{nameof(AllowSecondFactorPendingAttribute).Replace("Attribute", "")}] or " +
                     $"[{nameof(AllowAdminOnlyAttribute).Replace("Attribute", "")}]"));
                 return;
             }

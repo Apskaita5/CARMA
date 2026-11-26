@@ -30,8 +30,24 @@ namespace A5Soft.CARMA.Application.UseCases.Entities
         {
             if (null == singleton) throw new ArgumentNullException(nameof(singleton));
 
-            return RunAsync(dp => dp.FetchAsync<TSingleton, TSingleton>(GetType(), singleton),
-                () => UpdateLocallyAsync(singleton), singleton);
+            return UpdateCoreAsync(singleton);
+        }
+
+        /// <summary>
+        /// Drops what the change has made stale from the scope's client cache, after it has succeeded: nothing by
+        /// default. Override to drop e.g. a cached query result that shows the singleton
+        /// (<c>Context.ClientCache.Invalidate(typeof(TResult))</c>).
+        /// </summary>
+        protected virtual void InvalidateClientCache() { }
+
+
+        private async Task<TSingleton> UpdateCoreAsync(TSingleton singleton)
+        {
+            var result = await RunAsync(dp => dp.FetchAsync<TSingleton, TSingleton>(GetType(), singleton),
+                () => UpdateLocallyAsync(singleton), singleton, nameof(UpdateAsync)).ConfigureAwait(false);
+
+            InvalidateClientCache();
+            return result;
         }
 
         /// <summary>

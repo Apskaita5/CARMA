@@ -75,7 +75,6 @@ namespace A5Soft.CARMA.Application
         /// <typeparam name="TEntity">the type of the entity the lookup refers to</typeparam>
         /// <param name="cancellationToken">a token to cancel the fetch</param>
         /// <returns>the lookup list, read only: it may be cached and shared</returns>
-        /// <exception cref="InvalidOperationException">the app has no lookup service</exception>
         protected async Task<IReadOnlyList<TLookup>> FetchLookupAsync<TLookup, TEntity>(
             CancellationToken cancellationToken = default)
             where TLookup : LookupBase<TEntity>

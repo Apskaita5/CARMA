@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.IoC;
@@ -59,9 +60,13 @@ namespace A5Soft.CARMA.Application.IoC
                 $"Service implementation type {ImplementationType.FullName} is not " +
                 $"assignable to the service interface {InterfaceType}.");
 
-            var interfaceAttr = implementationAttr.ServiceInterfaceType
-                .GetCustomAttribute<ServiceAttribute>();
-            if (null == interfaceAttr) throw new InvalidOperationException(
+            var interfaceAttrs = implementationAttr.ServiceInterfaceType
+                .GetCustomAttributes<ServiceAttribute>().ToList();
+            if (interfaceAttrs.Count > 1) throw new InvalidOperationException(
+                $"Interface {implementationAttr.ServiceInterfaceType.FullName} is marked with more than one service " +
+                $"attribute ({string.Join(", ", interfaceAttrs.Select(a => a.GetType().Name))}): a use case is either " +
+                "remote ([UseCase]) or local ([LocalUseCase]).");
+            var interfaceAttr = interfaceAttrs.FirstOrDefault() ?? throw new InvalidOperationException(
                 $"{implementationType.FullName} declares that it implements interface " +
                 $"{InterfaceType.FullName} however this interface does not have a ServiceAttribute.");
 

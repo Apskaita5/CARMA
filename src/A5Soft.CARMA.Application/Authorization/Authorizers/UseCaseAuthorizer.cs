@@ -13,7 +13,7 @@ namespace A5Soft.CARMA.Application.Authorization.Authorizers
     {
         /// <summary>Why the declaration is not valid (no attribute, or more than one); null if it is.</summary>
         private readonly string _misdeclared;
-        private readonly IAuthorizationExceptionProvider _exceptionProvider;
+        private readonly IExceptionFactory _exceptions;
 
 
         /// <summary>
@@ -21,12 +21,12 @@ namespace A5Soft.CARMA.Application.Authorization.Authorizers
         /// </summary>
         /// <param name="useCaseInterface">the use case interface carrying the authorization attributes</param>
         /// <param name="catalog">the permission catalog, holding an instance of every permission type</param>
-        /// <param name="exceptionProvider">provider for localized exceptions</param>
+        /// <param name="exceptions">the app's factory of localized exceptions</param>
         /// <exception cref="ArgumentNullException">a parameter is null</exception>
-        public UseCaseAuthorizer(Type useCaseInterface, PermissionCatalog catalog, IAuthorizationExceptionProvider exceptionProvider)
+        public UseCaseAuthorizer(Type useCaseInterface, PermissionCatalog catalog, IExceptionFactory exceptions)
         {
             UseCaseType = useCaseInterface ?? throw new ArgumentNullException(nameof(useCaseInterface));
-            _exceptionProvider = exceptionProvider ?? throw new ArgumentNullException(nameof(exceptionProvider));
+            _exceptions = exceptions ?? throw new ArgumentNullException(nameof(exceptions));
             if (null == catalog) throw new ArgumentNullException(nameof(catalog));
 
             var authorize = useCaseInterface.GetCustomAttribute<AuthorizeAttribute>(false);
@@ -42,8 +42,6 @@ namespace A5Soft.CARMA.Application.Authorization.Authorizers
                 $"{nameof(AllowSecondFactorPendingAttribute)} or {nameof(AllowAdminOnlyAttribute)}.";
             else if (declared > 1) _misdeclared = $"Use case {UseCaseType.FullName} declares more than one " +
                 "authorization attribute.";
-
-            if (null != _misdeclared) throw new InvalidOperationException(_misdeclared);
         }
 
 
@@ -87,16 +85,16 @@ namespace A5Soft.CARMA.Application.Authorization.Authorizers
 
             if (null == identity || identity.IsAnonymous) return new NotAuthenticatedException();
 
-            if (AllowsAdminOnly && !identity.IsAdmin) return _exceptionProvider.ExceptionForAdmin() ??
-                throw new InvalidOperationException("IAuthorizationExceptionProvider returned null exception.");
+            if (AllowsAdminOnly && !identity.IsAdmin) return _exceptions.AdminOnly() ??
+                throw new InvalidOperationException($"{nameof(IExceptionFactory)}.{nameof(IExceptionFactory.AdminOnly)} has returned no exception.");
 
             if (identity.IsSecondFactorPending) return AllowsSecondFactorPending
                 ? null : new NotAuthenticatedException("Provide the second factor first.");
 
             if (Permissions.Count < 1 || identity.HasAnyPermission(Permissions)) return null;
 
-            return _exceptionProvider.ExceptionForPermissions(Permissions) ??
-                throw new InvalidOperationException("IAuthorizationExceptionProvider returned null exception.");
+            return _exceptions.NotAuthorized(Permissions) ??
+                throw new InvalidOperationException($"{nameof(IExceptionFactory)}.{nameof(IExceptionFactory.NotAuthorized)} has returned no exception.");
         }
     }
 }

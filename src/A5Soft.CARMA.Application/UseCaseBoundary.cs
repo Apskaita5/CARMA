@@ -24,7 +24,7 @@ namespace A5Soft.CARMA.Application
         /// <returns>the exception to throw: the same one (rethrow it), or the business exception a transient
         /// failure becomes</returns>
         public static Exception Handle(Exception exception, CancellationToken cancellationToken, ILogger logger,
-            IBusinessExceptionFactory factory, Type source, string method)
+            IExceptionFactory factory, Type source, string method)
         {
             // 5: the caller has stopped waiting
             if (exception.IsCancellation(cancellationToken)) return exception;
@@ -32,26 +32,27 @@ namespace A5Soft.CARMA.Application
             var logged = exception.IsLogged();
 
             // 2 and 1: the user's to resolve
-            if (null != exception.ToNotAuthenticatedException() || null != exception.ToBusinessException())
+            var notAuthenticatedEx = exception.ToNotAuthenticatedException();
+            var businessEx = exception.ToBusinessException();
+            if (null != notAuthenticatedEx || null != businessEx)
             {
                 if (logged) return exception;
 
-                if (exception.ToBusinessException() is NotAuthorizedExceptionBase
-                    && null == exception.ToNotAuthenticatedException())
+                if (businessEx is NotAuthorizedException && null == notAuthenticatedEx)
                     logger?.LogSecurityIssue(exception);
-                else logger?.LogInfo($"{source.Name}.{method}: {exception.GetType().Name}", exception);   // the full tree
+                else logger?.LogDebug($"{source.Name}.{method}: {exception.GetType().Name}", exception);   // the full tree
 
                 return exception.MarkLogged();
             }
 
             // 3: wrapped into 1, so that the user reads it and retry logic still finds it
-            var transient = exception.ToTransiantException();
+            var transient = exception.ToTransientException();
             if (null != transient)
             {
                 if (!logged) logger?.LogWarning(exception);
 
                 var business = factory?.ServiceUnavailable(transient, exception) ?? throw new InvalidOperationException(
-                    $"{nameof(IBusinessExceptionFactory)}.{nameof(IBusinessExceptionFactory.ServiceUnavailable)} " +
+                    $"{nameof(IExceptionFactory)}.{nameof(IExceptionFactory.ServiceUnavailable)} " +
                     "has returned no exception.", exception);
                 return business.MarkLogged(exception.GetCorrelationId());
             }

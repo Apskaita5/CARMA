@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace A5Soft.CARMA.Application.Retry
 {
@@ -12,10 +11,6 @@ namespace A5Soft.CARMA.Application.Retry
     [Serializable]
     public class FibonacciBackoffRetryPolicy : IRetryPolicy
     {
-        // Efficient Fibonacci with memoization
-        private static Dictionary<int, long> _fibCache = new Dictionary<int, long> { { 1, 1 }, { 2, 1 } };
-
-
         /// <summary>
         /// Creates a new policy instance for the parameters provided.
         /// </summary>
@@ -82,14 +77,18 @@ namespace A5Soft.CARMA.Application.Retry
         }
 
 
+        // iterative: n is at most 20, and a shared cache would need locking
         private static long Fibonacci(int n)
         {
-            if (_fibCache.ContainsKey(n)) return _fibCache[n];
+            long previous = 0, current = 1;
+            for (var i = 1; i < n; i++)
+            {
+                var next = previous + current;
+                previous = current;
+                current = next;
+            }
 
-            long value = Fibonacci(n - 1) + Fibonacci(n - 2);
-            _fibCache[n] = value;
-
-            return value;
+            return current;
         }
     }
 }

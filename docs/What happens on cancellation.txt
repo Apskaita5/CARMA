@@ -1,0 +1,29 @@
+Nothing about the cancellation is sent to the server. The client drops the HTTP request, the server's web host notices the dropped request, and `HttpContext.RequestAborted` fires. That token is what the server hands to the use case.
+
+### On the client
+1. **Use case.** The GUI calls a read-only use case, for example `QueryAsync(criteria, ct)`. `RunReadOnlyAsync` passes `ct` to the remote call `dp.FetchAsync(GetType(), criteria, ct)`.
+2. **`ClientDataPortal.CallAsync`.** It first checks that the remote method accepts cancellation: its last parameter is a `CancellationToken`. A cancellable token for any other method is refused with an `ArgumentException`, so a call that changes state is never cancelled by the client. The token is not serialized and is not a wire parameter. It goes only to the proxy.
+3. **`HttpDataPortalProxy`.** `SendWithTimeoutAsync` links your token with the call timeout (`CancelAfter(CallTimeout)`) and calls `HttpClient.SendAsync(..., ResponseHeadersRead, linkedToken)`. Reading the response body afterwards also uses your token.
+4. **When the token fires mid-call:**
+   - **HTTP/1.1:** there is no way to cancel a single request, so `HttpClient` closes the TCP connection. That connection is not reused.
+   - **HTTP/2:** `HttpClient` sends a cancel signal for that request's stream only (`RST_STREAM` with `CANCEL`). The connection stays open.
+5. **What the caller gets.** The proxy's `catch ... when (cancellationToken.IsCancellationRequested)` rethrows the `OperationCanceledException` unchanged. The client data portal passes it on. The use case boundary sees `IsCancellation(ct) == true`, so it rethrows it without logging and without a message.
+
+A timeout aborts the request in the same way. The difference is that your token is not cancelled, so the proxy turns it into `DataPortalUnavailableException`. The boundary then wraps that in the app's "service unavailable" business exception.
+
+### On the server
+1. **Kestrel** sees the closed connection or the cancelled stream and cancels `HttpContext.RequestAborted`.
+2. **`HttpDataPortalEndpoint`** passes `http.RequestAborted` to `portal.HandleAsync(call, body, services, aborted)`.
+3. **`ServerDataPortal`** uses that token at every step before the use case runs: reading the payload, spooling uploaded files, looking up the identity, initializing the authentication. A request dropped during any of these stops before anything has run.
+4. **`InvokeAsync`** puts the token into the use case's last argument only when the method accepts cancellation (`descriptor.AcceptsCancellation`).
+   - **Read-only use case:** the token reaches `RunReadOnlyAsync`, then `DoQueryAsync(ct)`. From there it goes into your repository calls (for example `ExecuteReaderAsync(ct)`), so the database query is cancelled as well.
+   - **Use case that changes state:** it never receives the token. It runs to completion even if the client has gone, for example after a client-side timeout. A half-finished change can't be cut off.
+5. **The cancellation comes back out as an `OperationCanceledException`:**
+   - The server's use case boundary sees `IsCancellation(ct)`, so it does not log it.
+   - `ToError(ex, cancellationToken)` returns an empty `ServerError` without logging, because nobody will read it.
+   - The endpoint's attempt to write the response fails or is cancelled at once, also with the aborted token.
+
+### Things to know
+- **The client gives up immediately; the server stops when it notices.** The client's call ends the moment the token fires. On HTTP/1.1, Kestrel notices the closed connection reliably once it has read the request body. A cancellation while the body is still being uploaded shows up as a read failure, which the pipeline's token handling also covers.
+- **Intermediaries may not pass the abort on.** A reverse proxy or load balancer in front of Kestrel (IIS with ANCM, nginx, a cloud load balancer) does not always cancel its request to the backend when the client disconnects. nginx does by default, and IIS with ANCM forwards it, but some load balancers let the backend request run on. In that case the server finishes the query and the result is thrown away. The cancellation still works for the client; the server just wastes the work.
+- **Cancellation is a hint to the server, never a guarantee.** It is only allowed for read-only methods, so the outcome is the same whether or not the server notices.

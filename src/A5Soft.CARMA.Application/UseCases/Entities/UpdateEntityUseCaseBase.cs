@@ -31,8 +31,24 @@ namespace A5Soft.CARMA.Application.UseCases.Entities
         {
             if (null == entity) throw new ArgumentNullException(nameof(entity));
 
-            return RunAsync(dp => dp.FetchAsync<TEntity, TEntity>(GetType(), entity),
-                () => UpdateLocallyAsync(entity), entity);
+            return UpdateCoreAsync(entity);
+        }
+
+        /// <summary>
+        /// Drops what the change has made stale from the scope's client cache, after it has succeeded: by default the
+        /// lookups of the entity. Override to drop more, e.g. a cached query result
+        /// (<c>Context.ClientCache.Invalidate(typeof(TResult))</c>).
+        /// </summary>
+        protected virtual void InvalidateClientCache() => Context.ClientCache.InvalidateEntity(typeof(TEntity));
+
+        private async Task<TEntity> UpdateCoreAsync(TEntity entity)
+        {
+            var result = await RunAsync(dp => dp.FetchAsync<TEntity, TEntity>(GetType(), entity),
+                () => UpdateLocallyAsync(entity), entity, nameof(UpdateAsync)).ConfigureAwait(false);
+
+            InvalidateClientCache();
+
+            return result;
         }
 
         /// <summary>

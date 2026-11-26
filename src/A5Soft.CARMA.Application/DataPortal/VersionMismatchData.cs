@@ -4,8 +4,7 @@ using System;
 namespace A5Soft.CARMA.Application.DataPortal
 {
     /// <summary>
-    /// The details of a <see cref="RemoteErrorKind.VersionMismatch"/>, held in
-    /// <see cref="RemoteError.Data"/>; read them with <c>error.Data.ToObject&lt;VersionMismatchData&gt;()</c>.
+    /// The details of a RemoteErrorKind.VersionMismatch, given to the app's IExceptionFactory.VersionMismatch to word the message.
     /// </summary>
     public sealed class VersionMismatchData
     {

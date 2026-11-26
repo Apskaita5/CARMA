@@ -36,7 +36,7 @@ namespace A5Soft.CARMA.Application.UseCases.Session
 
         /// <summary>
         /// Checks that the user may enter the tenant (e.g. by the administrative database); throws the app's
-        /// <see cref="Authorization.Authorizers.NotAuthorizedExceptionBase"/> if not.
+        /// <see cref="Authorization.Authorizers.NotAuthorizedException"/> if not.
         /// </summary>
         /// <param name="identity">the user's identity</param>
         /// <param name="tenantId">the tenant</param>

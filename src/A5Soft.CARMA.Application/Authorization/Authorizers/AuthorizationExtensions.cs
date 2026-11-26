@@ -16,7 +16,7 @@ namespace A5Soft.CARMA.Application.Authorization.Authorizers
         /// authorizes remote calls.
         /// </summary>
         /// <exception cref="NotAuthenticatedException">not logged in, or the session has ended</exception>
-        /// <exception cref="NotAuthorizedExceptionBase">none of the permissions required</exception>
+        /// <exception cref="NotAuthorizedException">none of the permissions required</exception>
         public static async Task AuthorizeAsync(this IAuthenticationStateProvider authentication,
             IUseCaseAuthorizer authorizer, CancellationToken cancellationToken = default)
         {

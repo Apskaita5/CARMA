@@ -10,28 +10,28 @@ namespace A5Soft.CARMA.Application.Retry
     /// <para>Thrown only by repositories and infrastructure services, which decide which provider exceptions are
     /// transient (<see cref="ITransientExceptionValidator"/>); never by a use case. It serves retry logic: at the use
     /// case boundary it is wrapped into the app's business exception
-    /// (<see cref="IBusinessExceptionFactory.ServiceUnavailable"/>), which the retry logic still finds it in
-    /// (<see cref="Extensions.ToTransiantException"/>).</para>
+    /// (<see cref="IExceptionFactory.ServiceUnavailable"/>), which the retry logic still finds it in
+    /// (<see cref="Extensions.ToTransientException"/>).</para>
     /// <para>Its message is for the log only.</para>
     /// </remarks>
     [Serializable]
-    public class TransiantException : Exception
+    public class TransientException : Exception
     {
         /// <summary>Creates the exception.</summary>
-        public TransiantException() : base() { }
+        public TransientException() : base() { }
 
         /// <summary>Creates the exception.</summary>
         /// <param name="message">a description for the log</param>
-        public TransiantException(string message) : base(message) { }
+        public TransientException(string message) : base(message) { }
 
         /// <summary>Creates the exception.</summary>
         /// <param name="message">a description for the log</param>
         /// <param name="innerException">the provider's exception</param>
-        public TransiantException(string message, Exception innerException) : base(message, innerException) { }
+        public TransientException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>Creates the exception.</summary>
         /// <param name="innerException">the provider's exception</param>
-        public TransiantException(Exception innerException)
+        public TransientException(Exception innerException)
             : base(innerException?.Message ?? string.Empty, innerException) { }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace A5Soft.CARMA.Application.Retry
         /// <param name="retryAfter">when to try again, if the service says</param>
         /// <param name="message">a description for the log</param>
         /// <param name="innerException">the provider's exception</param>
-        public TransiantException(string serviceName, TimeSpan? retryAfter, string message,
+        public TransientException(string serviceName, TimeSpan? retryAfter, string message,
             Exception innerException = null) : base(message, innerException)
         {
             ServiceName = serviceName;

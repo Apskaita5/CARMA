@@ -9,7 +9,7 @@ namespace A5Soft.CARMA.Application.Tenancy
     /// Gets the plugins assigned to a tenant, e.g. from the administrative database. Implemented by the app, server
     /// side only; used when the identity for a tenant is issued or refreshed, never per call.
     /// </summary>
-    [Service(ServiceLifetime.Scoped)]
+    [Service(ServiceLifetime.Singleton)]
     public interface ITenantPluginProvider
     {
         /// <summary>

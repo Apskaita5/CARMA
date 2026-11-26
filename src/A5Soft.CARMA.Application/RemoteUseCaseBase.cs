@@ -24,9 +24,14 @@ namespace A5Soft.CARMA.Application
     /// <item><see cref="RunReadOnlyAsync{TResult}"/> for a method that does not: it takes a
     /// <see cref="CancellationToken"/> (as the last parameter of the remote method too).</item>
     /// </list>
-    /// <para>Neither retries. When the data portal server cannot be reached, the client data portal throws a
-    /// <see cref="BusinessException"/> (a <see cref="TransiantException"/> as an inner exception) with a message for the user,
-    /// who repeats the action later; a background service retries the use case itself, if it should.</para>
+    /// <para>Neither retries. Both branches are the use case boundary (<see cref="ExceptionExtensions"/>): a
+    /// cancellation is rethrown as it is; an authorization failure is logged as a security issue; any other business
+    /// exception, or a <see cref="NotAuthenticatedException"/>, is logged at debug level; a
+    /// <see cref="TransientException"/> (e.g. the client data portal's
+    /// <see cref="DataPortalUnavailableException"/>) is logged as a warning and thrown as the app's business exception
+    /// (<see cref="IExceptionFactory.ServiceUnavailable"/>), which holds it; anything else is logged as an
+    /// error with a correlation id. Each exception is logged once: not again by an outer use case, nor on the client
+    /// when the server has logged it.</para>
     /// <para>A local use case (its interface marked <see cref="LocalUseCaseAttribute"/>) always runs locally, also
     /// where the scope's endpoint is remote.</para>
     /// </remarks>
@@ -116,39 +121,50 @@ namespace A5Soft.CARMA.Application
         }
 
         /// <summary>
+        /// Runs a remote method that does not change state, keeping its result in the scope's client cache
+        /// (<see cref="IApplicationContext.ClientCache"/>): the data portal is called only if the cache holds no
+        /// current value for the key. A local run is never cached. Otherwise as
+        /// <see cref="RunReadOnlyAsync{TResult}"/>.
+        /// </summary>
+        /// <typeparam name="TResult">the type of the result</typeparam>
+        /// <param name="cacheKey">the type to keep the result under: the result type</param>
+        /// <param name="lifetime">how long to keep it; zero for not at all</param>
+        /// <param name="entityType">the entity type the result depends on, if any (dropped with it)</param>
+        /// <param name="remote">the data portal call; pass it the token, and the remote method must take one</param>
+        /// <param name="local">the local implementation</param>
+        /// <param name="cancellationToken">a token to cancel the call</param>
+        /// <param name="loggedArgument">the argument to log; never credentials, codes or file contents</param>
+        /// <param name="method">the remote method's name, filled in by the compiler</param>
+        /// <returns>the result of the remote method; a cached one is shared, never change it</returns>
+        protected Task<TResult> RunCachedReadOnlyAsync<TResult>(Type cacheKey, TimeSpan lifetime, Type entityType,
+            Func<IClientDataPortal, CancellationToken, Task<TResult>> remote,
+            Func<CancellationToken, Task<TResult>> local, CancellationToken cancellationToken,
+            object loggedArgument = null, [CallerMemberName] string method = null)
+        {
+            if (null == cacheKey) throw new ArgumentNullException(nameof(cacheKey));
+            if (null == remote) throw new ArgumentNullException(nameof(remote));
+            if (null == local) throw new ArgumentNullException(nameof(local));
+
+            if (lifetime <= TimeSpan.Zero) return RunCoreAsync(remote, local, cancellationToken, loggedArgument, method);
+
+            return RunCoreAsync(async (dp, ct) =>
+            {
+                if (Context.ClientCache.TryGet(cacheKey, out TResult cached)) return cached;
+
+                var result = await remote(dp, ct).ConfigureAwait(false);
+
+                Context.ClientCache.Set(cacheKey, result, lifetime, entityType);
+
+                return result;
+            }, local, cancellationToken, loggedArgument, method);
+        }
+
+        /// <summary>
         /// Runs before the local implementation: <see cref="AuthorizedUseCaseBase{TAppContext,TIdentity}"/>
         /// authorizes here.
         /// </summary>
         /// <param name="cancellationToken">a token to cancel the operation</param>
         protected virtual Task BeforeLocalRunAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-        /// <summary>
-        /// Logs a failure by its kind: a security issue; a warning for a business failure or an outage (a
-        /// <see cref="TransiantException"/>, e.g. <see cref="DataPortalUnavailableException"/>); a cancellation; else
-        /// an error.
-        /// </summary>
-        /// <param name="exception">the failure</param>
-        protected virtual void LogFailure(Exception exception)
-        {
-            switch (exception)
-            {
-                case NotAuthorizedExceptionBase _:
-                    Context.Logger.LogSecurityIssue(exception);
-                    break;
-                case NotAuthenticatedException _:
-                case BusinessException _:
-                case TransiantException _:
-                    Context.Logger.LogDebug(exception);
-                    break;
-                case OperationCanceledException _:
-                    Context.Logger.LogDebug($"{GetType().Name}: cancelled.");
-                    break;
-                default:
-                    Context.Logger.LogError(exception);
-                    break;
-            }
-        }
-
 
         private async Task<TResult> RunCoreAsync<TResult>(Func<IClientDataPortal, CancellationToken, Task<TResult>> remote,
             Func<CancellationToken, Task<TResult>> local, CancellationToken cancellationToken,
@@ -172,8 +188,10 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                LogFailure(e);
-                throw;
+                var toThrow = UseCaseBoundary.Handle(e, cancellationToken, Context.Logger,
+                    Context.ExceptionFactory, GetType(), method);
+                if (ReferenceEquals(toThrow, e)) throw;
+                throw toThrow;
             }
 
             Context.Logger.LogMethodExit(GetType(), method, result);

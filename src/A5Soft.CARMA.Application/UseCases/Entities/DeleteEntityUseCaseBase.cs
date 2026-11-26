@@ -28,9 +28,23 @@ namespace A5Soft.CARMA.Application.UseCases.Entities
         {
             if (null == id) throw new ArgumentNullException(nameof(id));
 
-            return RunAsync(dp => dp.InvokeAsync(GetType(), id), () => DoDeleteAsync(id), id);
+            return DeleteCoreAsync(id);
         }
 
+        /// <summary>
+        /// Drops what the change has made stale from the scope's client cache, after it has succeeded: by default the
+        /// lookups of the entity. Override to drop more, e.g. a cached query result
+        /// (<c>Context.ClientCache.Invalidate(typeof(TResult))</c>).
+        /// </summary>
+        protected virtual void InvalidateClientCache() => Context.ClientCache.InvalidateEntity(typeof(TEntity));
+
+        private async Task DeleteCoreAsync(DomainEntityIdentity<TEntity> id)
+        {
+            await RunAsync(dp => dp.InvokeAsync(GetType(), id), () => DoDeleteAsync(id), id, nameof(DeleteAsync))
+                .ConfigureAwait(false);
+
+            InvalidateClientCache();
+        }
 
         /// <summary>
         /// Deletes the entity; throws the app's business exception if it cannot be deleted (e.g. it is in use).

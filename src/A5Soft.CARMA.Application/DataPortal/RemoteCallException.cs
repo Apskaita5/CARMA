@@ -3,8 +3,8 @@ using System;
 namespace A5Soft.CARMA.Application.DataPortal
 {
     /// <summary>
-    /// Thrown by the client data portal for a remote error that the application error
-    /// mapper has not translated to an exception of its own.
+    /// A fault of a remote call (ServerError or BadRequest): handled by no one.
+    /// The GUI shows its generic internal error message; the server has logged the details under the RemoteError.CorrelationId.
     /// </summary>
     public class RemoteCallException : Exception
     {

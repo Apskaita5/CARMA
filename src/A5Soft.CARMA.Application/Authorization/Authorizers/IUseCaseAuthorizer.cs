@@ -37,7 +37,7 @@ namespace A5Soft.CARMA.Application.Authorization.Authorizers
         /// <summary>Throws if the identity may not invoke the use case.</summary>
         /// <param name="identity">the identity; null is treated as anonymous</param>
         /// <exception cref="NotAuthenticatedException">the use case requires logging in (completely)</exception>
-        /// <exception cref="NotAuthorizedExceptionBase">the identity holds none of the permissions</exception>
+        /// <exception cref="NotAuthorizedException">the identity holds none of the permissions</exception>
         /// <exception cref="InvalidOperationException">the use case interface declares no authorization at all</exception>
         void EnsureCanInvoke(CarmaIdentity identity);
     }

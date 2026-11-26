@@ -9,6 +9,7 @@ using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.HealthChecks;
 using A5Soft.CARMA.Application.Navigation;
 using A5Soft.CARMA.Domain;
+using A5Soft.CARMA.Domain.Events;
 using A5Soft.CARMA.Domain.IoC;
 
 namespace A5Soft.CARMA.Application.IoC
@@ -51,6 +52,7 @@ namespace A5Soft.CARMA.Application.IoC
             var permissionTypes = new List<Type>();
             var identityTypes = new List<Type>();
             var pluginMenuTypes = new List<Type>();
+            var appEventTypes = new List<Type>();
             IAssemblyDependencies dependencies = null;
 
             foreach (var type in types)
@@ -67,6 +69,7 @@ namespace A5Soft.CARMA.Application.IoC
                 if (typeof(CarmaIdentity).IsAssignableFrom(type) && type.Assembly != typeof(CarmaIdentity).Assembly)
                     identityTypes.Add(type);
                 if (typeof(IPluginMenu).IsAssignableFrom(type)) pluginMenuTypes.Add(type);
+                if (typeof(IAppEvent).IsAssignableFrom(type)) appEventTypes.Add(type);
 
                 if (forAssembly && typeof(IAssemblyDependencies).IsAssignableFrom(type))
                 {
@@ -86,6 +89,7 @@ namespace A5Soft.CARMA.Application.IoC
             PermissionTypes = permissionTypes;
             IdentityTypes = identityTypes;
             PluginMenuTypes = pluginMenuTypes;
+            AppEventTypes = appEventTypes;
         }
 
 
@@ -112,6 +116,12 @@ namespace A5Soft.CARMA.Application.IoC
         /// may have one; the app and the framework none.
         /// </summary>
         public IReadOnlyList<Type> PluginMenuTypes { get; }
+
+        /// <summary>
+        /// Gets the concrete application event types (implementing <see cref="IAppEvent"/>), for the background work
+        /// registry.
+        /// </summary>
+        public IReadOnlyList<Type> AppEventTypes { get; }
 
         /// <summary>Gets the project assembly dependencies if declared by a <see cref="IAssemblyDependencies"/> implementation.</summary>
         public IAssemblyDependencies ExternalDependencies { get; }

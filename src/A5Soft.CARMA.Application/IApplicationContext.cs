@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Application.Authorization.Authorizers;
 using A5Soft.CARMA.Application.Authorization.Identity;
+using A5Soft.CARMA.Application.Background.Events;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Domain;
 
@@ -28,18 +29,28 @@ namespace A5Soft.CARMA.Application
         ILogger Logger { get; }
 
         /// <summary>
+        /// Gets the scope's cache of values fetched from a remote server.
+        /// </summary>
+        Caching.IClientCache ClientCache { get; }
+
+        /// <summary>
         /// Gets the scope's identity.
         /// </summary>
         IAuthenticationStateProvider Authentication { get; }
 
         /// <summary>
-        /// Gets the lookup service; null if the app has none.
+        /// Gets the lookup service.
         /// </summary>
         ILookupService Lookups { get; }
 
         /// <summary>
-        /// Gets the app's factory of the business exceptions the use case boundary needs.
+        /// Gets the app's factory of the localized exceptions the framework throws.
         /// </summary>
-        IBusinessExceptionFactory BusinessExceptions { get; }
+        IExceptionFactory ExceptionFactory { get; }
+
+        /// <summary>
+        /// Gets the publisher of application events, handled in the background after a successful transaction.
+        /// </summary>
+        IAppEventPublisher Events { get; }
     }
 }

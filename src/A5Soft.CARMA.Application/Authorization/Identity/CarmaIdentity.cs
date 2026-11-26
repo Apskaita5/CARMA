@@ -82,6 +82,8 @@ namespace A5Soft.CARMA.Application.Authorization.Identity
             TenantPlugins = source.TenantPlugins;
             IsSecondFactorPending = source.IsSecondFactorPending;
             Endpoint = source.Endpoint;
+            IsSystem = source.IsSystem;
+            IsElevated = source.IsElevated;
         }
 
         /// <summary>For the anonymous identity only.</summary>
@@ -116,12 +118,19 @@ namespace A5Soft.CARMA.Application.Authorization.Identity
         public IReadOnlyCollection<Guid> Permissions { get; }
 
         /// <summary>Gets a value indicating whether the user has every permission, at every level.</summary>
-        public bool IsAdmin { get; }
+        /// <remarks>Also true for the system identity of background work, and for a user's identity a background
+        /// work item has upgraded (<see cref="IsElevated"/>).</remarks>
+        public bool IsAdmin { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the user has every tenant scoped permission within the identity's tenant.
         /// </summary>
         public bool IsTenantAdmin { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the user is authorized to view audit traces.
+        /// </summary>
+        public bool CanReadAuditTrace { get; }
 
         #endregion
 
@@ -161,6 +170,21 @@ namespace A5Soft.CARMA.Application.Authorization.Identity
         /// </summary>
         [JsonIgnore]
         public bool IsAuthenticated => !IsAnonymous && !IsSecondFactorPending;
+
+        /// <summary>
+        /// Gets a value indicating whether the identity is the system identity of background work
+        /// (<see cref="Sessions.IIdentityProvider.CreateSystem"/>). Never crosses the data portal.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSystem { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether background work has upgraded the user's identity to an administrator
+        /// (<see cref="Background.RunAs.User"/> with asAdmin): <see cref="IsAdmin"/> is then true whatever the user's
+        /// own rights. Never crosses the data portal.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsElevated { get; private set; }
 
         #endregion
 
@@ -227,6 +251,24 @@ namespace A5Soft.CARMA.Application.Authorization.Identity
                 : tenantPlugins.Where(p => !string.IsNullOrWhiteSpace(p))
                     .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             result.IsSecondFactorPending = secondFactorPending;
+            return result;
+        }
+
+        /// <summary>Gets a copy of the identity marked as the system identity of background work.</summary>
+        internal CarmaIdentity AsSystem()
+        {
+            var result = CloneChecked();
+            result.IsSystem = true;
+            result.IsAdmin = true;
+            return result;
+        }
+
+        /// <summary>Gets a copy of the identity upgraded to an administrator, for background work.</summary>
+        internal CarmaIdentity AsAdmin()
+        {
+            var result = CloneChecked();
+            result.IsAdmin = true;
+            result.IsElevated = true;
             return result;
         }
 

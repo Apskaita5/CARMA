@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace A5Soft.CARMA.Application.Retry
         /// </summary>
         /// <param name="policy">a retry policy to use</param>
         /// <param name="method">a method to execute</param>
-        /// <remarks><paramref name="method"/> is expected to throw <see cref="TransiantException"/>
+        /// <remarks><paramref name="method"/> is expected to throw <see cref="TransientException"/>
         /// if the error cause is transiant</remarks>
         public static async Task ExecuteAsync(this IRetryPolicy policy,
             Func<Task> method, CancellationToken ct = default)
@@ -36,7 +37,7 @@ namespace A5Soft.CARMA.Application.Retry
                 {
                     currentRetry += 1;
                     if (currentRetry > policy.RetryAttempts || ct.IsCancellationRequested
-                        || !ex.IsTransiantException()) throw;
+                        || !ex.IsTransientException()) throw;
                     await Task.Delay(policy.GetDelayForRetry(currentRetry), ct);
                 }
             }
@@ -65,7 +66,7 @@ namespace A5Soft.CARMA.Application.Retry
                 }
                 catch (Exception ex)
                 {
-                    if (ex.IsTransiantException(validator)) throw new TransiantException(ex);
+                    if (ex.IsTransientException(validator)) throw new TransientException(ex);
                     throw;
                 }
             }, ct);
@@ -73,61 +74,23 @@ namespace A5Soft.CARMA.Application.Retry
 
         /// <summary>
         /// Traverses the exception hierarchy and returns true if there is any
-        /// <see cref="TransiantException"/> in the exception hierarchy.
+        /// <see cref="TransientException"/> in the exception hierarchy.
         /// </summary>
         /// <param name="ex"></param>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        public static bool IsTransiantException(this Exception ex)
-        {
-            if (null == ex) throw new ArgumentNullException(nameof(ex));
-
-            if (ex is TransiantException bex) return true;
-
-            if (ex is AggregateException aex)
-            {
-                foreach (var e in aex.InnerExceptions)
-                {
-                    var result = e.IsTransiantException();
-                    if (result) return true;
-                }
-            }
-            else if (null != ex.InnerException)
-            {
-                return ex.InnerException.IsTransiantException();
-            }
-
-            return false;
-        }
+        public static bool IsTransientException(this Exception ex)
+            => ex.GetHierarchy().OfType<TransientException>().Any();
 
         /// <summary>
         /// Traverses the exception hierarchy and returns the first exception of type
-        /// <see cref="TransiantException"/>. If no such exception, returns null.
+        /// <see cref="TransientException"/>. If no such exception, returns null.
         /// </summary>
         /// <param name="ex"></param>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        public static TransiantException ToTransiantException(this Exception ex)
-        {
-            if (null == ex) throw new ArgumentNullException(nameof(ex));
-
-            if (ex is TransiantException bex) return bex;
-
-            if (ex is AggregateException aex)
-            {
-                foreach (var e in aex.InnerExceptions)
-                {
-                    var result = e.ToTransiantException();
-                    if (null != result) return result;
-                }
-            }
-            else if (null != ex.InnerException)
-            {
-                return ex.InnerException.ToTransiantException();
-            }
-
-            return null;
-        }
+        public static TransientException ToTransientException(this Exception ex)
+            => ex.GetHierarchy().OfType<TransientException>().FirstOrDefault();
 
         /// <summary>
         /// Traverses the exception hierarchy and returns true if there is any
@@ -137,24 +100,14 @@ namespace A5Soft.CARMA.Application.Retry
         /// <param name="validator">a validator to use</param>
         [DebuggerHidden]
         [DebuggerStepThrough]
-        public static bool IsTransiantException(this Exception ex, ITransientExceptionValidator validator)
+        public static bool IsTransientException(this Exception ex, ITransientExceptionValidator validator)
         {
             if (null == ex) throw new ArgumentNullException(nameof(ex));
             if (null == validator) throw new ArgumentNullException(nameof(validator));
 
-            if (validator.IsTransient(ex)) return true;
-
-            if (ex is AggregateException aex)
+            foreach (var exception in ex.GetHierarchy())
             {
-                foreach (var e in aex.InnerExceptions)
-                {
-                    var result = e.IsTransiantException(validator);
-                    if (result) return true;
-                }
-            }
-            else if (null != ex.InnerException)
-            {
-                return ex.InnerException.IsTransiantException(validator);
+                if (validator.IsTransient(exception)) return true;
             }
 
             return false;

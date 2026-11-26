@@ -82,7 +82,9 @@ namespace A5Soft.CARMA.Application.Retry
             double exponentialDelay = BaseDelay.TotalMilliseconds * Math.Pow(BackoffFactor, attempt - 1);
 
             // Add jitter: random between 0.5x and 1.5x of calculated delay
-            double jitterFactor = 0.5 + _random.NextDouble(); // [0.5, 1.5)
+            // Random is not thread safe, and one policy serves concurrent calls
+            double jitterFactor;
+            lock (_random) jitterFactor = 0.5 + _random.NextDouble(); // [0.5, 1.5)
             double jitteredDelay = exponentialDelay * jitterFactor;
 
             // Clamp to max delay

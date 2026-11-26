@@ -37,10 +37,14 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
     /// <para>Before the first call, the client fetches the <see cref="ServerSettings"/>
     /// (<see cref="IServerSettingsProvider"/>) and compares the server's application with its own
     /// (<see cref="IAppVersionProvider"/>), as <see cref="IDataPortalClientOptions.AppVersionMatch"/>
-    /// directs: a mismatch fails every call with <see cref="RemoteErrorKind.VersionMismatch"/>, without
+    /// directs: a mismatch fails every call with the app's business exception (IExceptionFactory.VersionMismatch), without
     /// sending it.</para>
     /// <para>The server's limits are enforced before sending and, for files of unknown length, while
     /// sending, whatever the transport.</para>
+    /// <para>A failure reported by the server is re-created by its class: a <see cref="BusinessException"/> with
+    /// the server's message, a <see cref="NotAuthenticatedException"/>, or a <see cref="RemoteCallException"/> with
+    /// the correlation id for a fault; each marked as logged, as the server has logged it. A server that cannot be
+    /// reached is a <see cref="DataPortalUnavailableException"/>.</para>
     /// </remarks>
     [DefaultServiceImplementation(typeof(IClientDataPortal))]
     public class ClientDataPortal : IClientDataPortal
@@ -52,7 +56,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         // the domain context only: the application context holds the client data portal itself, so depending
         // on it would make a circular dependency
         private readonly Domain.IDomainContext _context;
-        private readonly IRemoteErrorMapper _errorMapper;
+        private readonly IExceptionFactory _exceptions;
         private readonly IDataPortalClientOptions _options;
         private readonly IServerSettingsProvider _settingsProvider;
         private readonly IAppVersionProvider _versionProvider;
@@ -66,7 +70,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         /// <param name="registry">a registry of the remote use cases</param>
         /// <param name="context">the client application context, for the domain objects rebuilt
         /// from the DTOs received</param>
-        /// <param name="errorMapper">a mapper of remote errors to application exceptions</param>
+        /// <param name="exceptions">the app's factory of localized exceptions, for a version mismatch</param>
         /// <param name="options">the client data portal options</param>
         /// <param name="settingsProvider">a provider of the server's settings</param>
         /// <param name="versionProvider">the identity of the client application, compared with the
@@ -76,14 +80,14 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         /// <param name="authentication">the scope's identity: its ticket goes with every call, and updates are
         /// applied to it</param>
         public ClientDataPortal(IDataPortalConnection connection, RemoteUseCaseRegistry registry,
-            Domain.IDomainContext context, IRemoteErrorMapper errorMapper, IDataPortalClientOptions options,
+            Domain.IDomainContext context, IExceptionFactory exceptions, IDataPortalClientOptions options,
             IServerSettingsProvider settingsProvider, IAppVersionProvider versionProvider,
             PluginCatalog plugins, IAuthenticationStateProvider authentication)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _errorMapper = errorMapper ?? throw new ArgumentNullException(nameof(errorMapper));
+            _exceptions = exceptions ?? throw new ArgumentNullException(nameof(exceptions));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _versionProvider = versionProvider ?? throw new ArgumentNullException(nameof(versionProvider));
@@ -243,6 +247,10 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
             {
                 if (ex.Kind == RemoteErrorKind.BadRequest || ex.Kind == RemoteErrorKind.VersionMismatch)
                     _settingsProvider.Invalidate(_connection.Endpoint);
+
+                // the server speaks another version of the transport protocol
+                if (ex.Kind == RemoteErrorKind.VersionMismatch) throw VersionMismatch(null, ex.Message, ex);
+
                 throw ToException(ex);
             }
 
@@ -291,7 +299,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
             }
             catch (DataPortalTransportException ex)
             {
-                throw ToException(new RemoteError { Kind = ex.Kind }, ex);
+                throw ToException(ex);
             }
 
             var reason = GetMismatch(settings);
@@ -361,11 +369,10 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
                 Reason = reason
             };
 
-            return ToException(new RemoteError
-            {
-                Kind = RemoteErrorKind.VersionMismatch,
-                Data = JToken.FromObject(data, DataPortalSerialization.CreateSerializer(DataPortalSerialization.PortalMessageMaxDepth))
-            }, innerException ?? new InvalidOperationException($"Version mismatch: {reason}."));
+            return _exceptions.VersionMismatch(data, innerException
+                ?? new InvalidOperationException($"Version mismatch: {reason}."))
+                ?? throw new InvalidOperationException(
+                    $"{nameof(IExceptionFactory)}.{nameof(IExceptionFactory.VersionMismatch)} has returned no exception.");
         }
 
         #endregion
@@ -473,9 +480,14 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
 
                     // a call the server cannot read usually means that the server has been updated:
                     // the next call fetches the settings again and reports the mismatch
-                    if (error.Kind == RemoteErrorKind.BadRequest) _settingsProvider.Invalidate(_connection.Endpoint);
+                    if (error.Kind == RemoteErrorKind.BadRequest || error.Kind == RemoteErrorKind.VersionMismatch)
+                        _settingsProvider.Invalidate(_connection.Endpoint);
 
-                    throw ToException(error);
+                    // refused for its plugins: the same exception, with its data, as a mismatch found before a call
+                    if (error.Kind == RemoteErrorKind.VersionMismatch)
+                        throw VersionMismatch(null, "the server has other plugins installed");
+
+                    throw ToException(error, true);
                 }
 
                 object result = null;
@@ -555,61 +567,46 @@ namespace A5Soft.CARMA.Application.DataPortal.Client
         {
             // most likely the server has been updated since the settings were fetched
             _settingsProvider.Invalidate(_connection.Endpoint);
-            return ToException(new RemoteError { Kind = RemoteErrorKind.BadRequest });
+            return ToException(new RemoteError { Kind = RemoteErrorKind.BadRequest }, false);
         }
 
         private Exception LimitExceeded(string violation)
-            => ToException(new RemoteError { Kind = RemoteErrorKind.BadRequest },
+            => ToException(new RemoteError { Kind = RemoteErrorKind.BadRequest }, false,
                 new InvalidOperationException($"The call exceeds the data portal limits: {violation}."));
 
         /// <summary>
-        /// Converts a transport failure to the exception to throw: a <see cref="DataPortalUnavailableException"/>,
-        /// with the app's message, if the server is unavailable; otherwise an error of the kind the proxy reports.
+        /// Converts a transport failure to the exception to throw: a <see cref="DataPortalUnavailableException"/>
+        /// if the server is unavailable, otherwise a fault found by the client (not logged yet).
         /// </summary>
-        /// <param name="exception">the transport failure</param>
         private Exception ToException(DataPortalTransportException exception)
             => exception.Kind == RemoteErrorKind.ServiceUnavailable
-                ? new DataPortalUnavailableException(_errorMapper.GetDataPortalUnavailableMessage(), exception)
-                : ToException(new RemoteError { Kind = exception.Kind }, exception);
+                ? new DataPortalUnavailableException(exception)
+                : ToException(new RemoteError { Kind = exception.Kind }, false, exception);
 
         /// <summary>
-        /// Converts an error response to the exception to throw: the app's mapping first
-        /// (<see cref="IRemoteErrorMapper.ToException"/>), then <see cref="NotAuthenticatedException"/> or
-        /// <see cref="NotAuthorizedException"/>, else <see cref="RemoteCallException"/>.
+        /// Re-creates the exception of a failure by its class: a <see cref="BusinessException"/> with the server's
+        /// message, a <see cref="NotAuthenticatedException"/>, or a <see cref="RemoteCallException"/> for a fault.
         /// </summary>
         /// <param name="error">the error</param>
+        /// <param name="reportedByServer">whether the server has reported (and logged) it</param>
         /// <param name="innerException">the exception that caused it on the client; null for none</param>
-        private Exception ToException(RemoteError error, Exception innerException = null)
+        private static Exception ToException(RemoteError error, bool reportedByServer, Exception innerException = null)
         {
-            var mapped = _errorMapper.ToException(error);
-            if (null != mapped) return mapped;
-
+            Exception result;
             switch (error.Kind)
             {
+                case RemoteErrorKind.Business:
+                    result = new BusinessException(error.Message ?? string.Empty);
+                    break;
                 case RemoteErrorKind.Unauthenticated:
-                    return string.IsNullOrEmpty(error.Message)
-                        ? new NotAuthenticatedException() : new NotAuthenticatedException(error.Message, innerException);
-                case RemoteErrorKind.Unauthorized:
-                    return string.IsNullOrEmpty(error.Message)
-                        ? new NotAuthorizedExceptionInternal() : new NotAuthorizedExceptionInternal(error.Message, innerException);
+                    result = new NotAuthenticatedException();
+                    break;
                 default:
-                    return new RemoteCallException(error, innerException);
+                    result = new RemoteCallException(error, innerException);
+                    break;
             }
-        }
 
-        /// <summary>
-        /// The NotAuthorizedExceptionBase forwarded from a data portal.
-        /// It already contains localized message so no need for localized exception service.
-        /// </summary>
-        private class NotAuthorizedExceptionInternal : NotAuthorizedExceptionBase
-        {
-            /// <summary>Creates the exception.</summary>
-            public NotAuthorizedExceptionInternal(string message) : base(message) { }
-
-            public NotAuthorizedExceptionInternal(string message, Exception innerException)
-                : base(message, innerException) { }
-
-            public NotAuthorizedExceptionInternal() : base() { }
+            return reportedByServer ? result.MarkLogged(error.CorrelationId) : result;
         }
 
         #endregion

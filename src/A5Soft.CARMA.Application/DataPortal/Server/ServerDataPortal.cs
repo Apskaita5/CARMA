@@ -5,6 +5,7 @@ using A5Soft.CARMA.Application.Authorization.Sessions;
 using A5Soft.CARMA.Application.DataPortal.Internal;
 using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.IoC.Plugins;
+using A5Soft.CARMA.Application.Retry;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Files;
 using Newtonsoft.Json;
@@ -56,7 +57,7 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
         private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false);
 
         private readonly RemoteUseCaseRegistry _registry;
-        private readonly IRemoteErrorMapper _errorMapper;
+        private readonly IExceptionFactory _exceptions;
         private readonly IDataPortalServerOptions _options;
         private readonly IAppVersionProvider _versionProvider;
         private readonly TenantServiceMap _tenantServices;
@@ -72,7 +73,8 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
         /// <param name="registry">a registry of the remote use cases</param>
         /// <param name="tenantServices">the tenant scoped services, and the rules for tenant plugin assignments</param>
         /// <param name="plugins">the plugins installed on the server, compared with each caller's</param>
-        /// <param name="errorMapper">a mapper of application exceptions to remote errors</param>
+        /// <param name="exceptions">the app's factory of localized exceptions, for a transient failure of the
+        /// portal's own pipeline (e.g. the session store)</param>
         /// <param name="options">the server data portal options</param>
         /// <param name="versionProvider">the identity of the application, published to the clients</param>
         /// <param name="identityStore">the sessions</param>
@@ -80,18 +82,18 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
         /// session's identity again with</param>
         /// <param name="authorization">the authorization rules of the use cases</param>
         /// <param name="logger">a logger; null for none</param>
-        /// <remarks>The <see cref="IApplicationContext"/> is resolved from the request scope for
+        /// <remarks>The <see cref="Domain.IDomainContext"/> is resolved from the request scope for
         /// each call, as its services (e.g. the validation provider) may be scoped.</remarks>
         /// <exception cref="InvalidOperationException">the version provider gives no name or version</exception>
         public ServerDataPortal(RemoteUseCaseRegistry registry, TenantServiceMap tenantServices,
-            PluginCatalog plugins, IRemoteErrorMapper errorMapper, IDataPortalServerOptions options,
+            PluginCatalog plugins, IExceptionFactory exceptions, IDataPortalServerOptions options,
             IAppVersionProvider versionProvider, IIdentityStore identityStore,
             IIdentityProvider identityProvider, IAuthorizationProvider authorization, ILogger logger)
         {
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _tenantServices = tenantServices ?? throw new ArgumentNullException(nameof(tenantServices));
             _plugins = plugins ?? throw new ArgumentNullException(nameof(plugins));
-            _errorMapper = errorMapper ?? throw new ArgumentNullException(nameof(errorMapper));
+            _exceptions = exceptions ?? throw new ArgumentNullException(nameof(exceptions));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _versionProvider = versionProvider ?? throw new ArgumentNullException(nameof(versionProvider));
             _identityStore = identityStore ?? throw new ArgumentNullException(nameof(identityStore));
@@ -109,27 +111,15 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
         /// <summary>Gets a logger.</summary>
         protected ILogger Logger { get; }
 
-        /// <summary>Gets the server data portal options.</summary>
+        /// <inheritdoc />
         public IDataPortalServerOptions Options => _options;
 
 
-        /// <summary>
-        /// Gets the public settings of the server, for an endpoint to publish to the clients: the identity
-        /// of the application and the limits every call must respect. Public to anyone who can reach the
-        /// endpoint, without authentication.
-        /// </summary>
-        /// <returns>a new instance, which the caller may change</returns>
+        /// <inheritdoc />
         public ServerSettings GetServerSettings() => ServerSettings.Create(_options, _versionProvider, _plugins);
 
 
-        /// <summary>
-        /// Handles a call. Never throws: a failure is returned as an error response.
-        /// </summary>
-        /// <param name="call">the description of the call, as received; untrusted</param>
-        /// <param name="body">the data of the call, read only once the call has been cleared</param>
-        /// <param name="services">a service provider of the current request scope</param>
-        /// <param name="cancellationToken">a token signalled when the caller goes away</param>
-        /// <returns>a response for the endpoint to send; the endpoint disposes it once it is sent</returns>
+        /// <inheritdoc />
         public async Task<DataPortalResponse> HandleAsync(DataPortalCall call, IDataPortalRequestBody body,
             IServiceProvider services, CancellationToken cancellationToken = default)
         {
@@ -151,20 +141,14 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
             {
                 foreach (var resource in state.Resources) resource.Dispose();
 
-                return CreateErrorResponse(ex, !state.BodyStarted);
+                return DataPortalResponse.ForError(ToError(ex, cancellationToken), !state.BodyStarted);
             }
         }
 
-        /// <summary>
-        /// Creates an error response for a failure, mapped, logged and stripped the same way as the
-        /// failures of <see cref="HandleAsync"/>. For an endpoint that refuses a call itself, before
-        /// handing it over (e.g. a malformed transport message).
-        /// </summary>
-        /// <param name="exception">the failure; a <see cref="RemoteCallRejectedException"/> for a refusal</param>
-        /// <param name="refusedBeforeBody">whether the call was refused before any of its data was read</param>
-        public DataPortalResponse CreateErrorResponse(Exception exception, bool refusedBeforeBody)
-            => DataPortalResponse.ForError(ToError(exception), refusedBeforeBody);
-
+        /// <inheritdoc/>
+        public DataPortalResponse CreateErrorResponse(Exception exception, bool refusedBeforeBody,
+            CancellationToken cancellationToken)
+            => DataPortalResponse.ForError(ToError(exception, cancellationToken), refusedBeforeBody);
 
         #region Host overridable
 
@@ -177,9 +161,9 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
         /// <param name="descriptor">a descriptor of the use case</param>
         /// <param name="identity">the caller's current identity; anonymous for an anonymous call</param>
         /// <param name="services">a service provider of the current request scope</param>
-        /// <remarks>Must throw if the caller is not allowed to invoke the use case; the exception is reported to
-        /// the client as <see cref="NotAuthenticatedException"/> and <see cref="NotAuthorizedExceptionBase"/> are, or
-        /// through the error mapper.</remarks>
+        /// <remarks>Must throw if the caller is not allowed to invoke the use case: a
+        /// <see cref="NotAuthenticatedException"/>, or a business exception such as
+        /// <see cref="NotAuthorizedException"/>; anything else is reported as a fault.</remarks>
         protected virtual Task AuthorizeAsync(object useCase, RemoteUseCaseDescriptor descriptor,
             CarmaIdentity identity, IServiceProvider services)
         {
@@ -270,8 +254,12 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
             var tenantId = identity.TenantId;
             // a session started before a plugin was removed from the server
             if (!string.IsNullOrWhiteSpace(tenantId) && !_plugins.AreInstalled(identity.TenantPlugins))
-                throw new RemoteCallRejectedException(RemoteErrorKind.VersionMismatch,
-                    "The tenant's plugins have changed: enter the tenant again.");
+            {
+                // a stale session, not a stale client: end it, so that the user logs in (and enters the tenant) again
+                await _identityStore.EndSessionAsync(ticket.TicketId, cancellationToken).ConfigureAwait(false);
+                throw new RemoteCallRejectedException(RemoteErrorKind.Unauthenticated,
+                    "The tenant's plugins have changed.");
+            }
 
             if (!_tenantServices.IsAvailable(descriptor.InterfaceType, identity))
             {
@@ -518,24 +506,57 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
         #region Errors
 
         /// <summary>
-        /// Converts the exception that ended a call to the error sent to the client: a rejection as it is, then the
-        /// app's mapping (<see cref="IRemoteErrorMapper.ToError"/>), then <see cref="NotAuthenticatedException"/> and
-        /// <see cref="NotAuthorizedException"/>; anything else is an internal error, logged with a correlation id.
+        /// Converts the exception that ended a call to the error sent to the client: only its class and, for a
+        /// business exception, the localized message. The use case boundary has classified and logged whatever the
+        /// use case threw; the portal logs only the failures of its own pipeline (a refusal, the session, the
+        /// authorization, the parameters), once.
         /// </summary>
         /// <param name="exception">the exception</param>
-        private RemoteError ToError(Exception exception)
+        /// <param name="cancellationToken">the request's token: the caller has gone if it is cancelled</param>
+        private RemoteError ToError(Exception exception, CancellationToken cancellationToken)
         {
-            RemoteError result = null;
+            // the caller has gone, and nobody reads the answer
+            if (exception.IsCancellation(cancellationToken)) return new RemoteError { Kind = RemoteErrorKind.ServerError };
+
+            var logged = exception.IsLogged();
 
             if (exception is RemoteCallRejectedException rejected)
             {
-                result = new RemoteError { Kind = rejected.Kind };
+                var refusal = new RemoteError { Kind = rejected.Kind };
+                if (rejected.Kind == RemoteErrorKind.Unauthenticated || rejected.Kind == RemoteErrorKind.VersionMismatch)
+                    Logger?.LogInfo($"Remote call refused ({rejected.Kind}).", exception);
+                else LogWithCorrelationId(refusal, exception);
+                return refusal;
             }
-            else
+
+            // the message is for the log only
+            if (null != exception.ToNotAuthenticatedException())
             {
+                if (!logged) Logger?.LogInfo("Remote call refused (not authenticated).", exception);
+                return new RemoteError { Kind = RemoteErrorKind.Unauthenticated };
+            }
+
+            // authorization failures included
+            var business = exception.ToBusinessException();
+            if (null != business)
+            {
+                if (!logged)
+                {
+                    if (business is NotAuthorizedException) Logger?.LogSecurityIssue(exception);
+                    else Logger?.LogDebug($"Remote call failed ({business.GetType().Name}).", exception);
+                }
+                return new RemoteError { Kind = RemoteErrorKind.Business, Message = business.Message ?? string.Empty };
+            }
+
+            // 3: the pipeline's own, e.g. the session store; a use case's has been wrapped already
+            var transient = exception.ToTransientException();
+            if (null != transient)
+            {
+                if (!logged) Logger?.LogWarning(exception);
                 try
                 {
-                    result = _errorMapper.ToError(exception);
+                    var wrapped = _exceptions.ServiceUnavailable(transient, exception);
+                    if (null != wrapped) return new RemoteError { Kind = RemoteErrorKind.Business, Message = wrapped.Message };
                 }
                 catch (Exception ex)
                 {
@@ -543,39 +564,11 @@ namespace A5Soft.CARMA.Application.DataPortal.Server
                 }
             }
 
-            // the framework's own authentication and authorization failures, unless the app maps them
-            if (null == result)
-            {
-                if (exception is NotAuthenticatedException)
-                    result = new RemoteError { Kind = RemoteErrorKind.Unauthenticated, Message = exception.Message };
-                else if (exception is NotAuthorizedExceptionBase)
-                    result = new RemoteError { Kind = RemoteErrorKind.Unauthorized, Message = exception.Message };
-                else result = new RemoteError { Kind = RemoteErrorKind.ServerError };
-            }
-
-            switch (result.Kind)
-            {
-                case RemoteErrorKind.Business:
-                case RemoteErrorKind.Validation:
-                case RemoteErrorKind.Concurrency:
-                case RemoteErrorKind.Unauthenticated:
-                    // the user's to resolve; the use case has logged it already
-                    break;
-
-                case RemoteErrorKind.ServerError:
-                case RemoteErrorKind.BadRequest:
-                    // nothing about the cause leaves the server
-                    result.Message = null;
-                    result.Data = null;
-                    LogWithCorrelationId(result, exception);
-                    break;
-
-                default:
-                    LogWithCorrelationId(result, exception);
-                    break;
-            }
-
-            return result;
+            // nothing about the cause leaves the server
+            var fault = new RemoteError { Kind = RemoteErrorKind.ServerError };
+            if (logged && null != exception.GetCorrelationId()) fault.CorrelationId = exception.GetCorrelationId();
+            else LogWithCorrelationId(fault, exception);
+            return fault;
         }
 
         private void LogWithCorrelationId(RemoteError error, Exception exception)

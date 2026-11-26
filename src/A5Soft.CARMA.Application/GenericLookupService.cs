@@ -1,5 +1,6 @@
 ﻿using A5Soft.CARMA.Application.Authorization.Authorizers;
 using A5Soft.CARMA.Application.Authorization.Identity;
+using A5Soft.CARMA.Application.Caching;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Application.Retry;
 using A5Soft.CARMA.Domain;
@@ -28,39 +29,44 @@ namespace A5Soft.CARMA.Application
     public abstract class GenericLookupService : ILookupService
     {
         private readonly IClientDataPortal _dataPortal;
+        private readonly IExceptionFactory _exceptions;
         private readonly IAuthenticationStateProvider _authenticationStateProvider;
+        private readonly IClientCache _clientCache;
 
 
         /// <summary>
-        /// Gets an authorization provider.
+        /// Creates the service.
         /// </summary>
+        /// <param name="authenticationStateProvider">the scope's identity</param>
+        /// <param name="authorizationProvider">the authorization rules of the use cases</param>
+        /// <param name="dataPortal">the client data portal of the scope</param>
+        /// <param name="exceptions">the app's factory of localized exceptions</param>
+        /// <param name="clientCache">the scope's client cache, for the lookups fetched from a remote server</param>
+        /// <param name="logger">a logger; null for none</param>
+        protected GenericLookupService(IAuthenticationStateProvider authenticationStateProvider,
+            IAuthorizationProvider authorizationProvider, IClientDataPortal dataPortal,
+            IExceptionFactory exceptions, IClientCache clientCache, ILogger logger = null)
+        {
+            _exceptions = exceptions ?? throw new ArgumentNullException(nameof(exceptions));
+            _authenticationStateProvider = authenticationStateProvider
+                ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
+            AuthorizationProvider = authorizationProvider ?? throw new ArgumentNullException(nameof(authorizationProvider));
+            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
+            _clientCache = clientCache ?? throw new ArgumentNullException(nameof(clientCache));
+            Logger = logger;
+        }
+
+
+        /// <summary>Gets the authorization rules of the use cases.</summary>
         protected IAuthorizationProvider AuthorizationProvider { get; }
 
         /// <summary>Gets the logger; null for none.</summary>
         protected ILogger Logger { get; }
 
+
         /// <inheritdoc />
-        protected IBusinessExceptionFactory BusinessExceptions { get; }
-
-
-        protected GenericLookupService(IAuthenticationStateProvider authenticationStateProvider,
-            IAuthorizationProvider authorizationProvider, IClientDataPortal dataPortal,
-            IBusinessExceptionFactory businessExceptions, ILogger logger)
-        {
-            _authenticationStateProvider = authenticationStateProvider
-                ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
-            AuthorizationProvider = authorizationProvider ?? throw new ArgumentNullException(nameof(authorizationProvider));
-            BusinessExceptions = businessExceptions ?? throw new ArgumentNullException(nameof(businessExceptions));
-            _dataPortal = dataPortal ?? throw new ArgumentNullException(nameof(dataPortal));
-            Logger = logger;
-        }
-
-
-        /// <summary>
-        /// Gets a lookup value.
-        /// </summary>
-        /// <param name="requesterType">a type of the use case that requests the lookup</param>
-        public async Task<List<TLookup>> FetchAsync<TLookup, TEntity>(Type requesterType, CancellationToken ct = default)
+        public async Task<List<TLookup>> FetchAsync<TLookup, TEntity>(Type requesterType,
+            CancellationToken ct = default)
             where TLookup : LookupBase<TEntity>
             where TEntity : class, IDomainEntity<TEntity>
         {
@@ -73,13 +79,15 @@ namespace A5Soft.CARMA.Application
             {
                 if (_dataPortal.IsRemote)
                 {
-                    result = GetValueFromLocalCache<TLookup, TEntity>();
-                    if (null == result)
+                    // kept for the scope: the server may filter the list for the scope's identity
+                    if (!_clientCache.TryGet(typeof(TLookup), out result))
                     {
                         result = await _dataPortal.FetchAsync<Type, List<TLookup>>(GetType(), requesterType,
-                            new[] { typeof(TLookup), typeof(TEntity) }, ct).ConfigureAwait(false);
+                            new[] { typeof(TLookup), typeof(TEntity) }, ct)
+                            .ConfigureAwait(false);
 
-                        SetLocalCacheValue<TLookup, TEntity>(result);
+                        _clientCache.Set(typeof(TLookup), result, ClientCacheLifetimeAttribute.GetLifetime(typeof(TLookup))
+                            ?? _clientCache.DefaultLifetime, typeof(TEntity));
                     }
                 }
                 else
@@ -91,8 +99,8 @@ namespace A5Soft.CARMA.Application
             }
             catch (Exception e)
             {
-                var toThrow = UseCaseBoundary.Handle(e, ct, Logger, BusinessExceptions,
-                    GetType(), method);
+                var toThrow = UseCaseBoundary.Handle(e, ct, Logger, _exceptions,
+                    GetType(), nameof(FetchAsync));
                 if (ReferenceEquals(toThrow, e)) throw;
                 throw toThrow;
             }
@@ -102,28 +110,6 @@ namespace A5Soft.CARMA.Application
             return result;
         }
 
-        /// <summary>
-        /// Implement this method to get a requested value from a local cache (if used/configured).
-        /// </summary>
-        /// <remarks>Do not configure local cache for shared environments even if a remote data portal is used.
-        /// The data portal will return only lookups for the user, which will render the
-        /// shared cache invalid. Data portal cannot return lookup values that are not meant for the user
-        /// as it will compromise its security.</remarks>
-        protected abstract List<TLookup> GetValueFromLocalCache<TLookup, TEntity>()
-            where TLookup : LookupBase<TEntity>
-            where TEntity : class, IDomainEntity<TEntity>;
-
-        /// <summary>
-        /// Implement this method to add fetched lookup value to a local cache (if used/configured).
-        /// </summary>
-        /// <remarks>Only invoked if a remote data portal is used.
-        /// Do not configure local cache for shared environments even if a remote data portal is used.
-        /// The data portal might return only lookups for the user, which will render the
-        /// shared cache invalid. Data portal cannot return lookup values that are not meant for the user
-        /// as it will compromise its security.</remarks>
-        protected abstract void SetLocalCacheValue<TLookup, TEntity>(List<TLookup> value)
-            where TLookup : LookupBase<TEntity>
-            where TEntity : class, IDomainEntity<TEntity>;
 
         /// <summary>
         /// Implement this method to fetch lookup value from a database or a server side cache.
@@ -159,8 +145,6 @@ namespace A5Soft.CARMA.Application
             if (null == attribute.LookupTypes || Array.IndexOf(attribute.LookupTypes, typeof(TLookup)) < 0)
                 throw new ArgumentException($"Use case {requesterType.FullName} " +
                     $"does not require a lookup of type {typeof(TLookup).FullName}.");
-
-            if (!typeof(IAuthorizedUseCase).IsAssignableFrom(requesterType)) return;
 
             var authorizer = AuthorizationProvider.GetAuthorizer(requesterType);
             await _authenticationStateProvider.AuthorizeAsync(authorizer, ct)

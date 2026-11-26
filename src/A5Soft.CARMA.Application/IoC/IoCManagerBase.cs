@@ -1,5 +1,8 @@
 using A5Soft.CARMA.Application.Authorization.Authorizers;
 using A5Soft.CARMA.Application.Authorization.Identity;
+using A5Soft.CARMA.Application.Background;
+using A5Soft.CARMA.Application.Background.CronJobs;
+using A5Soft.CARMA.Application.Background.Hosting;
 using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.IoC.Plugins;
@@ -31,7 +34,7 @@ namespace A5Soft.CARMA.Application.IoC
     /// <item><see cref="IsDevelopment"/>, and optionally <see cref="AppPath"/>;</item>
     /// <item><see cref="LoadUnmanagedAssembly"/>: loads a native library (e.g. with <c>NativeLibrary.Load</c>);
     /// only called if an assembly declares one;</item>
-    /// /// <item>optionally <see cref="CreateHttpMessageHandler"/>: the connection settings of the HTTP data portal
+    /// <item>optionally <see cref="CreateHttpMessageHandler"/>: the connection settings of the HTTP data portal
     /// transport, the only place they can be set.</item>
     /// </list>
     /// <para>Loading assemblies and native libraries is left to the app because neither
@@ -50,10 +53,10 @@ namespace A5Soft.CARMA.Application.IoC
     /// assigned the plugin;</item>
     /// <item>checks that no app scoped service depends on a tenant scoped one;</item>
     /// <item>creates every configuration for this build, binds it, initializes and validates it;</item>
-    /// <item>builds the remote use case registry, the plugin catalog and the tenant service map, and adds every
-    /// service through <see cref="AddService"/>; each tenant scoped interface through
-    /// <see cref="AddServiceFactory"/>, choosing the implementation for the scope's tenant.</item>
-    /// </list>
+    /// <item>builds the remote use case registry, the plugin catalog, the tenant service map and the background work
+    /// registry (<see cref="BackgroundWork"/>, <see cref="CronSchedules"/>), and adds every service through
+    /// <see cref="AddService"/>, each event handler and cron job also under its own type; each tenant scoped
+    /// interface through <see cref="AddServiceFactory"/>, choosing the implementation for the scope's tenant.</item>
     /// <para>Nothing of the app's own assemblies is validated against the data portal conventions at startup:
     /// that belongs in a unit test (<see cref="DataPortalConventions.Validate(Assembly)"/>).</para>
     /// </remarks>
@@ -130,6 +133,18 @@ namespace A5Soft.CARMA.Application.IoC
 
         /// <summary>Gets the plugins accepted.</summary>
         public IReadOnlyList<PluginAssembly> Plugins => _plugins;
+
+        /// <summary>
+        /// Gets the application event types, event handlers and cron jobs of this build (also added to the
+        /// container); null before <see cref="Initialize"/>.
+        /// </summary>
+        public BackgroundWorkRegistry BackgroundWork { get; private set; }
+
+        /// <summary>
+        /// Gets the cron job schedules to register with the background work provider: the enabled ones of
+        /// <see cref="ICronJobsConfiguration"/>; empty before <see cref="Initialize"/> and in a build that is not a server.
+        /// </summary>
+        public IReadOnlyList<CronSchedule> CronSchedules { get; private set; } = Array.Empty<CronSchedule>();
 
         #endregion
 
@@ -324,9 +339,21 @@ namespace A5Soft.CARMA.Application.IoC
             services.Add(Singleton(typeof(IBuildInfo), new BuildInfo(BuildConfiguration)));
             services.Add(Singleton(typeof(PermissionCatalog), permissions));
 
+            // background work: from the final services, so a plugin's handlers and cron jobs are included
+            var background = BackgroundWorkRegistry.Create(services,
+                frameworkScans.Concat(appScans).Concat(pluginScans).SelectMany(s => s.AppEventTypes).Distinct(),
+                _plugins, BuildConfiguration, tenantServices.Count > 0);
+            services.Add(Singleton(typeof(BackgroundWorkRegistry), background));
+            BackgroundWork = background;
+            CronSchedules = background.GetSchedules(configurations
+                .Select(c => c.ImplementationInstance).OfType<ICronJobsConfiguration>().FirstOrDefault());
+
             _services = services;
             _tenantServices = tenantServices;
             foreach (var service in services) AddService(service);
+
+            // each handler and cron job under its own type too, so that the runner resolves exactly the one it needs
+            foreach (var work in background.WorkServices) AddService(work.AsSelf());
 
             // each implementation under its own type; the interface through a factory choosing the scope's
             foreach (var tenantService in tenantServices)

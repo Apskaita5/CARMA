@@ -1,4 +1,5 @@
-﻿using A5Soft.CARMA.Domain;
+﻿using A5Soft.CARMA.Application.Authorization;
+using A5Soft.CARMA.Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,8 +19,13 @@ namespace A5Soft.CARMA.Application
     /// in its <see cref="UseCaseAttribute.LookupTypes"/> and the scope's identity may invoke it, so the interface
     /// itself allows anonymous calls.</para>
     /// <para>The list returned may be cached and shared: never change it.</para>
+    /// <para>The attribute is right here: the lookup service authorizes each request itself,
+    /// by the use case that asks for the lookup. Yet the server authorizes every remote call
+    /// by its interface. In this case it shouldn't, because the service does it by itself.
+    /// Hence [AllowAnonymous]</para>
     /// </remarks>
     [RemoteService(ServiceLifetime.Scoped)]
+    [AllowAnonymous]
     public interface ILookupService
     {
         /// <summary>

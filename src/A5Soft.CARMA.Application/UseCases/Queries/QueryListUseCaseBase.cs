@@ -1,6 +1,7 @@
 ﻿using A5Soft.CARMA.Application.Authorization.Identity;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Metadata;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,10 @@ namespace A5Soft.CARMA.Application.UseCases.Queries
         /// <returns>the result</returns>
         public Task<List<TItem>> QueryAsync(CancellationToken cancellationToken = default)
         {
-            return RunReadOnlyAsync((dp, ct) => dp.FetchAsync<List<TItem>>(GetType(), ct),
+            // cached on the client only if the item type says so
+            return RunCachedReadOnlyAsync(typeof(List<TItem>),
+                ClientCacheLifetimeAttribute.GetLifetime(typeof(TItem)) ?? TimeSpan.Zero, null,
+                (dp, ct) => dp.FetchAsync<List<TItem>>(GetType(), ct),
                 DoQueryAsync, cancellationToken);
         }
 
