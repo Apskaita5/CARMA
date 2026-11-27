@@ -52,6 +52,7 @@ namespace A5Soft.CARMA.Application.IoC
             var permissionTypes = new List<Type>();
             var identityTypes = new List<Type>();
             var pluginMenuTypes = new List<Type>();
+            var formTypes = new List<Type>();
             var appEventTypes = new List<Type>();
             IAssemblyDependencies dependencies = null;
 
@@ -69,6 +70,7 @@ namespace A5Soft.CARMA.Application.IoC
                 if (typeof(CarmaIdentity).IsAssignableFrom(type) && type.Assembly != typeof(CarmaIdentity).Assembly)
                     identityTypes.Add(type);
                 if (typeof(IPluginMenu).IsAssignableFrom(type)) pluginMenuTypes.Add(type);
+                if (type.IsDefined(typeof(ServesUseCaseAttribute), false)) formTypes.Add(type);
                 if (typeof(IAppEvent).IsAssignableFrom(type)) appEventTypes.Add(type);
 
                 if (forAssembly && typeof(IAssemblyDependencies).IsAssignableFrom(type))
@@ -89,6 +91,7 @@ namespace A5Soft.CARMA.Application.IoC
             PermissionTypes = permissionTypes;
             IdentityTypes = identityTypes;
             PluginMenuTypes = pluginMenuTypes;
+            FormTypes = formTypes;
             AppEventTypes = appEventTypes;
         }
 
@@ -116,6 +119,12 @@ namespace A5Soft.CARMA.Application.IoC
         /// may have one; the app and the framework none.
         /// </summary>
         public IReadOnlyList<Type> PluginMenuTypes { get; }
+
+        /// <summary>
+        /// Gets the concrete classes marked <see cref="ServesUseCaseAttribute"/>: the GUI's forms and pages, for the
+        /// <see cref="FormRegistry"/>.
+        /// </summary>
+        public IReadOnlyList<Type> FormTypes { get; }
 
         /// <summary>
         /// Gets the concrete application event types (implementing <see cref="IAppEvent"/>), for the background work

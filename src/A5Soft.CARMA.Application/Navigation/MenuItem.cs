@@ -65,9 +65,7 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <summary>
         /// Gets the interface of the use case a use case item opens; null for any other item.
         /// </summary>
-        /// <remarks>A plugin of the tenant may have replaced the app's use case with its own: the item keeps the
-        /// app's title.</remarks>
-        public Type UseCaseType { get; internal set; }
+        public Type UseCaseType { get; }
 
         /// <summary>
         /// Gets the items of a group; empty for any other item.

@@ -3,7 +3,8 @@
     /// <summary>
     /// Builds the app's menu (<see cref="MainMenuProviderBase.Build"/>): groups, use case items, separators, and the
     /// place of the plugins' group (<see cref="PluginsGroup"/>). It cannot add to a group of another part: only the
-    /// GUI app can (<see cref="GuiMenuBuilder.In"/>).
+    /// GUI app can (<see cref="GuiMenuBuilder.In"/>). Only the app opens a group to plugins
+    /// (<see cref="MenuBuilderBase{TBuilder}.Group"/> with openToPlugins), e.g. Reports.
     /// </summary>
     public sealed class MenuBuilder : MenuBuilderBase<MenuBuilder>
     {

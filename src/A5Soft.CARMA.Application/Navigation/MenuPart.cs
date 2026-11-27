@@ -12,9 +12,10 @@ namespace A5Soft.CARMA.Application.Navigation
     internal sealed class MenuPart
     {
         internal MenuPart(string owner, ResourceManager resources, IMetadataProvider metadata,
-            string pluginId = null, Assembly pluginAssembly = null)
+            string pluginId = null, Assembly pluginAssembly = null, bool isApp = false)
         {
             Owner = owner;
+            IsApp = isApp;
             Resources = resources;
             Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             PluginId = pluginId;
@@ -23,6 +24,9 @@ namespace A5Soft.CARMA.Application.Navigation
 
 
         internal string Owner { get; }
+        /// <summary>Gets whether this is the app's part (<see cref="MainMenuProviderBase.Build"/>): only the app opens
+        /// its groups to plugins.</summary>
+        internal bool IsApp { get; }
         internal ResourceManager Resources { get; }
         internal IMetadataProvider Metadata { get; }
         internal string PluginId { get; }

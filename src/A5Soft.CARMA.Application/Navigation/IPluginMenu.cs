@@ -1,17 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Resources;
+﻿using System.Resources;
 
 namespace A5Soft.CARMA.Application.Navigation
 {
     /// <summary>
-    /// A plugin's part of the main menu: one group in the plugins' group (wherever the app places it,
-    /// <see cref="MenuBuilder.PluginsGroup"/>), and the app's use cases it replaces. At most one class per plugin
-    /// assembly, with a public parameterless constructor (checked at startup). Used for the tenants the plugin is
-    /// assigned to.
+    /// A plugin's part of the main menu: its own group in the plugins' group (wherever the app places it,
+    /// <see cref="MenuBuilder.PluginsGroup"/>), and items appended to the app's groups that the app opens to plugins
+    /// (<see cref="Extend"/>). At most one class per plugin assembly, with a public parameterless constructor (checked
+    /// at startup). Used for the tenants the plugin is assigned to.
     /// </summary>
-    /// <remarks>A plugin cannot change the app's groups (two plugins would conflict), only replace the use case an
-    /// app item opens. The plugins' groups are sorted by their labels, in the current UI culture.</remarks>
+    /// <remarks>
+    /// <para>A plugin only adds: it cannot change, reorder or remove the app's items, and it adds only its own use
+    /// cases. The plugins' groups are sorted by their labels, in the current UI culture; a plugin's group that ends up
+    /// without any use case item is left out of the menu.</para>
+    /// <para>A plugin changes what an app's item does by other means: its own form for the app's use case, in the
+    /// GUI's form registry, or its own implementation of the app's use case, in its services.</para>
+    /// </remarks>
     public interface IPluginMenu
     {
         /// <summary>
@@ -31,17 +34,18 @@ namespace A5Soft.CARMA.Application.Navigation
         string Icon => null;
 
         /// <summary>
-        /// Gets the app's use cases the plugin replaces in the menu: app use case interface → the plugin's own use
-        /// case interface. The item keeps the app's title. Two plugins of a tenant may not replace the same one.
-        /// </summary>
-        /// <returns>the replacements; null (the default) for none</returns>
-        IReadOnlyDictionary<Type, Type> GetUseCaseReplacements() => null;
-
-        /// <summary>
         /// Builds the plugin's group: subgroups (their keys prefixed with the plugin's group key), the plugin's own use
-        /// cases and separators.
+        /// cases and separators. A plugin that only extends the app's groups leaves it empty.
         /// </summary>
         /// <param name="group">the builder of the plugin's group</param>
         void Build(PluginMenuBuilder group);
+
+        /// <summary>
+        /// Appends the plugin's own items to the app's groups that are open to plugins
+        /// (<see cref="MenuBuilderBase{TBuilder}.Group"/> with openToPlugins), after the app's items. The default adds
+        /// nothing.
+        /// </summary>
+        /// <param name="app">the builder of the additions to the app's groups</param>
+        void Extend(PluginMenuExtender app) { }
     }
 }

@@ -22,4 +22,8 @@
     <ProjectReference Include="..\A5Soft.CARMA.Domain\A5Soft.CARMA.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Navigation\MainMenu\" />
+  </ItemGroup>
+
 </Project>

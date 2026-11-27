@@ -7,6 +7,7 @@ using A5Soft.CARMA.Application.DataPortal;
 using A5Soft.CARMA.Application.DataPortal.Protocol;
 using A5Soft.CARMA.Application.IoC.Plugins;
 using A5Soft.CARMA.Application.Navigation;
+using A5Soft.CARMA.Application.Navigation.Forms;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.IoC;
 using A5Soft.CARMA.Domain.UnitTests;
@@ -135,6 +136,13 @@ namespace A5Soft.CARMA.Application.IoC
         public IReadOnlyList<PluginAssembly> Plugins => _plugins;
 
         /// <summary>
+        /// Gets the forms and pages serving use cases (<see cref="ServesUseCaseAttribute"/>), of the app's assemblies and
+        /// of the plugins (their UI companions included); also added to the container. Null before
+        /// <see cref="Initialize"/>.
+        /// </summary>
+        public FormRegistry Forms { get; private set; }
+
+        /// <summary>
         /// Gets the application event types, event handlers and cron jobs of this build (also added to the
         /// container); null before <see cref="Initialize"/>.
         /// </summary>
@@ -158,6 +166,13 @@ namespace A5Soft.CARMA.Application.IoC
         protected abstract IEnumerable<Assembly> AppAssemblies { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the app is tenant based: its plugins then apply to the tenants they are
+        /// assigned to (the main menu among others), and none before a tenant is entered; otherwise every installed
+        /// plugin applies to everyone. Kept by the <see cref="PluginCatalog"/>.
+        /// </summary>
+        protected abstract bool IsTenantBased { get; }
+
+        /// <summary>
         /// Loads a plugin library into the app, e.g. into its own <c>AssemblyLoadContext</c> resolving its dependencies
         /// from the plugin folder. Called only if the plugins folder contains plugins.
         /// </summary>
@@ -167,10 +182,78 @@ namespace A5Soft.CARMA.Application.IoC
                 $"The plugins folder contains plugins: override {nameof(LoadPlugin)} to load them.");
 
         /// <summary>
+        /// Gets the key of the app's UI, e.g. "Blazor", "WinForms", "Avalonia" or "Razor": a plugin's UI companion for
+        /// it is the library named <c>{plugin library}.{UiKey}.dll</c> in the plugin folder, loaded with the plugin if
+        /// present (<see cref="PluginAssembly.UiAssembly"/>). Default: null, for an app without a UI of its own (a
+        /// server only) or whose plugins bring no UI.
+        /// </summary>
+        public virtual string UiKey => null;
+
+        /// <summary>
+        /// Loads the plugins, before they are validated. Default: from the plugin folders
+        /// (<see cref="IPluginsConfiguration"/>): in each folder its library (<see cref="LoadPlugin"/>), and its UI
+        /// companion for <see cref="UiKey"/> if present. Override where plugins do not come from folders, e.g. in a
+        /// Blazor WebAssembly app, to return the assemblies downloaded from the server
+        /// (<see cref="Plugins.Delivery.PluginDownloader"/>).
+        /// </summary>
+        /// <param name="configuration">the plugins configuration</param>
+        /// <returns>the plugins loaded, in any order</returns>
+        /// <exception cref="FileNotFoundException">a plugin folder does not contain its library</exception>
+        /// <exception cref="InvalidOperationException">a plugin library has no <see cref="PluginIdAttribute"/></exception>
+        protected virtual IReadOnlyList<PluginAssembly> LoadPlugins(IPluginsConfiguration configuration)
+        {
+            var result = new List<PluginAssembly>();
+            if (null == configuration || !Directory.Exists(configuration.FullPath)) return result;
+
+            foreach (var folder in Directory.EnumerateDirectories(configuration.FullPath))
+            {
+                var libraryPath = configuration.GetLibraryPath(folder);
+                if (!File.Exists(libraryPath)) throw new FileNotFoundException(
+                    $"Plugin folder {folder} does not contain the plugin library.", libraryPath);
+
+                var assembly = LoadPlugin(libraryPath) ?? throw new InvalidOperationException(
+                    $"{nameof(LoadPlugin)} returned no assembly for {libraryPath}.");
+
+                Assembly uiAssembly = null;
+                var uiPath = GetUiLibraryPath(libraryPath);
+                if (null != uiPath && File.Exists(uiPath)) uiAssembly = LoadPlugin(uiPath)
+                    ?? throw new InvalidOperationException($"{nameof(LoadPlugin)} returned no assembly for {uiPath}.");
+
+                result.Add(new PluginAssembly(assembly, folder, uiAssembly));   // throws without a PluginId
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the path of a plugin's UI companion for <see cref="UiKey"/>: <c>{library}.{UiKey}.dll</c> next to the
+        /// library; null if the app has no UI key.
+        /// </summary>
+        /// <param name="libraryPath">the path of the plugin library</param>
+        protected string GetUiLibraryPath(string libraryPath)
+        {
+            if (string.IsNullOrWhiteSpace(UiKey) || string.IsNullOrWhiteSpace(libraryPath)) return null;
+            return Path.Combine(Path.GetDirectoryName(libraryPath) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(libraryPath) + "." + UiKey.Trim() + ".dll");
+        }
+
+        /// <summary>
         /// Called for each plugin once it is accepted, e.g. to scan it for the app's own plugin interfaces. Throwing stops
         /// startup, as for a refused plugin. Default: nothing.
         /// </summary>
         protected virtual void OnPluginAccepted(PluginAssembly plugin) { }
+
+        /// <summary>
+        /// Registers the plugins' assemblies holding UI with the GUI framework, where it needs them registered to find
+        /// pages, views or components, e.g. as MVC/Razor Pages application parts. Called once during
+        /// <see cref="Initialize"/>, after every plugin is accepted, while services can still be added; only when there
+        /// are such assemblies. Default: nothing, which suits WinForms and Avalonia.
+        /// </summary>
+        /// <remarks>Blazor's router takes its assemblies as a component parameter, not a service: give it
+        /// <see cref="FormRegistry.PluginUiAssemblies"/> in App.razor instead.</remarks>
+        /// <param name="assemblies">the plugins' UI companions and plugin libraries holding forms
+        /// (<see cref="FormRegistry.PluginUiAssemblies"/>), in plugin identifier order</param>
+        protected virtual void RegisterPluginUiAssemblies(IReadOnlyList<Assembly> assemblies) { }
 
         /// <summary>
         /// Adds the app's system services, e.g. ones that depend on which plugins are loaded. Called once, after every
@@ -301,8 +384,9 @@ namespace A5Soft.CARMA.Application.IoC
 
             // the plugins configuration first: it says where the plugins are
             var pluginsService = CreateConfiguration(typeof(PluginsConfiguration));
+            var pluginUiScans = new List<AssemblyScan>();
             var pluginScans = AddPlugins((IPluginsConfiguration)pluginsService.ImplementationInstance,
-                appScans, composition, names);
+                appScans, composition, names, pluginUiScans);
 
             var (services, tenantServices) = composition.Build();
 
@@ -313,7 +397,8 @@ namespace A5Soft.CARMA.Application.IoC
 
             ValidateDependencies(services, tenantServices);
 
-            var configurations = frameworkScans.Concat(appScans).Concat(pluginScans)
+            var configurations = frameworkScans
+                .Concat(appScans).Concat(pluginScans).Concat(pluginUiScans)
                 .SelectMany(s => s.GetConfigurations(BuildConfiguration))
                 .Select(c => c.ImplementationType)
                 .Where(t => t != typeof(PluginsConfiguration))
@@ -322,7 +407,7 @@ namespace A5Soft.CARMA.Application.IoC
                 .Append(pluginsService)
                 .ToList();
 
-            var catalog = new PluginCatalog(_plugins);
+            var catalog = new PluginCatalog(_plugins, IsTenantBased);
             // permissions are declared by the app and its plugins only: the framework has none
             var permissions = PermissionCatalog.Create(
                 appScans.SelectMany(s => s.PermissionTypes).Select(t => (t, (string)null))
@@ -338,6 +423,12 @@ namespace A5Soft.CARMA.Application.IoC
             services.Add(Singleton(typeof(IDomainSettings), new DomainSettings(BindingMode)));
             services.Add(Singleton(typeof(IBuildInfo), new BuildInfo(BuildConfiguration)));
             services.Add(Singleton(typeof(PermissionCatalog), permissions));
+            // the forms and pages of the GUI (in the app's assemblies) and of the plugins (their UI companions included)
+            Forms = FormRegistry.Create(appScans.SelectMany(s => s.FormTypes), _plugins.Select(p => (p,
+                pluginScans.Concat(pluginUiScans).Where(s => s.Source == p.Assembly.FullName
+                    || s.Source == p.UiAssembly?.FullName).SelectMany(s => s.FormTypes))));
+            services.Add(Singleton(typeof(FormRegistry), Forms));
+            if (Forms.PluginUiAssemblies.Count > 0) RegisterPluginUiAssemblies(Forms.PluginUiAssemblies);
 
             // background work: from the final services, so a plugin's handlers and cron jobs are included
             var background = BackgroundWorkRegistry.Create(services,
@@ -374,43 +465,47 @@ namespace A5Soft.CARMA.Application.IoC
             => new[] { typeof(IDomainObject).Assembly, typeof(IoCManagerBase).Assembly }.Distinct().ToArray();
 
         /// <summary>
-        /// Loads every plugin folder, checks the identifiers, then validates and adds the plugins in identifier order:
-        /// the same on every machine whatever the folders are called, so the same plugin is refused everywhere.
+        /// Loads the plugins (<see cref="LoadPlugins"/>), checks the identifiers, then validates and adds the plugins in
+        /// identifier order: the same on every machine whatever the folders are called, so the same plugin is refused
+        /// everywhere.
         /// </summary>
+        /// <returns>the scans of the plugin libraries, in the order of <see cref="Plugins"/>; the scans of their UI
+        /// companions are added to <paramref name="uiScans"/></returns>
         private List<AssemblyScan> AddPlugins(IPluginsConfiguration configuration, List<AssemblyScan> appScans,
-            ServiceComposition composition, WireNames names)
+            ServiceComposition composition, WireNames names, List<AssemblyScan> uiScans)
         {
             var scans = new List<AssemblyScan>();
-            if (!Directory.Exists(configuration.FullPath)) return scans;
 
-            // 1. load every plugin folder
+            // 1. load every plugin
             var loaded = new List<PluginAssembly>();
-            foreach (var folder in Directory.EnumerateDirectories(configuration.FullPath))
+            foreach (var plugin in LoadPlugins(configuration) ?? Array.Empty<PluginAssembly>())
             {
-                var libraryPath = configuration.GetLibraryPath(folder);
-                if (!File.Exists(libraryPath)) throw new FileNotFoundException(
-                    $"Plugin folder {folder} does not contain the plugin library.", libraryPath);
-
-                var assembly = LoadPlugin(libraryPath) ?? throw new InvalidOperationException(
-                    $"{nameof(LoadPlugin)} returned no assembly for {libraryPath}.");
-
                 // the folders are the deployment: the same assembly twice is a deployment error, not something to skip
-                if (FrameworkAssemblies.Contains(assembly) || appScans.Any(s => s.Source == assembly.FullName)
-                    || loaded.Any(p => p.Assembly == assembly)) throw new InvalidOperationException(
-                    $"Plugin {libraryPath} is an assembly the app or another plugin already contains.");
+                if (null == plugin) throw new InvalidOperationException($"{nameof(LoadPlugins)} returned a null plugin.");
+                foreach (var assembly in new[] { plugin.Assembly, plugin.UiAssembly }.Where(a => null != a))
+                {
+                    if (FrameworkAssemblies.Contains(assembly) || appScans.Any(s => s.Source == assembly.FullName)
+                        || loaded.Any(p => p.Assembly == assembly || p.UiAssembly == assembly)
+                        || plugin.UiAssembly == plugin.Assembly)
+                        throw new InvalidOperationException($"Plugin {plugin.Folder}: {assembly.FullName} is an " +
+                            "assembly the app or another plugin already contains.");
+                }
 
-                loaded.Add(new PluginAssembly(assembly, folder));   // throws without a PluginId
+                loaded.Add(plugin);
             }
 
             // 2. identifiers unique
-            var duplicate = loaded.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
+            var duplicate = loaded.GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault(g => g.Count() > 1);
             if (null != duplicate) throw new InvalidOperationException(
                 $"Plugins {string.Join(" and ", duplicate)} have the same identifier {duplicate.Key}.");
 
             // 3. validate and add, in identifier order
             foreach (var plugin in loaded.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase))
             {
-                scans.Add(AddPlugin(plugin, composition, names));
+                var (scan, uiScan) = AddPlugin(plugin, composition, names);
+                scans.Add(scan);
+                if (null != uiScan) uiScans.Add(uiScan);
                 OnPluginAccepted(plugin);
             }
 
@@ -418,9 +513,10 @@ namespace A5Soft.CARMA.Application.IoC
         }
 
         /// <summary>
-        /// Validates a plugin and adds it; any violation refuses it, which stops startup.
+        /// Validates a plugin and adds it, with its UI companion; any violation refuses it, which stops startup.
         /// </summary>
-        private AssemblyScan AddPlugin(PluginAssembly plugin, ServiceComposition composition, WireNames names)
+        private (AssemblyScan Scan, AssemblyScan UiScan) AddPlugin(PluginAssembly plugin, ServiceComposition composition,
+            WireNames names)
         {
             var scan = AssemblyScan.Of(plugin.Assembly);
 
@@ -436,6 +532,15 @@ namespace A5Soft.CARMA.Application.IoC
 
             var menu = CreatePluginMenu(scan, violations);
 
+            // the UI companion: services and forms only, as only the plugin's UI loads it
+            AssemblyScan uiScan = null;
+            if (null != plugin.UiAssembly)
+            {
+                uiScan = AssemblyScan.Of(plugin.UiAssembly);
+                ValidateUiCompanion(plugin, uiScan, violations);
+                violations.AddRange(composition.Add(plugin, uiScan.GetServices(BuildConfiguration)));
+            }
+
             if (violations.Count > 0) throw new InvalidOperationException(
                 ConventionViolation.Format($"Plugin {plugin} is refused", violations));
 
@@ -443,8 +548,35 @@ namespace A5Soft.CARMA.Application.IoC
 
             // only an accepted plugin gets its native libraries loaded
             LoadUnmanagedAssemblies(scan, plugin.Folder);
+            if (null != uiScan) LoadUnmanagedAssemblies(uiScan, plugin.Folder);
             _plugins.Add(plugin);
-            return scan;
+            return (scan, uiScan);
+        }
+
+        /// <summary>
+        /// A plugin's UI companion holds the plugin's UI (forms, pages, components) and services for it. Anything the
+        /// other side of the data portal or another UI must know as well belongs in the plugin library, as only this
+        /// UI loads the companion.
+        /// </summary>
+        private static void ValidateUiCompanion(PluginAssembly plugin, AssemblyScan scan, List<ConventionViolation> violations)
+        {
+            void Refuse(Type type, string what) => violations.Add(new ConventionViolation(type, string.Empty,
+                $"is {what} in the UI companion {plugin.UiAssembly.GetName().Name}: it belongs in the plugin library"));
+
+            var id = plugin.UiAssembly.GetCustomAttribute<PluginIdAttribute>()?.Id?.Trim();
+            if (null != id && !string.Equals(id, plugin.Id, StringComparison.OrdinalIgnoreCase))
+                violations.Add(new ConventionViolation(typeof(PluginIdAttribute), string.Empty,
+                    $"of the UI companion {plugin.UiAssembly.GetName().Name} names plugin {id}, not {plugin.Id}"));
+
+            foreach (var type in scan.RemoteServices.Values) Refuse(type, "a remote use case or service");
+            foreach (var type in scan.ServiceImplementations.Select(s => s.InterfaceType)
+                .Where(i => null != i && i.IsDefined(typeof(LocalUseCaseAttribute), false)).Distinct())
+                Refuse(type, "a local use case");
+            foreach (var type in scan.TrustedWireTypes.Values) Refuse(type, "a type crossing the data portal");
+            foreach (var type in scan.IdentityTypes) Refuse(type, "an identity type");
+            foreach (var type in scan.PermissionTypes) Refuse(type, "a permission");
+            foreach (var type in scan.PluginMenuTypes) Refuse(type, "a menu part");
+            foreach (var type in scan.AppEventTypes) Refuse(type, "an application event");
         }
 
         /// <summary>

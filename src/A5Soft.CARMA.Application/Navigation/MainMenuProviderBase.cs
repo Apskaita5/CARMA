@@ -4,7 +4,6 @@ using A5Soft.CARMA.Application.IoC.Plugins;
 using A5Soft.CARMA.Domain;
 using A5Soft.CARMA.Domain.Metadata;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Resources;
 
@@ -13,16 +12,22 @@ namespace A5Soft.CARMA.Application.Navigation
     /// <summary>
     /// The base of the app's <see cref="IMainMenuProvider"/>: the app builds its menu in <see cref="Build"/>, with its
     /// <see cref="Resources"/>, and places the plugins' group in it (<see cref="MenuBuilder.PluginsGroup"/>); each
-    /// plugin of the scope's tenant adds one group to the plugins' group (<see cref="IPluginMenu"/>).
+    /// plugin of the scope's tenant adds its own group to the plugins' group, and its items to the app's groups open to
+    /// plugins (<see cref="IPluginMenu"/>).
     /// </summary>
     /// <remarks>
     /// <para>Everything the menu needs is local: the plugins (the same on the client and the server), the identity
     /// (permissions, tenant, the tenant's plugins), the authorization rules and the use case metadata. Build the
     /// menu again when the scope changes (login, tenant); call <see cref="MainMenu.Refresh"/> when the identity
     /// changes within the scope, or the UI language changes.</para>
+    /// <para>The plugins are those that apply to the scope (<see cref="PluginCatalog.GetScopePlugins"/>): the
+    /// tenant's in a tenant based app, every installed one otherwise.</para>
     /// <para>The plugins' group is wherever the app places it, at the top level or in one of its groups, and is
-    /// there only if a plugin of the tenant has a menu. Its key, <see cref="PluginsGroupKey"/>, and the keys under it
-    /// are reserved for the plugins. The plugins' own groups are sorted by their labels.</para>
+    /// there only if a plugin of the tenant has a group of its own with a use case item. Its key,
+    /// <see cref="PluginsGroupKey"/>, and the keys under it are reserved for the plugins. The plugins' own groups are
+    /// sorted by their labels.</para>
+    /// <para>A group the app creates with openToPlugins (e.g. Reports) takes the plugins' own items after the app's,
+    /// each plugin's after a separator, the plugins in the order of their labels.</para>
     /// <para>A use case item is enabled if the identity may invoke the use case and, for a tenant scoped one, the
     /// scope has a tenant; a group if any of its items is enabled.</para>
     /// <para>Publish the keys of the app's groups as public constants of the derived class: the GUI app adds to a
@@ -63,13 +68,6 @@ namespace A5Soft.CARMA.Application.Navigation
         /// </summary>
         protected abstract ResourceManager Resources { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether the app is tenant based. If it is, the menu has the plugins assigned to the
-        /// scope's tenant (<see cref="CarmaIdentity.TenantPlugins"/>), and none before a tenant is entered; if not,
-        /// every installed plugin, for every user.
-        /// </summary>
-        protected abstract bool IsTenantBased { get; }
-
 
         /// <summary>
         /// Gets the key of a plugin's group (under <see cref="PluginsGroupKey"/>).
@@ -78,21 +76,26 @@ namespace A5Soft.CARMA.Application.Navigation
         public static string GetPluginGroupKey(string pluginId) => PluginsGroupKey + "." + pluginId;
 
         /// <inheritdoc />
-        /// <exception cref="InvalidOperationException">a plugin of the tenant has a menu, but <see cref="Build"/> has not
-        /// placed the plugins' group</exception>
+        /// <exception cref="InvalidOperationException">a plugin of the tenant has a group of its own, but
+        /// <see cref="Build"/> has not placed the plugins' group; or a plugin extends a group of the app that does not
+        /// exist or is not open to plugins</exception>
         public MainMenu GetMenu()
         {
-            var plugins = GetScopePlugins().Where(p => null != p.Menu).ToList();
+            var plugins = _plugins.GetScopePlugins(_authentication.Identity).Where(p => null != p.Menu).ToList();
 
-            // the replacements first: every item is created with them applied
-            var menu = new MainMenu(_metadata, GetReplacements(plugins), plugins, Authorize);
+            // the plugins' own groups first, so that the app's PluginsGroup can place them
+            var menu = new MainMenu(_metadata, plugins, Authorize);
+            menu.BuildPluginGroups();
 
-            Build(new MenuBuilder(menu, null, new MenuPart(GetType().Name, Resources, _metadata)));
+            Build(new MenuBuilder(menu, null, new MenuPart(GetType().Name, Resources, _metadata, isApp: true)));
 
-            if (plugins.Count > 0 && !menu.PluginsPlaced) throw new InvalidOperationException(
-                $"The tenant's plugins ({string.Join(", ", plugins.Select(p => p.Id))}) have menus, but " +
+            if (menu.HasPluginGroups && !menu.PluginsPlaced) throw new InvalidOperationException(
+                $"The tenant's plugins ({string.Join(", ", plugins.Select(p => p.Id))}) have groups of their own, but " +
                 $"{GetType().Name}.{nameof(Build)} has not placed the plugins' group: call " +
                 $"{nameof(MenuBuilder.PluginsGroup)} where it belongs.");
+
+            // then their items in the app's groups open to plugins, after the app's items
+            menu.ApplyPluginExtensions();
 
             menu.TrimSeparators();
             menu.Refresh();
@@ -108,41 +111,6 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <param name="menu">the builder</param>
         protected abstract void Build(MenuBuilder menu);
 
-
-        private IEnumerable<PluginAssembly> GetScopePlugins()
-        {
-            if (!IsTenantBased) return _plugins.Plugins;
-
-            var identity = _authentication.Identity;
-            if (string.IsNullOrWhiteSpace(identity.TenantId)) return Enumerable.Empty<PluginAssembly>();
-
-            var installed = _plugins.Plugins.ToDictionary(p => p.Id, StringComparer.OrdinalIgnoreCase);
-
-            return identity.TenantPlugins.Where(installed.ContainsKey).Select(id => installed[id]);
-        }
-
-        private static IReadOnlyDictionary<Type, Type> GetReplacements(IEnumerable<PluginAssembly> plugins)
-        {
-            var replacements = new Dictionary<Type, (Type UseCase, string PluginId)>();
-
-            foreach (var plugin in plugins.Where(p => null != p.Menu))
-            {
-                foreach (var replacement in plugin.Menu.GetUseCaseReplacements() ?? new Dictionary<Type, Type>())
-                {
-                    MenuPart.EnsureUseCase(replacement.Key, "key");
-                    MenuPart.EnsureUseCase(replacement.Value, "value");
-                    if (replacement.Key.Assembly == plugin.Assembly || replacement.Value.Assembly != plugin.Assembly)
-                        throw new InvalidOperationException($"Plugin {plugin.Id} can only replace an app use case " +
-                            $"with its own ({replacement.Key.FullName} with {replacement.Value.FullName}).");
-                    if (replacements.TryGetValue(replacement.Key, out var other)) throw new InvalidOperationException(
-                        $"Plugins {other.PluginId} and {plugin.Id} both replace {replacement.Key.FullName}.");
-
-                    replacements.Add(replacement.Key, (replacement.Value, plugin.Id));
-                }
-            }
-
-            return replacements.ToDictionary(r => r.Key, r => r.Value.UseCase);
-        }
 
         private void Authorize(MainMenu menu)
         {

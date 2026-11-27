@@ -10,8 +10,7 @@ namespace A5Soft.CARMA.Application.Navigation
     /// <remarks>
     /// <para>A group has a key, unique within the menu, and a text key, the key of its label in the resources of the
     /// part that creates it: two groups may share a label (e.g. Advanced), never a key.</para>
-    /// <para>A use case item's title is the use case's menu title (its metadata). If a plugin of the tenant replaces
-    /// the use case, the item opens the plugin's use case, with the same title.</para>
+    /// <para>A use case item's title is the use case's menu title (its metadata).</para>
     /// </remarks>
     /// <typeparam name="TBuilder">the type of the builder</typeparam>
     public abstract class MenuBuilderBase<TBuilder> where TBuilder : MenuBuilderBase<TBuilder>
@@ -38,13 +37,21 @@ namespace A5Soft.CARMA.Application.Navigation
         /// <param name="textKey">the key of the group's label in this part's resources</param>
         /// <param name="build">builds the items of the group</param>
         /// <param name="icon">the icon of the group, if any</param>
+        /// <param name="openToPlugins">whether the tenant's plugins may append their own items to the group, after the
+        /// app's (<see cref="IPluginMenu.Extend"/>); only the app opens its groups (<see cref="MenuBuilder"/>)</param>
         /// <returns>this builder, to go on at this level</returns>
-        /// <exception cref="InvalidOperationException">the menu has a group with the key already</exception>
-        public TBuilder Group(string key, string textKey, Action<TBuilder> build, string icon = null)
+        /// <exception cref="InvalidOperationException">the menu has a group with the key already; or a plugin or the
+        /// GUI app opens a group to plugins</exception>
+        public TBuilder Group(string key, string textKey, Action<TBuilder> build, string icon = null,
+            bool openToPlugins = false)
         {
+            if (openToPlugins && !Part.IsApp) throw new InvalidOperationException(
+                $"Only the app opens its groups to plugins; {Part.Owner} cannot open group '{key}'.");
+
             var group = MenuItem.CreateGroup(Part.GroupKey(key), Part.Text(textKey), icon);
 
-            Menu.RegisterGroup(group, Part.Owner);
+            Menu.RegisterGroup(group, Part.Owner, openToPlugins);
+
             Add(group);
 
             build?.Invoke(Nested(group));
@@ -73,7 +80,7 @@ namespace A5Soft.CARMA.Application.Navigation
             var metadata = Part.Metadata.GetUseCaseMetadata(useCaseType) ?? throw new InvalidOperationException(
                 $"There is no metadata for use case {useCaseType.FullName}.");
 
-            Add(MenuItem.CreateUseCase(Menu.Resolve(useCaseType), metadata.GetMenuTitle, icon));
+            Add(MenuItem.CreateUseCase(useCaseType, metadata.GetMenuTitle, icon));
 
             return (TBuilder)this;
         }
